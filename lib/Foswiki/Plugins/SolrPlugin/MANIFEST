@@ -30,6 +30,8 @@ pub/System/SolrPlugin/toggle-collapse.png 0644
 pub/System/SolrPlugin/toggle.png 0644
 pub/System/SolrPlugin/toggle-small-collapse.png 0644
 pub/System/SolrPlugin/toggle-small.png 0644
+pub/System/SolrPlugin/SolrPluginSnap1.png 0644
+pub/System/SolrPlugin/SolrPluginSnap2.png 0644
 solr/60solr.policy 0644
 solr/etc/jetty.xml 0644
 solr/etc/webdefault.xml 0644

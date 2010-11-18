@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1290090490" format="1.1" reprev="5" version="5"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1290091423" format="1.1" reprev="5" version="5"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -185,6 +185,13 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 ---++ Solr indexing schema
 
 ---++ Screenshots
+<a href="%ATTACHURLPATH%/SolrPluginSnap1.png" class="foswikiImage">
+  <img src="%ATTACHURLPATH%/SolrPluginSnap1.png" width="300" />
+</a>
+
+<a href="%ATTACHURLPATH%/SolrPluginSnap2.png" class="foswikiImage">
+  <img src="%ATTACHURLPATH%/SolrPluginSnap2.png" width="300" />
+</a>
 
 ---++ Plugin Info
 <!--
@@ -198,4 +205,6 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 
-%META:FILEATTACHMENT{name="SolrPlugin-bin.tar.gz" attachment="SolrPlubin-bin.tar.gz" attr="" comment="" date="1290089830" size="36686861" user="micha" version="1"}%
+%META:FILEATTACHMENT{name="SolrPlugin-bin.tar.gz" attachment="SolrPlubin-bin.tar.gz" attr="" comment="" date="1290089830" size="36686861" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1290091281" size="93552" user="micha" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1290091283" size="158013" user="micha" version="1"}%
