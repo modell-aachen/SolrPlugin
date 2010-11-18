@@ -1,0 +1,26 @@
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1254418741" format="1.1" reprev="1.2" version="1.2"}%
+%META:TOPICPARENT{name="SolrPlugin"}%
+%TMPL:INCLUDE{"SolrSearchBase"}%
+%TMPL:DEF{"websidebar"}%%TMPL:P{"solr::sidebar"}%%TMPL:END%
+%TMPL:DEF{"topicaction"}%%TMPL:END%
+%TMPL:DEF{"topicinfo"}%%TMPL:END%
+%TMPL:DEF{"breadcrumb:annotation"}%%TMPL:END%
+%TMPL:DEF{"top:toolbarbuttons"}%%TMPL:END%
+%TMPL:DEF{"solr::css"}%<style type="text/css">
+#patternSideBarContents h2 {
+  margin:0px -10px 0.35em;
+}
+#patternSideBarContents a:link,
+#patternSideBarContents a:visited {
+  color:#4571D0;
+}
+#patternSideBarContents ul {
+  margin:0px 0px 1em;
+}
+.solrSearch .foswikiFormSteps hr {
+  margin:1em -40px;
+}
+.patternMetaMenu {
+  display:none;
+}
+</style>%TMPL:END%

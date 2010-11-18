@@ -1,0 +1,9 @@
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"WebChangesView"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"revinfo"}%%TMPL:END%
+%TMPL:DEF{"bodyclass"}%natViewBody natSolrWebChangesBody%TMPL:END%
+%{</verbatim>}%
+

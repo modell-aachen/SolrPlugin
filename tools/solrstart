@@ -1,0 +1,24 @@
+#!/bin/sh
+
+# script to start the solr engine using jetty 
+
+# configure section
+test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=~/foswiki/trunk/core
+
+# directory where the solr home and the jetty engine is in
+SOLRHOME=$1
+test -z $SOLRHOME && SOLRHOME=$FOSWIKI_ROOT/solr-run
+
+test -d $SOLRHOME || {
+  echo "ERROR can't find a solr home at $SOLRHOME"
+  exit 1
+}
+
+cd $SOLRHOME || {
+  echo "ERROR can't change directory to $SOLRHOME"
+  exit 2
+}
+
+nohup java -jar start.jar >/dev/null &
+
+exit 0

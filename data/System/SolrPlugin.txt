@@ -1,0 +1,185 @@
+%META:TOPICINFO{author="micha" comment="reprev" date="1290086117" format="1.1" reprev="4" version="4"}%
+%META:TOPICPARENT{name="Plugins"}%
+---+ Solr Plugin
+%SHORTDESCRIPTION%
+
+%TOC%
+
+---++ About Solr
+Solr is an open source enterprise search server based on the Lucene Java search
+library, with XML/HTTP and JSON APIs, hit highlighting, faceted search,
+caching, replication, and a web administration interface. It runs in a Java
+servlet container such as Tomcat. 
+
+This extension comes with a preconfigured jetty configurd to run a Solr webapp
+right away.
+
+---++ Installation
+First follow the normal plugin instructions as follows.
+%$INSTALL_INSTRUCTIONS%
+
+---+++ Starting the Solr webservice
+The !SolrPlugin will send all content to be indexed to a Solr webservice via HTTP.
+So you will need to install a Solr webservice in a servlet container
+of your choice, e.g. [[http://tomcat.apache.org/][tomcat]] or [[http://jetdfty.codehaus.org/jetty/][jetty]]. 
+
+!SolrPlugin comes with a ready-to use jetty engine configured
+to start a Solr server on the host the foswiki engine is running. 
+This can be either started manually using the =solrstart= tool or be launched automatically
+if !SolrPlugin can't ping the server. 
+
+By default Solr listens to port 8983 on the localhost and is configured to only
+allow connections from localhost for security reasons. You can change these
+settings in
+
+<verbatim>
+<foswiki-dir>/solr-run/etc/jetty.xml
+</verbatim>
+
+After checking these settings start the Solr daemon in the background using
+
+<verbatim>
+<foswiki-dir>/tools/solrstart
+</verbatim>
+
+Make sure that Foswiki is configured to contact the Solr server at the correct 
+url in [[%SCRIPTURL{"configure"}%][configure]]. 
+
+Now test that SolrSearch is working fine. Note that it won't show any search results
+by now as we didn't index any content yet.
+
+---+++ Indexing existing content offline
+Before using SolrSearch you will need to index your content completely. Afterwards
+Foswiki will keep the index up-to-date whenever you change a topic or upload another attachment.
+
+Let's first test if the indexer is working fine by indexing a single topic:
+
+<verbatim>
+<foswiki-dir>/tools/solrindex topic=Main.WebHome
+</verbatim>
+
+Now check if this topic shows up in SolrSearch.
+
+If that worked out fine go for the complete thing:
+
+<verbatim>
+<foswiki-dir>/tools/solrindex mode=full optimize=on
+</verbatim>
+
+This will crawl all webs, topics and attachment and submit them to the Solr server which in turn
+will build up the search index. This can take a while depending on the amount of content and number of users
+registered to your site already. During this process attachments are "stringified" using the StringifierContrib, that is
+they are converted into a plain text format that Solr can read. !SolrPlugin will cache
+the stringified version of all attachments and only process them again if the corresponding
+binary version has changed. Thus a next full index run will process significant faster.
+
+!SolrPlugin does read the access rights of all users to a docuemnt while indexing it.
+This access control information is indexed together with the document to secure entries
+in the database. Any request will take these under consideration so that only users with
+view rights to a document can retrieve it using !SolrSearch.
+
+---+++ Setting up immediate indexing
+Whenever a topic or attachment in Foswiki changes, solr has to read the changed documents and update
+its index. This can either be done immediately when a topic is saved, an attachment is uploaded or moved
+to a different location. This can be configured to your needs:
+
+Enable/disable updates on save:
+<verbatim>
+$Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates} = 0;
+</verbatim>
+
+Enable/disable updates when a new attachment has been uploaded:
+<verbatim>
+$Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
+</verbatim>
+
+Enable/disable updates when a topic or attachment has been moved or deleted:
+<verbatim>
+$Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
+</verbatim>
+
+All but the latter are disabled by default. That's because updating solr's index might take a noticable amount of time
+when clickin on "save" in the wiki editor, even more when the saved topic has got a lot of attachments as when the topic updates all of its attachments are reindexed as well.
+
+The =EnableOnRenameUpdates= is _enabled_ by default as this does influence the solr index and the way it displays search results significantly. 
+
+---+++ Setting up offline indexing
+In any case it is strongly recommended to *fully reindex* all of your documents regularly, presumably every 24h at nite.
+To achieve this install a cron-job like this one:
+
+<verbatim>
+0 0 * * * (cd <foswiki-dir>/tools; /usr/bin/time ./solrindex mode=full optimize=on ><foswiki-dir>/working/logs/solrindex.log 2>&1)
+</verbatim>
+
+This will read all existing webs one by one and re-index all topics and attachments. Afterwards the index is optimized for size and performance.
+
+In addition you'd like to set up *delta indexing* in a rather short term, by reindexing all documents that changed since
+the last time the delta indexing was performed. This is set up using a cron job like this:
+
+<verbatim>
+0-59/5 * * * * (cd <foswiki-dir>/tools; /usr/bin/time ./solrindex mode=delta >><foswiki-dir>/working/logs/solrindex.log 2>&1)
+</verbatim>
+
+This will start =solrindex= in delta mode every 5 minutes. You could even think about shortening this interval even more. However 5 minutes seems to be a good tradeoff of wasting resources vs. having all content updated in a timely manor. 
+
+Note that delta indexing is strongly recommended when one of the settings =EnableOnSaveUpdates=, =EnableOnUploadUpdates= or =EnableOnRenameUpdates= is disabled.
+
+---++ Usage
+
+---+++ Facetted search interface
+
+---+++ Macros
+
+---++++ SOLRSEARCH
+
+---++++ SOLRFORMAT
+
+---++++ SOLRSIMILAR
+
+---+++ Rest inteface
+
+---++++ search
+
+---++++ terms
+
+---++++ similar
+
+---++++ autocomplete
+
+---+++ Commandline tools
+
+---++++ solrstart
+
+---++++ solrindex
+
+---++++ solrdelete
+
+---+++ Perl interface
+
+---++++ registerIndexTopicHandler()
+
+---++++ registerIndexAttachmentHandler()
+
+---++ Templates
+
+---+++ Structure of !SolrSearchBaseTemplate
+
+---+++ Replacing !WebSearch and !WebChanges
+
+---+++ Creating custom search interfaces
+
+---++ Solr indexing schema
+
+---++ Screenshots
+
+---++ Plugin Info
+<!--
+   * Set SHORTDESCRIPTION = Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]
+-->
+|  Author: | Foswiki:Main.MichaelDaum|
+|  Copyright: | &copy; 2009-2010, Michael Daum http://michaeldaumconsulting.com |
+|  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
+|  Release: | %$RELEASE% |
+|  Version: | %$VERSION% |
+|  Home: | Foswiki:Extensions/%TOPIC% |
+|  Support: | Foswiki:Support/%TOPIC% |

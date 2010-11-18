@@ -1,0 +1,9 @@
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1273502467" format="1.1" reprev="2" version="2"}%
+%META:TOPICPARENT{name="SolrPlugin"}%
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"SolrSearchBase"}%
+%TMPL:DEF{"sidebar"}%%TMPL:P{"solr::sidebar"}%%TMPL:END%
+%TMPL:DEF{"searchbox"}%%TMPL:END%
+%TMPL:DEF{"revinfo"}%%TMPL:END%
+%TMPL:DEF{"bodyclass"}%natViewBody natSolrBody%TMPL:END%
+%{</verbatim>}%
