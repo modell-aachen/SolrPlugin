@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1290086117" format="1.1" reprev="4" version="4"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1290090490" format="1.1" reprev="5" version="5"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -18,13 +18,27 @@ right away.
 First follow the normal plugin instructions as follows.
 %$INSTALL_INSTRUCTIONS%
 
+---+++ Downloading !SolrPlugin-bin
+
+!SolrPlugin is distributed in two parts:
+
+   1 !SolrPlugin: the Foswiki specific part and 
+   2 !SolrPlugin-bin: java binary package containing the latest stable solr, jetty and other required jar packages
+
+Both have to be downloaded and installed. They are available at Foswiki:Extensions/SolrPlugin.
+After downloading both have to be unpacked in your Foswiki installation directory (&lt;foswiki-dir>).
+The reason for this split is to provide one light-weighted Foswiki plugin in terms of download size, whereas the
+!SolrPlugin-bin part comprises the most current stable release of solr. The bin part will most likely only
+change when there is a new release of the solr software itself, whereas the Foswiki part might change more often.
+So you won't need to download !SolrPlugin-bin yet again when upgrading !SolrPlugin.
+
 ---+++ Starting the Solr webservice
 The !SolrPlugin will send all content to be indexed to a Solr webservice via HTTP.
 So you will need to install a Solr webservice in a servlet container
 of your choice, e.g. [[http://tomcat.apache.org/][tomcat]] or [[http://jetdfty.codehaus.org/jetty/][jetty]]. 
 
 !SolrPlugin comes with a ready-to use jetty engine configured
-to start a Solr server on the host the foswiki engine is running. 
+to start a Solr server on the host the Foswiki engine is running. 
 This can be either started manually using the =solrstart= tool or be launched automatically
 if !SolrPlugin can't ping the server. 
 
@@ -183,3 +197,5 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Version: | %$VERSION% |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
+
+%META:FILEATTACHMENT{name="SolrPlugin-bin.tar.gz" attachment="SolrPlubin-bin.tar.gz" attr="" comment="" date="1290089830" size="36686861" user="micha" version="1"}%
