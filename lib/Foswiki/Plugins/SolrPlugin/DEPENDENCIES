@@ -1,7 +1,9 @@
-Unicode::MapUTF8,>=1.11,cpan,Required. 
-JSON::XS (),>=2.231,perl,Required.
+AutoTemplatePlugin,>=1.0,perl,Required.
+ClassificationPlugin,>=1.0,perl,Optional.
+JSON::XS,>=2.231,perl,Required.
 LWP::UserAgent,>=5.820,perl,Required.
 Moose,>=0.63,perl,Required.
 StringifierContrib,>=1.0,perl,Required.
-AutoTemplatePlugin,>=1.0,perl,Required.
+TagCloudPlugin,>=1.0,perl,Required.
+Unicode::MapUTF8,>=1.11,cpan,Required. 
 XML::Generator,>=1.01,perl,Required.

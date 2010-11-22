@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1290091423" format="1.1" reprev="5" version="5"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1290091423" format="1.1" reprev="5" version="5"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -140,7 +140,7 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 
 ---++ Usage
 
----+++ Facetted search interface
+---+++ Faceted search interface
 
 ---+++ Macros
 
@@ -204,7 +204,10 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Version: | %$VERSION% |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
+|  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  22 Nov 2010: | fixes integration with pattern skin |
+|  18 Nov 2010: | initial public release |
 
 %META:FILEATTACHMENT{name="SolrPlugin-bin.tar.gz" attachment="SolrPlubin-bin.tar.gz" attr="" comment="" date="1290089830" size="36686861" user="ProjectContributor" version="1"}%
-%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1290091281" size="93552" user="micha" version="1"}%
-%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1290091283" size="158013" user="micha" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1290091281" size="93552" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1290091283" size="158013" user="ProjectContributor" version="1"}%

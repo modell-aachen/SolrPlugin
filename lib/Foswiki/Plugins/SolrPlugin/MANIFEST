@@ -19,10 +19,16 @@ lib/WebService/Solr.pm 0644
 lib/WebService/Solr/Query.pm 0644
 lib/WebService/Solr/Response.pm 0644
 pub/System/SolrPlugin/Makefile 0644
+pub/System/SolrPlugin/pattern.css 0644
+pub/System/SolrPlugin/pattern.css.gz 0644
+pub/System/SolrPlugin/pattern.uncompressed.css 0644
+pub/System/SolrPlugin/SolrPlugin-bin.tar.gz 0644
 pub/System/SolrPlugin/solrplugin.css 0644
 pub/System/SolrPlugin/solrplugin.css.gz 0644
 pub/System/SolrPlugin/solrplugin.js 0644
 pub/System/SolrPlugin/solrplugin.js.gz 0644
+pub/System/SolrPlugin/SolrPluginSnap1.png 0644
+pub/System/SolrPlugin/SolrPluginSnap2.png 0644
 pub/System/SolrPlugin/solrplugin.uncompressed.css 0644
 pub/System/SolrPlugin/solrplugin.uncompressed.js 0644
 pub/System/SolrPlugin/stripes-bg.png 0644
@@ -30,8 +36,6 @@ pub/System/SolrPlugin/toggle-collapse.png 0644
 pub/System/SolrPlugin/toggle.png 0644
 pub/System/SolrPlugin/toggle-small-collapse.png 0644
 pub/System/SolrPlugin/toggle-small.png 0644
-pub/System/SolrPlugin/SolrPluginSnap1.png 0644
-pub/System/SolrPlugin/SolrPluginSnap2.png 0644
 solr/60solr.policy 0644
 solr/etc/jetty.xml 0644
 solr/etc/webdefault.xml 0644
