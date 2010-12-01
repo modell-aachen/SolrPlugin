@@ -18,7 +18,7 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
   
 our $VERSION = '$Rev: 20091124 (2009-11-24) $';
-our $RELEASE = '1.01';
+our $RELEASE = '1.02';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseWeb;

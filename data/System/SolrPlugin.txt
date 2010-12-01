@@ -205,6 +205,8 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  01 Dec 2010: | adjustments due to changes in stringifier api; \
+                  fixed removal of deleted webs from search index |
 |  22 Nov 2010: | fixes integration with pattern skin |
 |  18 Nov 2010: | initial public release |
 
