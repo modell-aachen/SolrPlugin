@@ -292,7 +292,7 @@
     <table class='foswikiLayoutTable' width='100%'>
       <tr>
       <td width='12px'>
-        <input type='%input%' autocomplete='off' class='solrFacetValue solrFacetValue_%id%' value='%value%' $percntIF{\"not '%title%'=~'%'\" then=\"title='%title%'\"}$percnt id='%value%' name='filter_%id%' />
+        <input type='%input%' autocomplete='off' class='solrFacetValue solrFacetValue_%id%' value='%value%' $percntIF{\"defined title\" then=\"title='%title%'\"}$percnt id='%value%' name='filter_%id%' />
       </td>
       <td><label for='%value%' style='display:block'>%format%</label></td>
       </tr>
@@ -642,7 +642,11 @@
     <td><input type="text" class="foswikiInputField jqFocus solrSearchField" name="search" size="30" value="%URLPARAM{"search" encode="entity"}%" style="float:left;margin-right:8px;"/></td>
     <td>
       %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find"}%
-      %BUTTON{"%MAKETEXT{"Cancel"}%" icon="cross" title="%MAKETEXT{"back to [_1]" args="%GETTOPICTITLE{"%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"}%"}%" target="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"}%
+      %BUTTON{"%MAKETEXT{"Cancel"}%" 
+        icon="cross" 
+        target="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"
+        title="%MAKETEXT{"back to [_1]" args="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"}%"
+      }%
     </td>
     <!-- td><a href="%SCRIPTURL{"view"}%/%BASEWEB%/%BASETOPIC%">%MAKETEXT{"Start over"}%</a></td-->
   </tr>
@@ -754,7 +758,7 @@
 %TMPL:DEF{"solr::format::list::topic"}%<!-- format:topic -->
 <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
   [[%web%.%topic%][%topic%]]
-  <span class="foswikiGrayText">in [[%web%.%HOMETOPIC%][%GETTOPICTITLE{"%web%.%HOMETOPIC%" default="%web%"}%]]</span>
+  <span class="foswikiGrayText">in %WEBLINK{"%web%"}%</span>
 </h3>
 <div class='solrHilite'>
   <literal>%hilite%</literal>

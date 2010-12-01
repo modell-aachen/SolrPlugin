@@ -898,12 +898,14 @@ sub getFacetParams {
 
   return $solrParams unless $theFacets || $theFacetQuery;
 
-  my $theFacetLimit = $params->{facetlimit} || '';
+  my $theFacetLimit = $params->{facetlimit};
   my $theFacetSort = $params->{facetsort} || '';
   my $theFacetOffset = $params->{facetoffset};
   my $theFacetMinCount = $params->{facetmincount};
   my $theFacetPrefix = $params->{facetprefix};
   my $theContributor = $params->{contributor};
+
+  $theFacetLimit = '' unless defined $theFacetLimit;
 
   # parse facet limit
   my %facetLimit;
@@ -1311,5 +1313,31 @@ sub urlDecode {
 
   return $text;
 }
+
+################################################################################
+sub getListOfWebs {
+  my $this = shift;
+
+  my @webs = ();
+
+  my $homeTopic = $Foswiki::cfg{HomeTopicName} || 'WebHome';
+  my $response = $this->doSearch("*", {
+    fields => "none",
+    facets => "web",
+    facetlimit => "web=100",
+  });
+
+  my $facets = $this->getFacets($response);
+  return @webs unless $facets;
+
+  my $webFacet = $facets->{facet_fields}{"web"};
+  my $len = scalar(@$webFacet);
+  for (my $i = 0; $i < $len; $i+=2) {
+    push @webs, $webFacet->[$i];
+  }
+
+  return @webs;
+}
+
 
 1;

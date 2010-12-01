@@ -25,7 +25,7 @@ use Foswiki::Plugins::SolrPlugin ();
 use Foswiki::Form ();
 use Foswiki::OopsException ();
 use Foswiki::Time ();
-use Foswiki::Contrib::StringifierContrib ();
+use Foswiki::Contrib::Stringifier ();
 
 use Time::HiRes ();
 
@@ -127,7 +127,16 @@ sub update {
 
   $mode ||= 'full';
 
-  my @webs;
+  # check if old webs still exist
+  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
+  my @webs = $searcher->getListOfWebs();
+
+  #print STDERR "webs=".join(", ", @webs)."\n";
+  foreach my $thisWeb (@webs) {
+    next if Foswiki::Func::webExists($thisWeb);
+    $this->log("$thisWeb doesn't exist anymore ... deleting");
+    $this->deleteWeb($thisWeb);
+  }
 
   if (!defined($web) || $web eq 'all') {
     @webs = Foswiki::Func::getListOfWebs("user");
@@ -749,7 +758,7 @@ sub getStringifiedVersion {
   my $attText = '';
   if ($origModified > $cachedModified) {
     #$this->log("caching stringified version of $attachment in $cachedFilename");
-    $attText = Foswiki::Contrib::StringifierContrib->stringFor($filename) || '';
+    $attText = Foswiki::Contrib::Stringifier->stringFor($filename) || '';
     Foswiki::Func::saveFile($cachedFilename, $attText);
   } else {
     #$this->log("found stringified version of $attachment in cache");

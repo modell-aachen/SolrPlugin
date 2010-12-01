@@ -222,7 +222,7 @@
   margin:0em;
   padding:0em;
   float:left;
-  width:200px;
+  width:15.3846em; /* 200px */
   overflow:hidden;
 }
 .solrFacetPagerButtons {
