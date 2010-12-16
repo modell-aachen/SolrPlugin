@@ -494,6 +494,16 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       }
     });
 
+    /* behavior for hover */
+    $(".solrSearchHit").hover(
+      function() {
+        $(this).addClass("solrSearchHitHover");
+      }, 
+      function() {
+        $(this).removeClass("solrSearchHitHover");
+      }
+    );
+
     /* switch on */
     self.showSelection();
     $(".solrYourSelection label").css('visibility', 'hidden');

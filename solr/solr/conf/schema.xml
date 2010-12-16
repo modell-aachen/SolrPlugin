@@ -545,6 +545,11 @@
    <field name="substrings" type="text_substring" multiValued="true" />
    <field name="phonetic" type="phonetic" multiValued="true" />
 
+   <!-- state: used by comments or any other application that tracks specific states of a topic;
+        example values are: new, unapproved, approved, draft, unpublished, published, ...
+    -->
+   <field name="state" type="string" stored="false" />
+
    <!-- TOPICS: -->
    <field name="parent" type="string" />
 

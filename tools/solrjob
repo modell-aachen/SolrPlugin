@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# location of the foswiki install
+test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=/home/www-data/foswiki/trunk/core
+
+# location of the solr indexer log file
+LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
+
+# number of seconds until solrindex is executed. this helps to keep the indexing burden
+# low when iwatch fires a lot of events in a short period of time
+THROTTLE=10
+
+# lock file
+LOCKFILE=/var/lock/solrindex.lock
+
+# set time format
+TIME="%E real, %U user, %S system"
+
+# read cmd params
+MODE=$1
+test -z $MODE && MODE=delta
+
+export TIME
+
+(
+  /usr/bin/flock -x -n 200 &&  (
+    #echo "indexing in $THROTTLE seconds" >&2
+    sleep $THROTTLE
+
+    cd $FOSWIKI_ROOT/tools 
+    if test "$MODE" = "delta"; then
+      /usr/bin/time ./solrindex mode=delta >> $LOG 2>&1
+    else
+      /usr/bin/time ./solrindex mode=full optimize=on > $LOG 2>&1
+    fi
+  )
+) 200>$LOCKFILE&

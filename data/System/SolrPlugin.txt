@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1290091423" format="1.1" reprev="5" version="5"}%
+%META:TOPICINFO{author="micha" comment="reprev" date="1291890836" format="1.1" reprev="6" version="7"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -122,7 +122,7 @@ In any case it is strongly recommended to *fully reindex* all of your documents 
 To achieve this install a cron-job like this one:
 
 <verbatim>
-0 0 * * * (cd <foswiki-dir>/tools; /usr/bin/time ./solrindex mode=full optimize=on ><foswiki-dir>/working/logs/solrindex.log 2>&1)
+0 0 * * * <foswiki-dir>/tools/solrjob full
 </verbatim>
 
 This will read all existing webs one by one and re-index all topics and attachments. Afterwards the index is optimized for size and performance.
@@ -131,10 +131,29 @@ In addition you'd like to set up *delta indexing* in a rather short term, by rei
 the last time the delta indexing was performed. This is set up using a cron job like this:
 
 <verbatim>
-0-59/5 * * * * (cd <foswiki-dir>/tools; /usr/bin/time ./solrindex mode=delta >><foswiki-dir>/working/logs/solrindex.log 2>&1)
+0-59/5 * * * * <foswiki-dir>/tools/solrjob delta
 </verbatim>
 
 This will start =solrindex= in delta mode every 5 minutes. You could even think about shortening this interval even more. However 5 minutes seems to be a good tradeoff of wasting resources vs. having all content updated in a timely manner. 
+
+Instead of waiting for cron to trigger the delta indexing job, [[http://iwatch.sourceforge.net/][iwatch]] is a much better alternative giving you near-realtime indexing. Iwatch is available on linux systems that implement the inotify kernel service. That way the underlying operating system will trigger the =solrjob= script as soon as a file has changed. An example of an =iwatch.xml= file triggering a delta index job looks like this:
+
+<verbatim>
+<?xml version="1.0" ?>
+<!DOCTYPE config SYSTEM "/etc/iwatch/iwatch.dtd" >
+
+<config>
+  <guard email="root@localhost" name="IWatch"/>
+  <watchlist>
+    <title>Foswiki</title>
+    <contactpoint email="root@localhost" name="Administrator"/>
+    <path type="recursive" alert="off" syslog="on" exec="su -c <foswiki-dir>/tools/solrjob <httpd-user>"><foswiki-dir>/data</path>
+    <path type="regexception">\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]</path>
+  </watchlist>
+</config>
+</verbatim>
+
+Make sure to replace &lt;foswiki-dir> and &lt;httpd-user> with the appropriate values on your platform.
 
 Note that delta indexing is strongly recommended when one of the settings =EnableOnSaveUpdates=, =EnableOnUploadUpdates= or =EnableOnRenameUpdates= is disabled.
 
@@ -205,6 +224,13 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  16 Dec 2010: | added =state= field to schema used for approval workflows; \
+                  added solrjob to ease cronjobbing indexing; \
+                  added docu how to use iwatch for almost-realtime indexing; \
+                  fixed dependencies to include Foswiki:Extensions/FilterPlugin as well; \
+                  fixed mapping facet values to their display title in search interface; \
+                  fixed delta updates not properly removing outdated attachment entries when these where moved/renamed; \
+                  and some minor html improvements |
 |  03 Dec 2010: | fixed solr-based !WebChanges and !SiteChanges using !PatternSkin |
 |  01 Dec 2010: | adjustments due to changes in stringifier api; \
                   fixed removal of deleted webs from search index |

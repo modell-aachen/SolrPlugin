@@ -58,7 +58,9 @@ solr/solr/conf/xslt/example_rss.xsl 0644
 solr/solr/conf/xslt/example.xsl 0644
 solr/solr/conf/xslt/luke.xsl 0644
 solr/solr-context.xml 0644
+solr/logs/ 0775
 tools/etc-defaults-jetty 0755
 tools/solrdelete 0755
 tools/solrindex 0755
 tools/solrstart 0755
+tools/solrjob 0755

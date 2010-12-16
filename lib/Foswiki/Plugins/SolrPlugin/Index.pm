@@ -121,7 +121,7 @@ sub afterUploadHandler {
 ################################################################################
 # update documents of a web - either in fully or incremental
 # on a full update, the complete web is removed from the index prior to updating it;
-# this calls indexTopic for each topic to be updated
+# this calls updateTopic for each topic to be updated
 sub update {
   my ($this, $web, $mode) = @_;
 
@@ -171,8 +171,7 @@ sub update {
       # while ($iterator->hasNext()) {
       #   my $change = $iterator->next();
       #   my $topic = $change->{topic};
-      #   next if $this->isSkippedTopic($web, $topic);
-      #   $this->indexTopic($web, $topic);
+      #   $this->updateTopic($web, $topic);
       #   $found = 1;
       # }
 
@@ -188,6 +187,7 @@ sub update {
             getTopicLatestRevTime($web, $topic);
         }
         next if $time < $since;
+        $this->deleteTopic($web, $topic);
         $this->indexTopic($web, $topic);
         $found = 1;
       }

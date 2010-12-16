@@ -75,13 +75,13 @@
 %{ ###########################################################################
    content: main definition that puts together all pieces
 }%
-%TMPL:DEF{"content"}%<div class="solrSearch"><noautolink>
+%TMPL:DEF{"content"}%<div class='solrSearch'><noautolink>
 %TMPL:P{"solr::title"}%<!-- -->
 %TMPL:P{"solr::header"}%
 %TMPL:P{"solr::hits"}%
 %TMPL:P{"solr::footer"}%
-%TMPL:P{"solr::css"}%<!-- solr::css// -->
-%JQREQUIRE{"focus, serialscroll"}%<!-- jqrequire -->
+%TMPL:P{"solr::css"}%<!-- -->
+%JQREQUIRE{"focus, serialscroll"}%<!-- -->
 </noautolink></div>%TMPL:END%
 %{</verbatim>}%
 
@@ -126,8 +126,8 @@
     format="<meta name='foswiki.SolrPlugin.mapping.$2' content='$1' />"
     separator="$n"
   }%"
-}%<!-- solr::mapping// -->
-<!-- solr::search// -->%TMPL:END%
+}%<!-- -->
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -136,7 +136,7 @@
    widget is the "your selection" area displaying a summary of the current filters
    followed by the list of facets. Each facet is displayed calling the "facet" macro
 }%
-%TMPL:DEF{"solr::sidebar"}%<!-- solr::sidebar -->
+%TMPL:DEF{"solr::sidebar"}%<!-- -->
 <noautolink>
 %TMPL:P{"solr::selection"}%
 %SOLRFORMAT{"solr1"
@@ -190,14 +190,14 @@
   }%
 }%<!-- -->
 </noautolink>
-<!-- //solr::sidebar -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::selection: renders the "your selection" part in the solr::sidebar
 }%
-%TMPL:DEF{"solr::selection"}%<!-- selection -->
+%TMPL:DEF{"solr::selection"}%<!-- -->
 <h2>%MAKETEXT{"Filter results"}%</h2>
 <div class='solrYourSelection'>
   <h3>%MAKETEXT{"Your selection"}%:</h3>
@@ -205,7 +205,7 @@
   <a href='#' class="solrClear solrClearAll {selector:'.solrFacetValue, .solrDeleteFacetValue'}">%MAKETEXT{"Clear"}%</a>
   <span class='foswikiClear'></span>
 </div>
-<!-- //selection -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -213,19 +213,19 @@
    solr::sidebar::hierarchy: renders a hierarchy widget for the sidebar
 }%
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::sidebar::hierarchy"}%<!-- sidebar::hierarchy -->
+%TMPL:DEF{"solr::sidebar::hierarchy"}%<!-- -->
 %IF{
   "'%SOLRFORMAT{"solr1" header_category="$total"}%'!=''
    and '%SOLRFORMAT{"solr1" header_web="$rows"}%'='1' 
   " 
   then="$percntTMPL:P{\"solr::sidebar::hierarchy::impl\"}$percnt"
-  else="<!-- no hierarchy -->"
+  else="<!-- -->"
 }%
-<!-- //sidebar::hierarchy -->%{</verbatim>}%
+<!-- -->%{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::sidebar::hierarchy::impl"}%<!-- sidebar::hierarchy::impl -->
-<div class="solrFacetContainer solrHierarchy">
+%TMPL:DEF{"solr::sidebar::hierarchy::impl"}%<!-- -->
+<div class='solrFacetContainer solrHierarchy'>
 %TWISTYBUTTON{
   id="sidebarhierarchy"
   prefix="<h2>"
@@ -259,7 +259,7 @@
 </noautolink>
 %ENDTWISTYTOGGLE% 
 </div>
-<!-- / sidebar::hierarchy::impl -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -292,7 +292,7 @@
     <table class='foswikiLayoutTable' width='100%'>
       <tr>
       <td width='12px'>
-        <input type='%input%' autocomplete='off' class='solrFacetValue solrFacetValue_%id%' value='%value%' $percntIF{\"defined title\" then=\"title='%title%'\"}$percnt id='%value%' name='filter_%id%' />
+        <input type='%input%' autocomplete='off' class='solrFacetValue solrFacetValue_%id%' value='%value%' $percntIF{\"not '%title%'=~'^%'\" then=\"title='%title%'\"}$percnt id='%value%' name='filter_%id%' />
       </td>
       <td><label for='%value%' style='display:block'>%format%</label></td>
       </tr>
@@ -327,18 +327,18 @@
 %{ ###########################################################################
    solr::spellchecker - this displays a spell correction if available
 }%
-%TMPL:DEF{"solr::spellchecker"}%<!-- spellchecker -->
-%SOLRFORMAT{"solr1" header="<div class='solrSpellchecking'>$spellcheck</div>"}%<!-- spellchecker // -->
-<!-- //spellchecker -->%TMPL:END%
+%TMPL:DEF{"solr::spellchecker"}%<!-- -->
+%SOLRFORMAT{"solr1" header="<div class='solrSpellchecking'>$spellcheck</div>"}%<!-- -->
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::header::pager - this adds a page navigation above the hit set
 }%
-%TMPL:DEF{"solr::header::pager"}%<!-- header pager -->
+%TMPL:DEF{"solr::header::pager"}%<!-- -->
 %SOLRFORMAT{"solr1" header="$pager"}%
-<!-- //header pager -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -346,8 +346,8 @@
    solr::header::results - this adds a header showing the number of results found
    and which section is shown on the current page
 }%
-%TMPL:DEF{"solr::header::results"}%<!-- header results -->
-<table class="solrHeaderResults foswikiLayoutTable" width="100%">
+%TMPL:DEF{"solr::header::results"}%<!-- -->
+<table class='solrHeaderResults foswikiLayoutTable' width='100%'>
   <tr>
     <td>
       %SOLRFORMAT{"solr1" 
@@ -360,17 +360,17 @@
       }%
     </td>
     <td align="right">
-      <table class="foswikiLayoutTable">
+      <table class='foswikiLayoutTable'>
         <tr>
           <th>%MAKETEXT{"Results per page"}%:</th>
           <td>
-            <select class="foswikiSelect" id="solrRows">
-              <option class="foswikiOption" %IF{"$'rows'='10' %IF{"'%TMPL:P{"solr::defaultrows"}%'='10'" then="or isempty 'rows'"}%" then="selected"}%>10</option>
-              <option class="foswikiOption" %IF{"$'rows'='20' %IF{"'%TMPL:P{"solr::defaultrows"}%'='20'" then="or isempty 'rows'"}%" then="selected"}%>20</option>
-              <option class="foswikiOption" %IF{"$'rows'='30' %IF{"'%TMPL:P{"solr::defaultrows"}%'='30'" then="or isempty 'rows'"}%" then="selected"}%>30</option>
-              <option class="foswikiOption" %IF{"$'rows'='40' %IF{"'%TMPL:P{"solr::defaultrows"}%'='40'" then="or isempty 'rows'"}%" then="selected"}%>40</option>
-              <option class="foswikiOption" %IF{"$'rows'='50' %IF{"'%TMPL:P{"solr::defaultrows"}%'='50'" then="or isempty 'rows'"}%" then="selected"}%>50</option>
-              <option class="foswikiOption" %IF{"$'rows'='100' %IF{"'%TMPL:P{"solr::defaultrows"}%'='100'" then="or isempty 'rows'"}%" then="selected"}%>100</option>
+            <select class='foswikiSelect' id='solrRows'>
+              <option class='foswikiOption' %IF{"$'rows'='10' %IF{"'%TMPL:P{"solr::defaultrows"}%'='10'" then="or isempty 'rows'"}%" then="selected"}%>10</option>
+              <option class='foswikiOption' %IF{"$'rows'='20' %IF{"'%TMPL:P{"solr::defaultrows"}%'='20'" then="or isempty 'rows'"}%" then="selected"}%>20</option>
+              <option class='foswikiOption' %IF{"$'rows'='30' %IF{"'%TMPL:P{"solr::defaultrows"}%'='30'" then="or isempty 'rows'"}%" then="selected"}%>30</option>
+              <option class='foswikiOption' %IF{"$'rows'='40' %IF{"'%TMPL:P{"solr::defaultrows"}%'='40'" then="or isempty 'rows'"}%" then="selected"}%>40</option>
+              <option class='foswikiOption' %IF{"$'rows'='50' %IF{"'%TMPL:P{"solr::defaultrows"}%'='50'" then="or isempty 'rows'"}%" then="selected"}%>50</option>
+              <option class='foswikiOption' %IF{"$'rows'='100' %IF{"'%TMPL:P{"solr::defaultrows"}%'='100'" then="or isempty 'rows'"}%" then="selected"}%>100</option>
             </select>
           </td>
         </tr>
@@ -378,7 +378,7 @@
     </td>
   </tr>
 </table>
-<!-- //header results -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -411,15 +411,15 @@
    list. each individual hit is formatted using a macro depending on the "$format"
    variable provided by SOLRFORMAT. This is either 
       * "solr::format::list::topic",
-      * "solr::format::list::attachment" or
-      * "solr::format::list::image"
+      * "solr::format::list::attachment",
+      * "solr::format::list::image" or
+      * "solr::format::list::comment"
 }%
-%TMPL:DEF{"solr::hits::list"}%<!-- hitlist -->
+%TMPL:DEF{"solr::hits::list"}%<!-- -->
 %SOLRFORMAT{"solr1"
   header="<div class='solrSearchHits solrSearchHitsList'>"
   footer="</div>"
-  format="<div class='solrSearchHit'>
-    $percntTMPL:P{\"solr::format::list::$format\" 
+  format="$percntTMPL:P{\"solr::format::list::$format\" 
       id=\"$id\"
       title=\"$percntENCODE{\"$title\" type=\"entity\"}$percnt\"
       url=\"$url\"
@@ -435,9 +435,9 @@
       score=\"$score\"
       type=\"$type\"
       hilite=\"$percntENCODE{\"$hilite\" type=\"quote\"}$percnt\"
-   }$percnt%CLEAR%</div>"
+   }$percnt%CLEAR%"
 }%
-<!-- //hitlist -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -446,7 +446,7 @@
    most sense to get a nice image overview. the structure is similar to
    "solr::hits::list"
 }%
-%TMPL:DEF{"solr::hits::grid"}%<!-- hitlist -->
+%TMPL:DEF{"solr::hits::grid"}%<!-- -->
 %SOLRFORMAT{"solr1" 
   separator="$n"
   header="<div class='solrSearchHits solrSearchHitsGrid'>"
@@ -463,7 +463,7 @@
       icon=\"$icon\"
    }$percnt"
 }%
-<!-- //hitlist -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -471,13 +471,13 @@
    solr::searchform - this calls the separate steps comprising the form steps.
    this macro can be redefined to include more steps as needed.
 }%
-%TMPL:DEF{"solr::searchform"}%<!-- searchform -->
+%TMPL:DEF{"solr::searchform"}%<!-- -->
 %TMPL:P{"solr::formstart"}%
 %TMPL:P{"solr::inputstep"}%
 %TMPL:P{"solr::tagcloudstep"}%
 %TMPL:P{"solr::hierarchystep"}%
 %TMPL:P{"solr::formend"}%
-<!-- //searchform -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -487,37 +487,37 @@
    fields - solrSortOption, solrDisplayOption and solrRowsOption - that receive their values
    using javascript when a facet value is selected or unselected
 }%
-%TMPL:DEF{"solr::formstart"}%<!-- formstart -->
-<form name="searchform" class="solrSearchForm" action="%SCRIPTURLPATH{"view"}%/%BASEWEB%/%BASETOPIC%">
-<div class="foswikiFormSteps">
-<input type="hidden" name="sort" value="%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%" id="solrSortOption" />
-<input type="hidden" name="display" value="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%" id="solrDisplayOption" />
-<input type="hidden" name="rows" value="%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%" id="solrRowsOption" />
-<input type="hidden" name="origtopic" value="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%" />
+%TMPL:DEF{"solr::formstart"}%<!-- -->
+<form name="searchform" class='solrSearchForm' action='%SCRIPTURLPATH{"view"}%/%BASEWEB%/%BASETOPIC%'>
+<div class='foswikiFormSteps'>
+<input type='hidden' name='sort' value='%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%' id='solrSortOption' />
+<input type='hidden' name='display' value='%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%' id='solrDisplayOption' />
+<input type='hidden' name='rows' value='%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%' id='solrRowsOption' />
+<input type='hidden' name='origtopic' value='%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%' />
 %FORMATLIST{
   "%URLPARAM{"filter" multiple="on" separator="#" encode="none"}%" 
   split="#"
   pattern="(.*):(.*)"
   format="<input type='hidden' name='filter' value='$1:$2' class='solrFilter {facet:\"$1\", value:\"$percntENCODE{\"$2\" type=\"url\"}$percnt\"}' />"
   separator="$n"
-}%<!-- //formstart -->%TMPL:END%
+}%<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::formend - closing markup of the solr::searchform
 }%
-%TMPL:DEF{"solr::formend"}%<!-- formend -->
+%TMPL:DEF{"solr::formend"}%<!-- -->
 </div>
 </form>
-<!-- //formend -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::tagcloudstep - part of the solr::searchform. this contains the tagcloud facet
 }%
-%TMPL:DEF{"solr::tagcloudstep"}%<!-- tagcloud -->
+%TMPL:DEF{"solr::tagcloudstep"}%<!-- -->
 %TAGCLOUD{
   terms="%SOLRFORMAT{"solr1" format_tag="$key:$count" separator_tag=", "}%"
   header="<div class='foswikiFormStep'><hr /><div class='solrTagCloud'><h3>
@@ -537,27 +537,27 @@
   buckets="20"
   offset="11"
   warn="off"
-}%<!-- //tagcloud -->%TMPL:END%
+}%<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::hierarchystep - part of the solr::searchform. this contains the hierarchical facet
 }%
-%TMPL:DEF{"solr::hierarchystep"}%<!-- hierarchy -->
+%TMPL:DEF{"solr::hierarchystep"}%<!-- -->
 %IF{
   "'%SOLRFORMAT{"solr1" header_category="$total"}%'!=''
    and '%SOLRFORMAT{"solr1" header_web="$rows"}%'='1' 
   " 
   then="$percntTMPL:P{\"solr::hierarchystep::impl\"}$percnt"
-  else="<!-- no hierarchy -->"
+  else="<!-- -->"
 }%
-<!-- //hierarchy -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::hierarchystep::impl"}%<!-- hierarchy::impl -->
-<div class="foswikiFormStep foswikiFormLast">
+%TMPL:DEF{"solr::hierarchystep::impl"}%<!-- -->
+<div class='foswikiFormStep foswikiFormLast'>
   <hr />
   <h3>
     %TWISTYBUTTON{
@@ -570,7 +570,7 @@
     }%
   </h3>
   %TWISTYTOGGLE{id="solrhierarchy" mode="div"}%
-    <div class="solrHierarchy">
+    <div class='solrHierarchy'>
       %DBCALL{"Applications.ClassificationApp.RenderCategoryEditor" 
         THEWEB="%SOLRFORMAT{"solr1" format_web="$key"}%" 
         VALUE="%FORMATLIST{"%URLPARAM{"filter" multiple="$item" separator=","}%" split="\s*,\s*" pattern="(.*):(.*)" include="^category:.*" format="$2"}%"
@@ -583,15 +583,15 @@
     </div>
   %ENDTWISTYTOGGLE%
 </div>
-<!-- //hierarchy::impl -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::hierarchystep_flat - part of the solr::searchform. this contains the hierarchical facet
 }%
-%TMPL:DEF{"solr::hierarchystep_flat"}%<!-- hierarchy -->
-<div class="foswikiFormStep foswikiFormLast" %IF{"'%SOLRFORMAT{"solr1" header_category="total=$total " format_category="sums=$count "}%'=''" then="style='display:none'"}%>
+%TMPL:DEF{"solr::hierarchystep_flat"}%<!-- -->
+<div class='foswikiFormStep foswikiFormLast' %IF{"'%SOLRFORMAT{"solr1" header_category="total=$total " format_category="sums=$count "}%'=''" then="style='display:none'"}%>
   <hr />
   <h3>
     %TWISTYBUTTON{
@@ -604,7 +604,7 @@
     }%
   </h3>
   %TWISTYTOGGLE{id="solrhierarchy" mode="div"}%
-    <div class="solrHierarchy">
+    <div class='solrHierarchy'>
       %MAKEINDEX{
         "%SOLRFORMAT{"solr1"
           format_category="$key;$count"
@@ -623,7 +623,7 @@
     </div>
   %ENDTWISTYTOGGLE%
 </div>
-<!-- //hierarchy -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -631,15 +631,15 @@
    solr::inputstep - this is a part of the solr::searchform defining the 
    actual input field, as well as some basic select and checkboxes
 }%
-%TMPL:DEF{"solr::inputstep"}%<!-- inputstep -->
-<div class="foswikiFormStep">
-<div class="foswikiRight">
+%TMPL:DEF{"solr::inputstep"}%<!-- -->
+<div class='foswikiFormStep'>
+<div class='foswikiRight'>
 %TMPL:P{"solr::sortby"}%
 %TMPL:P{"solr::displayas"}%
 </div>
-<table class="foswikiNullTable">
+<table class='foswikiNullTable'>
   <tr>
-    <td><input type="text" class="foswikiInputField jqFocus solrSearchField" name="search" size="30" value="%URLPARAM{"search" encode="entity"}%" style="float:left;margin-right:8px;"/></td>
+    <td><input type='text' class='foswikiInputField jqFocus solrSearchField' name='search' size='30' value='%URLPARAM{"search" encode="entity"}%' style='float:left;margin-right:8px;'/></td>
     <td>
       %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find"}%
       %BUTTON{"%MAKETEXT{"Cancel"}%" 
@@ -648,22 +648,22 @@
         title="%MAKETEXT{"back to [_1]" args="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"}%"
       }%
     </td>
-    <!-- td><a href="%SCRIPTURL{"view"}%/%BASEWEB%/%BASETOPIC%">%MAKETEXT{"Start over"}%</a></td-->
+    <!-- td><a href='%SCRIPTURL{"view"}%/%BASEWEB%/%BASETOPIC%'>%MAKETEXT{"Start over"}%</a></td-->
   </tr>
 </table>
 
 %TMPL:P{"solr::input::checkboxes"}%
 %CLEAR%
 </div>
-<!-- //inputstep -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::sortby - renders the sort interface
 }%
-%TMPL:DEF{"solr::sortby"}%<!-- sortby -->
-<table class="foswikiNullTable">
+%TMPL:DEF{"solr::sortby"}%<!-- -->
+<table class='foswikiNullTable'>
   <tr>
     <th>%MAKETEXT{"Sort by"}%:&nbsp;</th>
     <td>
@@ -676,36 +676,36 @@
   </tr>
 </table>
 
-<!-- //sortby -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::displayas - render the display switcher
 }%
-%TMPL:DEF{"solr::displayas"}%<!-- display as -->
-<table class="foswikiNullTable">
+%TMPL:DEF{"solr::displayas"}%<!-- -->
+<table class='foswikiNullTable'>
   <tr>
     <th>%MAKETEXT{"Display as"}%:</th>
-    <td><input type="radio" class="foswikiRadio solrDisplay" id="display_list" value="list" %IF{"$'display'='list' or isempty 'display'" then="checked"}%></td>
-    <td><label class="foswikiLabel" for="display_list">%MAKETEXT{"list"}%</label></td>
-    <td><input type="radio" class="foswikiRadio solrDisplay" id="display_grid" value="grid" %IF{"$'display'='grid'" then="checked"}%></td>
-    <td><label class="foswikiLabel" for="display_grid">%MAKETEXT{"grid"}%</label></td>
+    <td><input type='radio' class='foswikiRadio solrDisplay' id='display_list' value='list' %IF{"$'display'='list' or isempty 'display'" then="checked"}%></td>
+    <td><label class='foswikiLabel' for='display_list'>%MAKETEXT{"list"}%</label></td>
+    <td><input type='radio' class='foswikiRadio solrDisplay' id='display_grid' value='grid' %IF{"$'display'='grid'" then="checked"}%></td>
+    <td><label class='foswikiLabel' for='display_grid'>%MAKETEXT{"grid"}%</label></td>
   </tr>
 </table>
-<!-- //display as -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::input::checkboxes - some convenience checkbox selections under the input field
 }%
-%TMPL:DEF{"solr::input::checkboxes"}%<div class="solrCheckboxContainer">
+%TMPL:DEF{"solr::input::checkboxes"}%<div class='solrCheckboxContainer'>
 %IF{"'%TMPL:P{"solr::defaultweb"}%'='all'" 
   then="$percntTMPL:P{\"solr::input::checkboxes::incurrentweb\"}$percnt"
   else="$percntTMPL:P{\"solr::input::checkboxes::inallwebs\"}$percnt"
-}%<!-- defaultweb// -->
-%TMPL:P{"solr::incontribs"}%<!-- incontribs// -->
+}%<!-- -->
+%TMPL:P{"solr::incontribs"}%<!-- -->
 </div>%TMPL:END%
 %{</verbatim>}%
 
@@ -713,30 +713,30 @@
 %{ ###########################################################################
    solr::incurrentweb - display a "Search in current web only" checkbox
 }%
-%TMPL:DEF{"solr::input::checkboxes::incurrentweb"}%<!-- incurrentweb -->
-<input type="checkbox" class="foswikiCheckbox solrAutoSubmit" name="web" id="web" value="%BASEWEB%" %IF{"$'web'='%BASEWEB%'" then="checked"}% /> 
-<label class="foswikiLabel" for="web">%MAKETEXT{"In current web"}%&nbsp;&nbsp;</label>
-<!-- //incurrentweb -->%TMPL:END%
+%TMPL:DEF{"solr::input::checkboxes::incurrentweb"}%<!-- -->
+<input type='checkbox' class='foswikiCheckbox solrAutoSubmit' name='web' id='web' value='%BASEWEB%' %IF{"$'web'='%BASEWEB%'" then="checked"}% /> 
+<label class='foswikiLabel' for='web'>%MAKETEXT{"In current web"}%&nbsp;&nbsp;</label>
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::input::checkboxes::inallwebs - display a "Search in all webs" checkbox
 }%
-%TMPL:DEF{"solr::input::checkboxes::inallwebs"}%<!-- inallwebs -->
-<input type="checkbox" class="foswikiCheckbox solrAutoSubmit" name="web" id="web" value="all" %IF{"$'web'='all'" then="checked"}% /> 
-<label class="foswikiLabel" for="web">%MAKETEXT{"In all webs"}%&nbsp;&nbsp;</label>
-<!-- //inallwebs -->%TMPL:END%
+%TMPL:DEF{"solr::input::checkboxes::inallwebs"}%<!-- -->
+<input type='checkbox' class='foswikiCheckbox solrAutoSubmit' name='web' id='web' value='all' %IF{"$'web'='all'" then="checked"}% /> 
+<label class='foswikiLabel' for='web'>%MAKETEXT{"In all webs"}%&nbsp;&nbsp;</label>
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    solr::input::checkboxes::inmycontribs - display a "Search in my contribs" checkbox
 }%
-%TMPL:DEF{"solr::input::checkboxes::inmycontribs"}%<!-- inmycontribs -->
-<input type="checkbox" class="foswikiCheckbox solrAutoSubmit" name="contributor" id="contributor" value="%USERINFO{format="$wikiname"}%" %IF{"$'contributor'='%USERINFO{format="$wikiname"}%'" then="checked"}% />
-<label class="foswikiLabel" for="contributor">%MAKETEXT{"In my contributions"}%</label>
-<!-- //inmycontribs -->%TMPL:END%
+%TMPL:DEF{"solr::input::checkboxes::inmycontribs"}%<!-- -->
+<input type='checkbox' class='foswikiCheckbox solrAutoSubmit' name="contributor" id='contributor' value='%USERINFO{format="$wikiname"}%' %IF{"$'contributor'='%USERINFO{format="$wikiname"}%'" then="checked"}% />
+<label class='foswikiLabel' for='contributor'>%MAKETEXT{"In my contributions"}%</label>
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -755,18 +755,24 @@
   Note that this macro is called with a few more parameters which are ignored
   by this format
 }%
-%TMPL:DEF{"solr::format::list::topic"}%<!-- format:topic -->
-<h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
-  [[%web%.%topic%][%topic%]]
-  <span class="foswikiGrayText">in %WEBLINK{"%web%"}%</span>
-</h3>
-<div class='solrHilite'>
-  <literal>%hilite%</literal>
+%TMPL:DEF{"solr::format::list::topic"}%<!-- -->
+<div class='solrSearchHit solrTopicHit'>
+  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+    [[%web%.%topic%][%topic%]]
+    <span class='foswikiGrayText'>
+      %WEBLINK{"%web%" 
+        format="<a class='webLink' href='$url'>%MAKETEXT{"in [_1]" args="$title"}%</a>"
+      }%
+    </span>
+  </h3>
+  <div class='solrHilite'>
+    <literal>%hilite%</literal>
+  </div>
+  <div class='solrRevision'> 
+    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  </div>
 </div>
-<div class="solrRevision"> 
-  <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
-</div>
-%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -787,18 +793,20 @@
   Note that this macro is called with a few more parameters which are ignored
   by this format
 }%
-%TMPL:DEF{"solr::format::list::attachment"}%<!-- format::attachment -->
-<h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
-  [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
-  <span class="foswikiGrayText">in [[%web%.%topic%][%topic%]]</span>
-</h3>
-<div class='solrHilite'>
-  <literal>%hilite%</literal>
+%TMPL:DEF{"solr::format::list::attachment"}%<!-- -->
+<div class='solrSearchHit solrAttachmentHit'>
+  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+    [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
+    <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
+  </h3>
+  <div class='solrHilite'>
+    <literal>%hilite%</literal>
+  </div>
+  <div class='solrRevision'> 
+    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  </div>
 </div>
-<div class="solrRevision"> 
-  <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
-</div>
-<!-- //format::attachment -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -814,27 +822,29 @@
       * topic - topic name where this attachment is located
       * web - web name
 }%
-%TMPL:DEF{"solr::format::list::image"}%<!-- format::image --> 
-%IMAGE{"%name%" 
-  topic="%web%.%topic%" 
-  width="50" 
-  height="50" 
-  type="frame" 
-  align="left"
-  tooltip="on"
-  warn="off"
-}%
-<h3>
-  [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
-  <span class="foswikiGrayText">in [[%web%.%topic%][%topic%]]</span>
-</h3>
-<div class='solrHilite'>
-  <literal>%hilite%</literal>
+%TMPL:DEF{"solr::format::list::image"}%<!-- --> 
+<div class='solrSearchHit solrImageHit'>
+  %IMAGE{"%name%" 
+    topic="%web%.%topic%" 
+    width="50" 
+    height="50" 
+    type="frame" 
+    align="left"
+    tooltip="on"
+    warn="off"
+  }%
+  <h3>
+    [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
+    <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
+  </h3>
+  <div class='solrHilite'>
+    <literal>%hilite%</literal>
+  </div>
+  <div class='solrRevision'> 
+    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  </div>
 </div>
-<div class="solrRevision"> 
-  <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
-</div>
-<!-- //format::image -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -842,18 +852,20 @@
    solr::format::list::comment - formats a comment
    called by solr::hits::list.
 }%
-%TMPL:DEF{"solr::format::list::comment"}%<!-- format::comment -->
-<h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
-  [[%url%][%title%]]
-  <span class="foswikiGrayText">in [[%web%.%topic%][%topic%]]</span>
-</h3>
-<div class='solrHilite'>
-  <literal>%hilite%</literal>
+%TMPL:DEF{"solr::format::list::comment"}%<!-- -->
+<div class='solrSearchHit solrCommentHot'>
+  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+    [[%url%][%title%]]
+    <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
+  </h3>
+  <div class='solrHilite'>
+    <literal>%hilite%</literal>
+  </div>
+  <div class='solrRevision'> 
+    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  </div>
 </div>
-<div class="solrRevision"> 
-  <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
-</div>
-<!-- //format::comment -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -861,17 +873,17 @@
    solr::format::grid::topic - formats a topic in grid mode. 
    called by solr::grid::list. see also solr::format::list::topic
 }%
-%TMPL:DEF{"solr::format::grid::topic"}%<!-- format::topic -->
+%TMPL:DEF{"solr::format::grid::topic"}%<!-- -->
 <div class='solrSearchHit solrTopicHit'>
   <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
     [[%web%.%topic%][%SPACEOUT{%title%}%]]
   </h3>
-  <div class="solrTopicInfo foswikiGrayText foswikiSmallish"> 
+  <div class='solrTopicInfo foswikiGrayText foswikiSmallish'> 
     <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a> %BR%
     %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
-<!-- //format::topic -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -879,18 +891,18 @@
    solr::format::grid::attachment - formats an attachment in grid mode. 
    called by solr::grid::list. see also solr::format::list::attachment
 }%
-%TMPL:DEF{"solr::format::grid::attachment"}%<!-- format::attachment -->
+%TMPL:DEF{"solr::format::grid::attachment"}%<!-- -->
 <div class='solrSearchHit solrAttachmentHit'>
   <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
     [[%url%][%SPACEOUT{%title%}%]]
   </h3>
-  <div class="foswikiGrayText foswikiSmallish">
+  <div class='foswikiGrayText foswikiSmallish'>
     in&nbsp;[[%web%.%topic%][%topic%]] %BR%
     %date% %BR%
     %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
-<!-- format::attachment -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -898,14 +910,14 @@
    solr::format::grid::image - formats an image in grid mode. 
    called by solr::grid::list. see also solr::format::list::image
 }%
-%TMPL:DEF{"solr::format::grid::image"}%<!-- format::image -->
-<div class="solrSearchHit solrImageHit">
-  <div class="solrImageFrame">
+%TMPL:DEF{"solr::format::grid::image"}%<!-- -->
+<div class='solrSearchHit solrImageHit'>
+  <div class='solrImageFrame'>
     %IMAGE{"%name%" topic="%web%.%topic%" size="120" type="simple" tooltip="on" warn="off" }%
   </div>
-  <div class="solrImageCaption foswikiSmallish">
+  <div class='solrImageCaption foswikiSmallish'>
     [[%web%.%topic%][%topic%]]
   </div>
 </div>
-<!-- //format::image -->%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
