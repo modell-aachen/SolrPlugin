@@ -527,7 +527,6 @@
    <field name="webtopic" type="string" required="true" /> <!-- useful for autocompletion in a jump box -->
 
    <!-- this field stores the ACLs of a topic or attachment -->
-   <field name="access_denied" type="string" stored="false" multiValued="true" />
    <field name="access_granted" type="string" stored="false" multiValued="true" />
 
    <!-- title: for topics this is the TopicTitle formfield or TOPICTITLE preference, defaults to topic;
