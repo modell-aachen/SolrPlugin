@@ -1,7 +1,7 @@
 /***************************************************************************
  * SolrManager
  *
- * (c)opyright 2009-2010 Michael Daum http://michaeldaumconsulting.com
+ * (c)opyright 2009-2011 Michael Daum http://michaeldaumconsulting.com
  */
 
 var solr; /* last solr manager constructed; this is a singleton in most use cases */

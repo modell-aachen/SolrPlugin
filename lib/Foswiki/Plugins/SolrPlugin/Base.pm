@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +17,6 @@ use strict;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use WebService::Solr ();
-use Unicode::MapUTF8 ();
 use Error qw( :try );
 
 sub new {
@@ -28,10 +27,12 @@ sub new {
 
   my $this = {
     session => $session,
-    url => $Foswiki::cfg{SolrPlugin}{Url} || 'http://localhost:8983',
+    url => $Foswiki::cfg{SolrPlugin}{Url}, # || 'http://localhost:8983',
     @_
   };
   bless($this, $class);
+
+  throw Error::Simple("no solr url defined") unless defined $this->{url};
 
   if (!$this->connect() && $Foswiki::cfg{SolrPlugin}{AutoStartDaemon}) {
     $this->startDaemon();
@@ -238,88 +239,72 @@ sub inlineError {
   return "<span class='foswikiAlert'>$text</span>";
 }
 
-sub toUtf8 {
-  my ($this, $text) = @_;
-
-  $text = Unicode::MapUTF8::to_utf8(-string=>$text, -charset=>$Foswiki::cfg{Site}{CharSet})
-    if $Foswiki::cfg{Site}{CharSet} !~ /^utf-?8$/i;
-
-  return $text;
-}
-
 sub fromUtf8 {
-  my ($this, $text) = @_;
+  my ($this, $string) = @_;
 
-  $text = Unicode::MapUTF8::from_utf8(-string=>$text, -charset=>$Foswiki::cfg{Site}{CharSet})
-    if $Foswiki::cfg{Site}{CharSet} !~ /^utf-?8$/i;
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  return $string if $charset =~ /^utf-?8$/i;
 
-  return $text;
+  if ($] < 5.008) {
+
+    # use Unicode::MapUTF8 for Perl older than 5.8
+    require Unicode::MapUTF8;
+    if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
+      return Unicode::MapUTF8::from_utf8({ -string => $string, -charset => $charset });
+    } else {
+      $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
+      return $string;
+    }
+  } else {
+
+    # good Perl version, just use Encode
+    require Encode;
+    import Encode;
+    my $encoding = Encode::resolve_alias($charset);
+    if (not $encoding) {
+      $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
+      return $string;
+    } else {
+
+      # converts to $charset, generating HTML NCR's when needed
+      my $octets = $string;
+      $octets = Encode::decode('utf-8', $string) unless utf8::is_utf8($string);
+      return Encode::encode($encoding, $octets, 0);#&Encode::FB_HTMLCREF());
+    }
+  }
 }
 
-# sub fromUtf8 {
-#   my ($this, $utf8string) = @_;
-#
-#   my $charset = $Foswiki::cfg{Site}{CharSet};
-#   return $utf8string if $charset =~ /^utf-?8$/i;
-#
-#   if ($] < 5.008) {
-#
-#     # use Unicode::MapUTF8 for Perl older than 5.8
-#     require Unicode::MapUTF8;
-#     if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-#       return Unicode::MapUTF8::from_utf8({ -string => $utf8string, -charset => $charset });
-#     } else {
-#       $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-#       return $utf8string;
-#     }
-#   } else {
-#
-#     # good Perl version, just use Encode
-#     require Encode;
-#     import Encode;
-#     my $encoding = Encode::resolve_alias($charset);
-#     if (not $encoding) {
-#       $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-#       return $utf8string;
-#     } else {
-#
-#       # converts to $charset, generating HTML NCR's when needed
-#       my $octets = Encode::decode('utf-8', $utf8string);
-#       return Encode::encode($encoding, $octets, &Encode::FB_HTMLCREF());
-#     }
-#   }
-# }
-#
-# sub toUtf8 {
-#   my ($this, $string) = @_;
-#
-#   my $charset = $Foswiki::cfg{Site}{CharSet};
-#   return $string if $charset =~ /^utf-?8$/i;
-#
-#   if ($] < 5.008) {
-#
-#     # use Unicode::MapUTF8 for Perl older than 5.8
-#     require Unicode::MapUTF8;
-#     if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-#       return Unicode::MapUTF8::to_utf8({ -string => $string, -charset => $charset });
-#     } else {
-#       $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-#       return $string;
-#     }
-#   } else {
-#
-#     # good Perl version, just use Encode
-#     require Encode;
-#     import Encode;
-#     my $encoding = Encode::resolve_alias($charset);
-#     if (not $encoding) {
-#       $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-#       return undef;
-#     } else {
-#       my $octets = Encode::decode($encoding, $string, &Encode::FB_PERLQQ());
-#       return Encode::encode('utf-8', $octets);
-#     }
-#   }
-# }
+sub toUtf8 {
+  my ($this, $string) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  return $string if $charset =~ /^utf-?8$/i;
+
+  if ($] < 5.008) {
+
+    # use Unicode::MapUTF8 for Perl older than 5.8
+    require Unicode::MapUTF8;
+    if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
+      return Unicode::MapUTF8::to_utf8({ -string => $string, -charset => $charset });
+    } else {
+      $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
+      return $string;
+    }
+  } else {
+
+    # good Perl version, just use Encode
+    require Encode;
+    import Encode;
+    my $encoding = Encode::resolve_alias($charset);
+    if (not $encoding) {
+      $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
+      return undef;
+    } else {
+      my $octets = Encode::decode($encoding, $string, &Encode::FB_PERLQQ());
+      $octets = Encode::encode('utf-8', $octets) unless utf8::is_utf8($octets);
+      return $octets;
+    }
+  }
+}
 
 1;

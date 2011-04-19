@@ -6,8 +6,10 @@
 test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=~/foswiki/trunk/core
 
 # directory where the solr home and the jetty engine is in
-SOLRHOME=$1
-test -z $SOLRHOME && SOLRHOME=$FOSWIKI_ROOT/solr-run
+test -z $1 || SOLRHOME=$1
+test -z $SOLRHOME && SOLRHOME=$FOSWIKI_ROOT/solr
+
+#echo "SOLRHOME=$SOLRHOME"
 
 test -d $SOLRHOME || {
   echo "ERROR can't find a solr home at $SOLRHOME"
@@ -19,6 +21,6 @@ cd $SOLRHOME || {
   exit 2
 }
 
-nohup java -jar start.jar >/dev/null &
+nohup java -Dsolr.solr.home=multicore -jar start.jar >/dev/null &
+#java -jar start.jar 
 
-exit 0

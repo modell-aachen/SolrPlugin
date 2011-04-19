@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -27,11 +27,11 @@ use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
 
-use Time::HiRes ();
-
 use constant DEBUG => 0; # toggle me
 use constant VERBOSE => 1; # toggle me
 use constant PROFILE => 0; # toggle me
+#use Time::HiRes (); # enable this too when profiling
+
 use constant COMMIT_THRESHOLD => 100; # commit every 100 topics on a bulk index job
 use constant WAIT_FLUSH => 0;
 use constant WAIT_SEARCHER => 0;
@@ -765,6 +765,8 @@ sub getStringifiedVersion {
     $attText = Foswiki::Func::readFile($cachedFilename);
   }
 
+  # keep it in utf8
+  #return $this->fromUtf8($attText);
   return $attText;
 }
 
@@ -779,6 +781,8 @@ sub modificationTime {
 ################################################################################
 sub plainify {
   my ($this, $text, $web, $topic) = @_;
+
+  return '' unless defined $text;
 
   my $wtn = Foswiki::Func::getPreferencesValue('WIKITOOLNAME') || '';
   my $STARTWW = qr/^|(?<=[\s\(])/m;
@@ -802,7 +806,7 @@ sub plainify {
   # Format e-mail to add spam padding (HTML tags removed later)
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
   $text =~ s/<!--.*?-->//gs;       # remove all HTML comments
-  $text =~ s/<(?!nop)[^>]*>//g;    # remove all HTML tags except <nop>
+  $text =~ s/<(?!nop)[^>]*>/ /g;   # remove all HTML tags except <nop>
   $text =~ s/\&[a-z]+;/ /g;        # remove entities
 
   # keep only link text of legacy [[prot://uri.tld/ link text]]
@@ -814,8 +818,8 @@ sub plainify {
               \]
           \]/$3/gx;
 
-  #keep only test portion of [[][]] links
-  $text =~ s/\[\[([^\]]*\]\[)(.*?)\]\]/$2/g;
+  # remove brackets from [[][]] links
+  $text =~ s/\[\[([^\]]*\]\[)(.*?)\]\]/$1 $2/g;
 
   # remove "Web." prefix from "Web.TopicName" link
   $text =~ s/$STARTWW(($Foswiki::regex{webNameRegex})\.($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex}))/$3/g;
@@ -832,7 +836,7 @@ sub plainify {
   $text =~ s/\\//g;
   $text =~ s/"//g;
   $text =~ s/%//g;
-  $text =~ s/\$percnt//g;
+  $text =~ s/\$perce?nt//g;
   $text =~ s/\$dollar//g;
   $text =~ s/\n/ /g;
   $text =~ s/~~~/ /g;
@@ -852,7 +856,7 @@ sub getListOfUsers {
     my $it = Foswiki::Func::eachUser();
     while ($it->hasNext()) {
       my $user = $it->next();
-      $this->{knownUsers}{$user} = 1;
+      $this->{knownUsers}{$user} = 1 if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
     }
 
     #$this->log("known users=".join(", ", sort keys %{$this->{knownUsers}})) if DEBUG;
@@ -942,10 +946,11 @@ sub getGrantedUsers {
   # get {knownUsers}
   $this->getListOfUsers();
 
+  $text ||= '';
+
   my @grantedUsers = ();
 
-  foreach my $user (keys %{$this->{knownUsers}}) {
-    my $wikiName = Foswiki::Func::getWikiName($user);
+  foreach my $wikiName (keys %{$this->{knownUsers}}) {
 
     # check web permission
     my $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName};

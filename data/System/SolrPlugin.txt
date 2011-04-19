@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="reprev" date="1291890836" format="1.1" reprev="6" version="7"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1291890836" format="1.1" reprev="6" version="7"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -217,13 +217,17 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
    * Set SHORTDESCRIPTION = Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]
 -->
 |  Author: | Foswiki:Main.MichaelDaum|
-|  Copyright: | &copy; 2009-2010, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2011, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  19 Apr 2011: | shipping a multicore setup by default; \
+                  added support for Foswiki:Extensions/VirtualHostingContrib; \
+                  fixed utf8 recoding; \
+                  some usability improvements to faceted search interface |
 |  16 Dec 2010: | added =state= field to schema used for approval workflows; \
                   added solrjob to ease cronjobbing indexing; \
                   added docu how to use iwatch for almost-realtime indexing; \

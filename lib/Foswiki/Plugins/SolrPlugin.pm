@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2010 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -23,16 +23,16 @@ our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseWeb;
 our $baseTopic;
-our $searcher;
-our $indexer;
-our @knownIndexTopicHandler;
-our @knownIndexAttachmentHandler;
+our %searcher;
+our %indexer;
+our @knownIndexTopicHandler = ();
+our @knownIndexAttachmentHandler = ();
 
 sub initPlugin {
   ($baseTopic, $baseWeb) = @_;
 
-  $searcher = undef;
-  $indexer = undef;
+  %searcher = ();
+  %indexer = ();
 
   Foswiki::Func::registerTagHandler('SOLRSEARCH', \&SOLRSEARCH);
   Foswiki::Func::registerTagHandler('SOLRFORMAT', \&SOLRFORMAT);
@@ -57,9 +57,10 @@ sub registerIndexAttachmentHandler {
 
 sub getSearcher {
 
+  my $searcher = $searcher{$Foswiki::cfg{DefaultUrlHost}};
   unless ($searcher) {
     require Foswiki::Plugins::SolrPlugin::Search;
-    $searcher = Foswiki::Plugins::SolrPlugin::Search->new(@_);
+    $searcher = $searcher{$Foswiki::cfg{DefaultUrlHost}} = Foswiki::Plugins::SolrPlugin::Search->new(@_);
   }
 
   return $searcher;
@@ -67,9 +68,10 @@ sub getSearcher {
 
 sub getIndexer {
 
+  my $indexer = $indexer{$Foswiki::cfg{DefaultUrlHost}};
   unless ($indexer) {
     require Foswiki::Plugins::SolrPlugin::Index;
-    $indexer = Foswiki::Plugins::SolrPlugin::Index->new(@_);
+    $indexer = $indexer{$Foswiki::cfg{DefaultUrlHost}} = Foswiki::Plugins::SolrPlugin::Index->new(@_);
   }
 
   return $indexer;
@@ -177,17 +179,25 @@ sub afterRenameHandler {
 }
 
 sub finishPlugin {
+
+  my $indexer = $indexer{$Foswiki::cfg{DefaultUrlHost}};
   $indexer->finish() if $indexer;
 
-  @knownIndexTopicHandler = ();
-
+  my $searcher = $searcher{$Foswiki::cfg{DefaultUrlHost}};
   if ($searcher) {
+    #print STDERR "searcher keys=".join(", ", sort keys %$searcher)."\n";
     my $url = $searcher->{redirectUrl};
     if ($url) {
       #print STDERR "found redirect $url\n";
       Foswiki::Func::redirectCgiQuery(undef, $url);
     }
   }
+
+  @knownIndexTopicHandler = ();
+  @knownIndexAttachmentHandler = ();
+
+  undef $indexer{$Foswiki::cfg{DefaultUrlHost}};
+  undef $searcher{$Foswiki::cfg{DefaultUrlHost}};
 }
 
 1;

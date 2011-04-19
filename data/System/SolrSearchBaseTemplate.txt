@@ -27,7 +27,14 @@
 %TMPL:DEF{"solr::defaultsort"}%score desc%TMPL:END%
 %TMPL:DEF{"solr::defaultdisplay"}%list%TMPL:END%
 %TMPL:DEF{"solr::incontribs"}%%TMPL:P{"solr::input::checkboxes::inmycontribs"}%%TMPL:END%
-%TMPL:DEF{"solr::extrafilter"}%%IF{"defined 'SOLR_EXTRAFILTER'" then="%SOLR_EXTRAFILTER%" else="-field_TopicType_lst:Category"}%%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%%IF{
+  "defined 'SOLR_EXTRAFILTER'" 
+  then="%SOLR_EXTRAFILTER%" 
+  else="-field_TopicType_lst:Category"
+}% %IF{
+  "not $USERNAME ingroup 'AdminGroup'"
+  then="-web_search:Applications*"
+}%%TMPL:END%
 %TMPL:DEF{"solr::facets"}%
   %MAKETEXT{"Recently changed"}%=facetquery,
   %MAKETEXT{"Media"}%=type,
@@ -243,18 +250,19 @@
   exclude="%TMPL:P{"solr::defaultcategory"}%"
   open="%TMPL:P{"solr::defaultcategory"}%,%FORMATLIST{"%URLPARAM{"filter" multiple="$item" separator=", "}%" split="\s*,\s*" pattern="(.*):(.*)" include="^category:.*" format="$2"}%"
   header="<ul>"
-  format="<li><table class='foswikiLayoutTable' width='100%'>
+  format="<li class='$name'>
+      <table class='foswikiLayoutTable' width='100%'>
       <tr>
       <td width='12px'>
         <input type='checkbox' autocomplete='off' class='solrFacetValue solrFacetValue_$name' value='category:$name' title='$title' id='$name' name='filter_category' />
       </td>
-      <td><label for='$name' style='display:block'>$title&nbsp;($leafs)</label></td>
+      <td><label for='$name' style='display:block'>$title&nbsp;($count)</label></td>
       </tr>
     </table>
     $children </li>"
   footer="</ul>"
   hidenull="on"
-  nrleafs="%SOLRFORMAT{"solr1" format_category="$key:$count" separator_category=", "}%"
+  nrtopics="%SOLRFORMAT{"solr1" format_category="$key:$count" separator_category=", "}%"
 }%
 </noautolink>
 %ENDTWISTYTOGGLE% 
@@ -421,13 +429,13 @@
   footer="</div>"
   format="$percntTMPL:P{\"solr::format::list::$format\" 
       id=\"$id\"
-      title=\"$percntENCODE{\"$title\" type=\"entity\"}$percnt\"
+      title=\"$percntENCODE{\"$title\" type=\"html\"}$percnt\"
       url=\"$url\"
       web=\"$web\"
       topic=\"$topic\"
       name=\"$name\"
       index=\"$index\"
-      comment=\"$percntENCODE{\"$comment\" type=\"entity\"}$percnt\"
+      comment=\"$percntENCODE{\"$comment\" type=\"html\"}$percnt\"
       author=\"$author\"
       size=\"$size\"
       icon=\"$icon\"
@@ -495,7 +503,7 @@
 <input type='hidden' name='rows' value='%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%' id='solrRowsOption' />
 <input type='hidden' name='origtopic' value='%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%' />
 %FORMATLIST{
-  "%URLPARAM{"filter" multiple="on" separator="#" encode="none"}%" 
+  "%URLPARAM{"filter" multiple="on" separator="#" encode="none"}%#%TMPL:P{"solr::extraselection"}%" 
   split="#"
   pattern="(.*):(.*)"
   format="<input type='hidden' name='filter' value='$1:$2' class='solrFilter {facet:\"$1\", value:\"$percntENCODE{\"$2\" type=\"url\"}$percnt\"}' />"
@@ -530,7 +538,7 @@
     }$percnt</h3>
     $percntTWISTYTOGGLE{id=\"solrtags\" mode=\"div\"}$percnt
     <div class='tagCloud' style='text-align:center'>"
-  format="<span style='font-size:$weightpx;line-height:110%'><a href='#' style='color:$fadeRGB(104,144,184,0,102,255);' class='solrFacetValue' value='tag:$term' name='tag_$term'>$term</a></span>"
+  format="<span style='font-size:$weightpx;line-height:110%'><a href='#' style='color:$fadeRGB(104,144,184,0,102,255);' class='solrFacetValue tag_$term' value='tag:$term' name='tag_$term'>$term</a></span>"
   footer="</div>$percntENDTWISTYTOGGLE$percnt</div></div>"
   group="<strong>$group</strong>"
   split="\s*,\s*"
@@ -578,7 +586,7 @@
         THEFORMAT="solrfacet"
         BUTTONS="off"
         HIDENULL="off"
-        NRLEAFS="%SOLRFORMAT{"solr1" format_category="$key:$count" separator_category=","}%" 
+        NRTOPICS="%SOLRFORMAT{"solr1" format_category="$key:$count" separator_category=","}%" 
       }%
     </div>
   %ENDTWISTYTOGGLE%
@@ -639,14 +647,9 @@
 </div>
 <table class='foswikiNullTable'>
   <tr>
-    <td><input type='text' class='foswikiInputField jqFocus solrSearchField' name='search' size='30' value='%URLPARAM{"search" encode="entity"}%' style='float:left;margin-right:8px;'/></td>
+    <td><input type='text' class='foswikiInputField jqFocus solrSearchField' name='search' size='60' value='%URLPARAM{"search" encode="entity"}%' style='margin-right:8px;'/></td>
     <td>
       %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find"}%
-      %BUTTON{"%MAKETEXT{"Cancel"}%" 
-        icon="cross" 
-        target="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"
-        title="%MAKETEXT{"back to [_1]" args="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"}%"
-      }%
     </td>
     <!-- td><a href='%SCRIPTURL{"view"}%/%BASEWEB%/%BASETOPIC%'>%MAKETEXT{"Start over"}%</a></td-->
   </tr>
@@ -675,7 +678,6 @@
     </td>
   </tr>
 </table>
-
 <!-- -->%TMPL:END%
 %{</verbatim>}%
 

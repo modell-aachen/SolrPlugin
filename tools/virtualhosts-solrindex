@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+# Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
 # Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
@@ -24,22 +25,36 @@ BEGIN {
   } elsif (-e '../bin/setlib.cfg') {
     unshift @INC, '../bin';
   }
+  $ENV{FOSWIKI_ACTION} = 'solrindex';
   require 'setlib.cfg';
 }
 
 use Foswiki ();
-use Foswiki::Plugins::SolrPlugin ();
+use Foswiki::UI ();
+use Foswiki::Contrib::VirtualHostingContrib::VirtualHost ();
 
-my $foswiki = new Foswiki();
-my $indexer = Foswiki::Plugins::SolrPlugin::getIndexer($foswiki);
+my $verbose = 1;
+my $hostname = '';
 
-my $query = $ARGV[0]||'';
-if ($query) {
-  $indexer->deleteByQuery($query);
-  #$indexer->optimize();
+foreach my $arg (@ARGV) {
+  if ($arg =~ /^(.*)=(.*)$/) {
+    if ($1 eq 'verbose') {
+      $verbose = ($2 eq 'on')?1:0;
+    } elsif ($1 eq 'host') {
+      $hostname = $2;
+    }
+  }
 }
-$indexer->commit(1);
 
-Foswiki::Plugins::SolrPlugin::finishPlugin();
+if ($hostname && $hostname ne 'all') {
+  Foswiki::Contrib::VirtualHostingContrib::VirtualHost->run_on($hostname, \&doit);
+} else {
+  Foswiki::Contrib::VirtualHostingContrib::VirtualHost->run_on_each(\&doit);
+}
+
+sub doit {
+  printf("=> Processing %s\n", $Foswiki::Contrib::VirtualHostingContrib::VirtualHost::CURRENT) if $verbose;
+  $Foswiki::engine->run();
+}
 
 1;

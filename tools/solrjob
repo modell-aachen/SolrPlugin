@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#set -x
+
 # location of the foswiki install
 test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=/home/www-data/foswiki/trunk/core
 
@@ -16,22 +18,67 @@ LOCKFILE=/var/lock/solrindex.lock
 # set time format
 TIME="%E real, %U user, %S system"
 
-# read cmd params
-MODE=$1
-test -z $MODE && MODE=delta
+# mode: delta or full
+MODE=delta
+
+# if VHOST is not set we do a normal solrjob
+VHOST=
+
+longopts="throttle:,mode:,host:"
+shortopts="t:m:h:"
+
+temp=`getopt -o $shortopts --long $longopts -n $0 -- "$@"`
+if [ $? != 0 ] ; then 
+  exit 1
+fi
+
+eval set -- "$temp"
+while true; do
+  case $1 in
+    -h|--host)
+      VHOST=$2
+      shift
+      shift
+      ;;
+    -m|--mode)
+      MODE=$2
+      shift
+      shift
+      ;;
+    -t|--throttle)
+      THROTTLE=$2
+      shift
+      shift
+      ;;
+    --) shift; break;;
+    *) 
+      echo "Error parsing options"
+      exit 1
+      ;;
+  esac
+done
 
 export TIME
 
 (
-  /usr/bin/flock -x -n 200 &&  (
-    #echo "indexing in $THROTTLE seconds" >&2
+  /usr/bin/flock -x -n 200 && (
+    cd $FOSWIKI_ROOT/tools 
+    SOLRINDEX=./solrindex
+    SOLRINDEX_ARGS=
+    if test -n "$VHOST"; then
+      SOLRINDEX=./virtualhosts-solrindex
+      SOLRINDEX_ARGS="host=$VHOST"
+    fi
+
+    #echo -n "indexing " >&2
+    #test -n "$VHOST" && echo -n "$VHOST " >&2
+    #echo "in $THROTTLE seconds" >&2
     sleep $THROTTLE
 
-    cd $FOSWIKI_ROOT/tools 
     if test "$MODE" = "delta"; then
-      /usr/bin/time ./solrindex mode=delta >> $LOG 2>&1
+      /usr/bin/time $SOLRINDEX mode=delta $SOLRINDEX_ARGS >> $LOG 2>&1
     else
-      /usr/bin/time ./solrindex mode=full optimize=on > $LOG 2>&1
+      /usr/bin/time $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS > $LOG 2>&1
     fi
   )
 ) 200>$LOCKFILE&

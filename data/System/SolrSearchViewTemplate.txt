@@ -5,5 +5,17 @@
 %TMPL:DEF{"sidebar"}%%TMPL:P{"solr::sidebar"}%%TMPL:END%
 %TMPL:DEF{"searchbox"}%%TMPL:END%
 %TMPL:DEF{"revinfo"}%%TMPL:END%
+%TMPL:DEF{"bottombar"}%%TMPL:END%
 %TMPL:DEF{"bodyclass"}%natViewBody natSolrBody%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"breadcrumbs"}%%BREADCRUMBS{"%URLPARAM{"origtopic" default="%BASEWEB%.%BASETOPIC%"}%" separator="%TMPL:P{"sep"}%"}%%TMPL:P{"breadcrumbstail"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"breadcrumbstail"}%%IF{
+  "'%URLPARAM{origtopic}%'!='%BASEWEB%.%BASETOPIC%' and '%URLPARAM{origtopic}%'!=''" 
+  then="%TMPL:P{"sep"}%[[%BASEWEB%.%BASETOPIC%][%MAKETEXT{"Search"}%]]"
+}%%TMPL:END%
 %{</verbatim>}%

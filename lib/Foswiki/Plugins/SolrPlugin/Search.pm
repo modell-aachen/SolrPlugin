@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2010 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ use POSIX ();
 use Error qw(:try);
 
 use constant DEBUG => 0; # toggle me
-use constant CONVERT_TOUTF8 => 1; # SMELL: I don't grok it
+use constant RECODE_UTF8 => 1; # SMELL: convert to utf8 before sending to solr
 
 ##############################################################################
 sub handleSOLRSEARCH {
@@ -179,8 +179,10 @@ HERE
         my $name = $field->{name};
         my $value = $field->{value};
 
-	$name = $this->fromUtf8($name);
-	$value = $this->fromUtf8($value);
+        if (RECODE_UTF8) {
+          $name = $this->fromUtf8($name);
+          $value = $this->fromUtf8($value);
+        }
 
         $id = $value if $name eq 'id';
         $type = $value if $name eq 'type';
@@ -257,7 +259,7 @@ HERE
             my ($key, $query) = parseFacetSpec($querySpec);
             my $count = $facets->{facet_queries}{$key};
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
-            next if $theFacetInclude && $key !~ /$theFacetExclude/;
+            next if $theFacetInclude && $key !~ /$theFacetInclude/;
             next unless $count;
             $facetTotal += $count;
             my $line = $theFacetFormat;
@@ -280,7 +282,7 @@ HERE
             next if $key =~ /^(gap|end|before)$/;
             my $count = $facet->{$key};
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
-            next if $theFacetInclude && $key !~ /$theFacetExclude/;
+            next if $theFacetInclude && $key !~ /$theFacetInclude/;
             next unless $count;
             $facetTotal += $count;
             my $line = $theFacetFormat;
@@ -304,7 +306,7 @@ HERE
             my $count = $facet->[$i+1];
             $key = $this->fromUtf8($key);
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
-            next if $theFacetInclude && $key !~ /$theFacetExclude/;
+            next if $theFacetInclude && $key !~ /$theFacetInclude/;
             my $line = $theFacetFormat;
             $facetTotal += $count;
             $line =~ s/\$key\b/$key/g;
@@ -355,8 +357,14 @@ HERE
   $result =~ s/\$count/$count/g;
   $result =~ s/\$from/$from/g;
   $result =~ s/\$to/$to/g;
-  $result =~ s/\$name//g; # clearnup
-  $result =~ s/\$rows/0/g; # clearnup
+  $result =~ s/\$name//g; # cleanup
+  $result =~ s/\$rows/0/g; # cleanup
+  
+  if ($params->{fields}) {
+    my $cleanupPattern = '('.join('|', split(/\s*,\s*/, $params->{fields})).')';
+    $result =~ s/\$$cleanupPattern//g;
+  }
+
   if ($result =~ /\$pager/) {
     my $pager = $this->renderPager($theWeb, $theTopic, $params, $response);
     $result =~ s/\$pager/$pager/g;
@@ -469,6 +477,9 @@ sub restSOLRSEARCH {
   my $result = '';
   try {
     $result = $response->raw_response->content();
+    if (RECODE_UTF8) {
+      $result = $this->fromUtf8($result);
+    }
   } catch Error::Simple with {
     $result = "Error parsing response";
   };
@@ -490,12 +501,14 @@ sub restSOLRAUTOCOMPLETE {
   my $thePrefix;
   my $foundPrefix = 0;
 
+
   my $wikiUser = Foswiki::Func::getWikiName();
   my @filter = $this->parseFilter($theFilter);
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
   # tokenize here as well to separate query and prefix
+  $theQuery = $this->fromUtf8($theQuery);
   $theQuery =~ s/[\!"§\$%&\/\(\)=\?{}\[\]\*\+~#',\.;:\-_]/ /g;
   $theQuery =~ s/([$Foswiki::regex{lowerAlpha}])([$Foswiki::regex{upperAlpha}$Foswiki::regex{numeric}]+)/$1 $2/go;
   $theQuery =~ s/([$Foswiki::regex{numeric}])([$Foswiki::regex{upperAlpha}])/$1 $2/go;
@@ -512,7 +525,6 @@ sub restSOLRAUTOCOMPLETE {
   my $field = $query->param('field') || 'catchall';
 
   my $solrParams = {
-    "q" => $theQuery,
     "facet.prefix" => $thePrefix,
     "facet" => 'true',
     "facet.mincount" => 1,
@@ -523,12 +535,15 @@ sub restSOLRAUTOCOMPLETE {
   };
   $solrParams->{"fq"} = \@filter if @filter;
 
-  my $response = $this->{solr}->generic_solr_request('select', $solrParams);
+  my $response = $this->solrSearch($theQuery, $solrParams);
 
   if ($theRaw eq 'on') {
     my $result = '';
     try {
-      $result = $response->raw_response->content()."\n\n"
+      $result = $response->raw_response->content()."\n\n";
+      if (RECODE_UTF8) {
+        $result = $this->fromUtf8($result);
+      }
     } catch Error::Simple with {
       $result = "Error parsing response\n\n";
     }
@@ -576,6 +591,9 @@ sub restSOLRSIMILAR {
   my $result = '';
   try {
     $result = $response->raw_response->content();
+    if (RECODE_UTF8) {
+      $result = $this->fromUtf8($result);
+    }
   } catch Error::Simple with {
     $result = "Error parsing result";
   };
@@ -633,10 +651,6 @@ sub doSimilar {
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
-  if (CONVERT_TOUTF8) {
-    $theQuery = $this->toUtf8($theQuery);
-  }
-
   my $solrParams = {
     "q" => $theQuery, 
     "fq" => \@filter,
@@ -670,7 +684,7 @@ sub doSimilar {
 
   $this->getFacetParams($params, $solrParams);
 
-  return $this->{solr}->generic_solr_request('mlt', $solrParams);
+  return $this->solrRequest('mlt', $solrParams);
 }
 
 ##############################################################################
@@ -710,7 +724,7 @@ sub restSOLRTERMS {
   $solrParams->{"fq"} = "(access_granted:$wikiUser OR access_granted:all)" 
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
-  my $response = $this->{solr}->generic_solr_request('terms', $solrParams);
+  my $response = $this->solrRequest('terms', $solrParams);
 
   my %struct = ();
   try {
@@ -740,6 +754,9 @@ sub restSOLRTERMS {
     my $result = '';
     try {
       $result = $response->raw_response->content();
+      if (RECODE_UTF8) {
+        $result = $this->fromUtf8($result);
+      }
     } catch Error::Simple with {
       #
     };
@@ -876,15 +893,45 @@ sub doSearch {
     }
   }
 
-  if (CONVERT_TOUTF8) {
-    $query = $this->toUtf8($query);
-  }
   $this->log("query=$query") if DEBUG;
-  my $response = $this->{solr}->search($query, $solrParams);
+  my $response = $this->solrSearch($query, $solrParams);
 
   #$this->log("response:\n".$response->raw_response->content()) if DEBUG;
 
   return $response;
+}
+
+##############################################################################
+sub solrSearch {
+  my ($this, $query, $params) = @_;
+
+  $params ||= {};
+  $params->{'q'} = $query if $query;
+  return $this->solrRequest("select", $params);
+}
+
+##############################################################################
+sub solrRequest {
+  my ($this, $path, $params) = @_;
+
+  # convert params to utf8
+
+  if (RECODE_UTF8) {
+    unless($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
+      foreach my $key (keys %$params) {
+        my $val = $params->{$key};
+        if (ref($val) eq 'ARRAY') {
+          my @newVal = map($this->toUtf8($_), @$val);
+          $val = \@newVal;
+        } else {
+          $val = $this->toUtf8($val);
+        }
+        $params->{$key} = $val;
+      }
+    }
+  }
+
+  return $this->{solr}->generic_solr_request($path, $params);
 }
 
 ##############################################################################
@@ -1140,6 +1187,7 @@ sub getCorrection {
   my $correction = $struct->{collation};
   return '' unless $correction;
 
+  return $correction;
   return $this->fromUtf8($correction);
 }
 
@@ -1267,10 +1315,6 @@ sub getScriptUrl {
 ##############################################################################
 sub parseFilter {
   my ($this, $filter, $format) = @_; 
-
-  if (CONVERT_TOUTF8) {
-    $filter = $this->toUtf8($filter);
-  }
 
   $format ||= '$field:"$value"';
 
