@@ -227,7 +227,8 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  19 Apr 2011: | shipping a multicore setup by default; \
                   added support for Foswiki:Extensions/VirtualHostingContrib; \
                   fixed utf8 recoding; \
-                  some usability improvements to faceted search interface |
+                  some usability improvements to faceted search interface; \
+                  fixing illegal control characters in output (Oliver Schaub) |
 |  16 Dec 2010: | added =state= field to schema used for approval workflows; \
                   added solrjob to ease cronjobbing indexing; \
                   added docu how to use iwatch for almost-realtime indexing; \

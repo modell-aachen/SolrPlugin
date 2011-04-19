@@ -842,6 +842,9 @@ sub plainify {
   $text =~ s/~~~/ /g;
   $text =~ s/^$//gs;
 
+  # Foswiki:Task.Item10258: remove illegal characters
+  $text =~ s/\p{C}/ /g;
+  ;
   return $text;
 }
 
