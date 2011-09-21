@@ -1,0 +1,47 @@
+diff -ur /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/Solr/Response.pm ./Solr/Response.pm
+--- /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/Solr/Response.pm	2011-06-14 10:49:42.721396758 +0200
++++ ./Solr/Response.pm	2011-06-13 21:11:22.000000000 +0200
+@@ -3,9 +3,8 @@
+ use Moose;
+ 
+ use WebService::Solr::Document;
+-## disabled too buggy
+-#use Data::Page;
+-#use Data::Pageset;
++use Data::Page;
++use Data::Pageset;
+ use JSON::XS ();
+ 
+ has 'raw_response' => (
+@@ -24,12 +23,12 @@
+ has 'docs' =>
+     ( is => 'rw', isa => 'ArrayRef', auto_deref => 1, lazy_build => 1 );
+ 
+-#has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
++has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
+ 
+-#has '_pageset_slide' =>
+-#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
+-#has '_pageset_fixed' =>
+-#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
++has '_pageset_slide' =>
++    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
++has '_pageset_fixed' =>
++    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
+ 
+ sub BUILDARGS {
+     my ( $self, $res ) = @_;
+Only in /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/Solr: .svn
+diff -ur /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/Solr.pm ./Solr.pm
+--- /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/Solr.pm	2011-06-14 10:51:03.105942378 +0200
++++ ./Solr.pm	2011-06-13 21:10:05.000000000 +0200
+@@ -140,7 +140,7 @@
+ sub search {
+     my ( $self, $query, $params ) = @_;
+     $params ||= {};
+-    $params->{ 'q' } = $query if $query;
++    $params->{ 'q' } = $query;
+     return $self->generic_solr_request( 'select', $params );
+ }
+ 
+Only in /home/www-data/foswiki/trunk/SolrPlugin/lib/WebService/: .svn

@@ -24,7 +24,6 @@ use POSIX ();
 use Error qw(:try);
 
 use constant DEBUG => 0; # toggle me
-use constant RECODE_UTF8 => 1; # SMELL: convert to utf8 before sending to solr
 
 ##############################################################################
 sub handleSOLRSEARCH {
@@ -39,12 +38,15 @@ sub handleSOLRSEARCH {
   my $theQuery = $params->{_DEFAULT} || $params->{search} || '';;
   $theQuery = entityDecode($theQuery);
   $params->{search} = $theQuery;
-  
-  my $theJump = $params->{jump} || 'off';
 
-  if ($theJump eq 'on' && $theQuery) {
-    # redirect to single-hit 
-    my ($web, $topic) = Foswiki::Func::normalizeWebTopicName($theWeb, $theQuery);
+  $theQuery = $this->toUtf8($theQuery);
+
+  my $theJump = Foswiki::Func::isTrue($params->{jump});
+
+  if ($theJump && $theQuery) {
+    # redirect to topic
+    my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $theQuery);
+
     if (Foswiki::Func::topicExists($web, $topic)) {
       my $url = Foswiki::Func::getScriptUrl($web, $topic, 'view');
       $this->{redirectUrl} = $url;
@@ -53,20 +55,28 @@ sub handleSOLRSEARCH {
   }
 
   my $response = $this->doSearch($theQuery, $params);
-  my $result = '';
+  return '' unless defined $response;
 
-  if ($response) {
-    if (defined $theId) {
-      $this->{cache}{$theId} = {
-          response=>$response,
-          params=>$params,
-      };
-    } else {
-      $result = $this->formatResponse($params, $theWeb, $theTopic, $response);
+  if (defined $theId) {
+    $this->{cache}{$theId} = {
+        response=>$response,
+        params=>$params,
+    };
+  } 
+
+  # I feel lucky: redirect to first result
+  my $theLucky = Foswiki::Func::isTrue($params->{'lucky'});
+  if ($theLucky) {
+    my $url = $this->getFirstUrl($response);
+    if ($url) {
+      # will redirect in finishPlugin handler
+      $this->{redirectUrl} = $url;
+      return "";
     }
   }
 
-  return $result;
+
+  return $this->formatResponse($params, $theWeb, $theTopic, $response);
 }
 
 ##############################################################################
@@ -84,11 +94,7 @@ sub handleSOLRFORMAT {
 
   $params = {%{$cacheEntry->{params}}, %$params};
 
-  my $topic = $params->{topic} || $theTopic;
-  my $web = $params->{web};
-  $web = $theWeb if !defined($web) || $web eq 'all';
-
-  return $this->formatResponse($params, $web, $topic, $cacheEntry->{response});
+  return $this->formatResponse($params, $theWeb, $theTopic, $cacheEntry->{response});
 }
 
 
@@ -114,7 +120,7 @@ sub formatResponse {
 
   Foswiki::Plugins::JQueryPlugin::createPlugin("metadata");
   Foswiki::Plugins::JQueryPlugin::createPlugin("focus");
-  Foswiki::Plugins::JQueryPlugin::createPlugin("autocomplete");
+  Foswiki::Plugins::JQueryPlugin::createPlugin("ui");
 
   Foswiki::Func::addToZone('head', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::AUTOCOMPLETE, JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
 <link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.css' type='text/css' media='all' />
@@ -136,7 +142,9 @@ HERE
   my $theInterestingExclude = $params->{exclude_interesting} || '';
   my $theInterestingInclude = $params->{include_interesting} || '';
   my $theFacets = $params->{facets};
-  my $theHideSingle = $params->{hidesingle} || 'off';
+  my $theHideSingle = $params->{hidesingle} || '';
+
+  my %hideSingleFacets = map {$_ => 1} split(/\s*,\s*/, $theHideSingle);
 
   my $hilites;
   if ($theFormat =~ /\$hilite/ || $theHeader =~ /\$hilite/ || $theFooter =~ /\$hilite/) {
@@ -175,14 +183,13 @@ HERE
       my $topic;
       my $web;
       my $summary = '';
+
       foreach my $field ($doc->fields) {
         my $name = $field->{name};
         my $value = $field->{value};
 
-        if (RECODE_UTF8) {
-          $name = $this->fromUtf8($name);
-          $value = $this->fromUtf8($value);
-        }
+	$name = $this->fromUtf8($name);
+      	$value = $this->fromUtf8($value);
 
         $id = $value if $name eq 'id';
         $type = $value if $name eq 'type';
@@ -195,16 +202,18 @@ HERE
         $value = sprintf('%.02f', $value)
           if $name eq 'score';
 
-        $value = Foswiki::Time::formatTime(Foswiki::Time::parseTime($value))
-          if $name eq 'date' || $name =~ /_d$/;
+        if ($this->isDateField($name)) {
+          $line =~ s/\$$name\((.*?)\)/Foswiki::Time::formatTime(Foswiki::Time::parseTime($value), $1)/ge;
+          $line =~ s/\$$name\b/Foswiki::Time::formatTime(Foswiki::Time::parseTime($value), '$day $mon $year')/ge;
+        } else {
+          $value = sprintf("%.02f kb", ($value / 1024))
+            if $name eq 'size' && $value =~ /^\d+$/;
+          $line =~ s/\$$name\b/$value/g;
+        }
 
-        $value = sprintf("%.02f kb", ($value / 1024))
-          if $name eq 'size' && $value =~ /^\d+$/;
-
-
-        $line =~ s/\$$name\b/$value/g;
       }
-      next unless Foswiki::Func::topicExists($web, $topic); # just to make sure
+      next unless Foswiki::Func::topicExists($web, $topic);
+
       my $hilite = '';
       $hilite = ($hilites->{$id} || $summary) if $id && $hilites;
       my $icon = $this->mapToIconFileName($type);
@@ -224,17 +233,17 @@ HERE
     }
   }
 
+  return '' if !@rows && !$theFacets && !$theInterestingFormat;
+
   my $facets = $this->getFacets($response);
   my $interestingTerms = $this->getInterestingTerms($response);
-
-  return '' if !@rows && !$theFacets && !$theInterestingFormat;
 
   # format facets
   my $facetResult = '';
   if ($facets) {
 
     foreach my $facetSpec (split(/\s*,\s*/, $theFacets)) {
-      my ($facetLabel, $facetID) = parseFacetSpec($facetSpec);
+      my ($facetLabel, $facetID) = parseFacetSpec($this->fromUtf8($facetSpec));
       my $theFacetHeader = $params->{"header_$facetID"} || '';
       my $theFacetFormat = $params->{"format_$facetID"} || '';
       my $theFacetFooter = $params->{"footer_$facetID"} || '';
@@ -254,13 +263,25 @@ HERE
       if ($facetID eq 'facetquery') {
         my $theFacetQuery = $params->{facetquery} || '';
         my @facetQuery = split(/\s*,\s*/, $theFacetQuery);
-        if ($theHideSingle ne 'on' || @facetQuery > 1) {
+
+        # count rows
+        my $len = 0;
+        foreach my $querySpec (@facetQuery) {
+          my ($key, $query) = parseFacetSpec($querySpec);
+          my $count = $facets->{facet_queries}{$key};
+          next unless $count;
+          next if $theFacetExclude && $key =~ /$theFacetExclude/;
+          next if $theFacetInclude && $key !~ /$theFacetInclude/;
+          $len++;
+        }
+
+        unless ($hideSingleFacets{$facetID} && $len <= 1) {
           foreach my $querySpec (@facetQuery) {
             my ($key, $query) = parseFacetSpec($querySpec);
             my $count = $facets->{facet_queries}{$key};
+            next unless $count;
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
-            next unless $count;
             $facetTotal += $count;
             my $line = $theFacetFormat;
             $key =~ s/_/ /g; #revert whitespace workaround
@@ -273,21 +294,34 @@ HERE
       }
 
       # date facets
-      elsif ($facetID =~ /^((.*_d)|date|timestamp)$/) {
+      elsif ($this->isDateField($facetID)) {
         my $facet = $facets->{facet_dates}{$facetLabel};
         next unless $facet;
-        if ($theHideSingle ne 'on' || scalar(keys %$facet) > 1) {
-          foreach my $key (keys %$facet) {
+
+        # count rows
+        my $len = 0;
+        foreach my $key (keys %$facet) { # SMELL: sorting lost in perl interface
+          next if $key =~ /^(gap|end|before)$/;
+          my $count = $facet->{$key};
+          next unless $count;
+          next if $theFacetExclude && $key =~ /$theFacetExclude/;
+          next if $theFacetInclude && $key !~ /$theFacetInclude/;
+          $len++;
+        }
+
+        unless ($hideSingleFacets{$facetID} && $len <= 1) {
+          foreach my $key (reverse sort keys %$facet) { # SMELL: sorting lost in perl interface
+            my $count = $facet->{$key};
+            next unless $count;
             $key = $this->fromUtf8($key);
             next if $key =~ /^(gap|end|before)$/;
-            my $count = $facet->{$key};
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
-            next unless $count;
             $facetTotal += $count;
             my $line = $theFacetFormat;
             $line =~ s/\$key\b/$key/g;
-            $line =~ s/\$date(?:\((.*?)\))?\b/Foswiki::Time::formatTime(Foswiki::Time::parseTime($key), ($1 || '$day $mon $year'))/ge;
+            $line =~ s/\$date\((.*?)\)/Foswiki::Time::formatTime(Foswiki::Time::parseTime($key), $1)/ge;
+            $line =~ s/\$date\b/Foswiki::Time::formatTime(Foswiki::Time::parseTime($key), '$day $mon $year')/ge;
             $line =~ s/\$count\b/$count/g;
             push(@facetRows, $line);
           }
@@ -298,13 +332,26 @@ HERE
       else {
         my $facet = $facets->{facet_fields}{$facetLabel};
         next unless defined $facet;
-        my $len = scalar(@$facet);
-        if ($theHideSingle ne 'on' || $len > 2) {
-          for (my $i = 0; $i < $len; $i+=2) {
+
+        # count rows
+        my $len = 0;
+        my $nrFacetValues = scalar(@$facet);
+        for (my $i = 0; $i < $nrFacetValues; $i+=2) {
+          my $key = $facet->[$i];
+          next unless $key;
+          next if $theFacetExclude && $key =~ /$theFacetExclude/;
+          next if $theFacetInclude && $key !~ /$theFacetInclude/;
+          $len++;
+        }
+
+        unless ($hideSingleFacets{$facetID} && $len <= 1) {
+          for (my $i = 0; $i < $nrFacetValues; $i+=2) {
             my $key = $facet->[$i];
             next unless $key;
+
             my $count = $facet->[$i+1];
             $key = $this->fromUtf8($key);
+
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
             my $line = $theFacetFormat;
@@ -332,15 +379,14 @@ HERE
   if ($interestingTerms) {
     my @interestingRows = ();
     while (my $termSpec = shift @$interestingTerms) {
-      my $field = '';
-      my $term = '';
-      my $score = 0;
       next unless $termSpec =~ /^(.*):(.*)$/g;
-      $field = $1;
-      $term = $2;
-      $score = shift @$interestingTerms;
+      my $field = $this->fromUtf8($1);
+      my $term = $this->fromUtf8($2);
+      my $score = shift @$interestingTerms;
+
       next if $theInterestingExclude && $term =~ /$theInterestingExclude/;
       next if $theInterestingInclude && $term =~ /$theInterestingInclude/;
+
       my $line = $theInterestingFormat;
       $line =~ s/\$term/$term/g;
       $line =~ s/\$score/$score/g;
@@ -377,7 +423,7 @@ HERE
 
   # standard escapes
   $result =~ s/\$perce?nt/\%/go;
-  $result =~ s/\$nop//go;
+  $result =~ s/\$nop\b//go;
   $result =~ s/\$n/\n/go;
   $result =~ s/\$dollar/\$/go;
 
@@ -469,22 +515,45 @@ sub restSOLRSEARCH {
   $theTopic ||= $this->{session}->{topicName};
 
   my $theQuery = $query->param('q') || $query->param('search');
-
   my %params = map {$_ => $query->param($_)} $query->param();
-
   my $response = $this->doSearch($theQuery, \%params);
+
+  # I feel lucky: redirect to first result
+  my $theLucky = Foswiki::Func::isTrue($query->param('lucky'));
+  if ($theLucky) {
+    my $url = $this->getFirstUrl($response);
+    if ($url) {
+      # will redirect in finishPlugin handler
+      $this->{redirectUrl} = $url;
+      return "\n\n";
+    }
+  }
 
   my $result = '';
   try {
     $result = $response->raw_response->content();
-    if (RECODE_UTF8) {
-      $result = $this->fromUtf8($result);
-    }
+    $result = $this->fromUtf8($result);
   } catch Error::Simple with {
     $result = "Error parsing response";
   };
 
   return $result."\n\n";
+}
+
+##############################################################################
+sub getFirstUrl {
+  my ($this, $response) = @_;
+
+  my $url;
+
+  if ($this->totalEntries($response)) {
+    for my $doc ($response->docs) {
+      $url = $doc->value_for("url");
+      last if $url;
+    }
+  }
+
+  return $url;
 }
 
 ##############################################################################
@@ -494,10 +563,12 @@ sub restSOLRAUTOCOMPLETE {
   return '' unless defined $this->{solr};
   my $query = Foswiki::Func::getCgiQuery();
 
-  my $theRaw = $query->param('raw') || 'off';
-  my $theQuery = $query->param('q') || '';
+  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE > 4.10)?1:0;
+
+  my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
+  my $theQuery = $query->param($isNewAutocomplete?'term':'q') || '';
   my $theFilter = $query->param('filter');
-  my $theEllipsis = $query->param('ellipsis') || 'off';
+  my $theEllipsis = Foswiki::Func::isTrue($query->param('ellipsis'));
   my $thePrefix;
   my $foundPrefix = 0;
 
@@ -508,12 +579,13 @@ sub restSOLRAUTOCOMPLETE {
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
   # tokenize here as well to separate query and prefix
-  $theQuery = $this->fromUtf8($theQuery);
+
   $theQuery =~ s/[\!"§\$%&\/\(\)=\?{}\[\]\*\+~#',\.;:\-_]/ /g;
   $theQuery =~ s/([$Foswiki::regex{lowerAlpha}])([$Foswiki::regex{upperAlpha}$Foswiki::regex{numeric}]+)/$1 $2/go;
   $theQuery =~ s/([$Foswiki::regex{numeric}])([$Foswiki::regex{upperAlpha}])/$1 $2/go;
 
-  if ($theQuery =~ /^(.+) (.*?)$/) {
+
+  if ($theQuery =~ /^(.+) (.+?)$/) {
     $theQuery = $1;
     $thePrefix = $2;
     $foundPrefix = 1;
@@ -537,40 +609,49 @@ sub restSOLRAUTOCOMPLETE {
 
   my $response = $this->solrSearch($theQuery, $solrParams);
 
-  if ($theRaw eq 'on') {
-    my $result = '';
-    try {
-      $result = $response->raw_response->content()."\n\n";
-      if (RECODE_UTF8) {
-        $result = $this->fromUtf8($result);
-      }
-    } catch Error::Simple with {
-      $result = "Error parsing response\n\n";
-    }
+  if ($theRaw) {
+    my $result = $response->raw_response->content()."\n\n";
+    $result = $this->fromUtf8($result);
     return $result;
   }
+  $this->log($response->raw_response->content()) if DEBUG;
 
   my $facets = $this->getFacets($response);
   return '' unless $facets;
 
   # format autocompletion
+  $theQuery = $this->fromUtf8($theQuery); 
+
   my @result = ();
   foreach my $facet (keys %{$facets->{facet_fields}}) {
     my @facetRows = ();
     my @list = @{$facets->{facet_fields}{$facet}};
     while (my $key = shift @list) {
       my $freq = shift @list;
+      $key = $this->fromUtf8($key);
       $key = "$theQuery $key" if $foundPrefix;
       my $title = $key;
-      if ($theEllipsis eq 'on') {
+      if ($theEllipsis) {
         $title = $key;
-        $title =~ s/$theQuery $thePrefix/.../;
+        $title =~ s/$thePrefix $theQuery/.../;
       }
-      my $line = $this->fromUtf8("$key|$title|$freq");
+      my $line;
+      if ($isNewAutocomplete) {
+        # jquery-ui's autocomplete takes a json
+	$line = "{\"value\":\"$key\", \"label\":\"$title\", \"frequency\":$freq}";
+      } else {
+        # old jquery.autocomplete takes proprietary format
+	$line = "$key|$title|$freq";
+      }
       push(@result, $line);
     }
   }
-  return join("\n", @result)."\n\n";
+
+  if ($isNewAutocomplete) {
+    return "[\n".join(",\n ", @result)."\n]";
+  } else {
+    return join("\n", @result)."\n\n";
+  }
 }
 
 ##############################################################################
@@ -586,14 +667,10 @@ sub restSOLRSIMILAR {
 
   my $response = $this->doSimilar($theQuery, \%params);
 
-  #my $theRaw = $params->('raw') || 'off';
-
   my $result = '';
   try {
     $result = $response->raw_response->content();
-    if (RECODE_UTF8) {
-      $result = $this->fromUtf8($result);
-    }
+    $result = $this->fromUtf8($result);
   } catch Error::Simple with {
     $result = "Error parsing result";
   };
@@ -627,24 +704,23 @@ sub doSimilar {
   my $theLike = $params->{'like'};
   my $theFields = $params->{'fields'};
   my $theFilter = $params->{'filter'};
-  my $theInclude = $params->{'include'} || 'false';
+  my $theInclude = Foswiki::Func::isTrue($params->{'include'});
   my $theStart = $params->{'start'} || 0;
   my $theRows = $params->{'rows'};
-  my $theMaxTerms = $params->{'maxterms'};
-  my $theBoost = $params->{'boost'} || 'true';
+  my $theBoost = Foswiki::Func::isTrue($params->{'boost'}, 1);
   my $theMinTermFreq = $params->{'mintermfrequency'};
   my $theMinDocFreq = $params->{'mindocumentfrequency'};
   my $theMinWordLength = $params->{'mindwordlength'};
   my $theMaxWordLength = $params->{'maxdwordlength'};
+  my $theLimit = $params->{'maxterms'}; 
+  $theLimit = $params->{limit} unless defined $theLimit;
+  $theLimit = 100 unless defined $theLimit;
 
   $theLike = 'category,tag' unless defined $theLike;
   $theFilter = 'type:topic' unless defined $theFilter;
   $theRows = 10 unless defined $theRows;
-  $theMaxTerms = 100 unless defined $theMaxTerms;
 
-  $theFields = 'web,topic,title,score' unless defined $theFields;
-  $theInclude = undef unless $theInclude =~ /^(true|false)$/;
-  $theBoost = undef unless $theBoost =~ /^(true|false)$/;
+  $theFields = 'web_search,topic_search,title_search,score' unless defined $theFields;
 
   my $wikiUser = Foswiki::Func::getWikiName();
   my @filter = $this->parseFilter($theFilter);
@@ -658,7 +734,7 @@ sub doSimilar {
     "rows" => $theRows,
     "start" => $theStart,
     "indent" => 'true',
-    "mlt.maxqt" => $theMaxTerms,
+    "mlt.maxqt" => $theLimit,
   };
   
   my @fields = ();
@@ -673,10 +749,10 @@ sub doSimilar {
   }
 
   $solrParams->{"mlt.fl"} = join(',', @fields) if @fields;
-  $solrParams->{"mlt.boost"} = $theBoost if defined $theBoost;
+  $solrParams->{"mlt.boost"} = $theBoost?'true':'false';
   $solrParams->{"mlt.qf"} = join(' ', @boosts) if @boosts;
   $solrParams->{"mlt.interestingTerms"} = 'details' if $params->{format_interesting};
-  $solrParams->{"mlt.match.include"} = $theInclude if defined $theInclude;
+  $solrParams->{"mlt.match.include"} = $theInclude?'true':'false';
   $solrParams->{"mlt.mintf"} = $theMinTermFreq if defined $theMinTermFreq;
   $solrParams->{"mlt.mindf"} = $theMinDocFreq if defined $theMinDocFreq;
   $solrParams->{"mlt.minwl"} = $theMinWordLength if defined $theMinWordLength;
@@ -694,11 +770,15 @@ sub restSOLRTERMS {
   return '' unless defined $this->{solr};
   my $query = Foswiki::Func::getCgiQuery();
 
-  my $theRaw = $query->param('raw') || 'off';
-  my $theQuery = ($query->param('q') || '*:*');
+  my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
+
+  # TODO: distinguish new and old autocomplete
+  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE > 4.10)?1:0;
+  my $theQuery = $query->param($isNewAutocomplete?'term':'q') || '';
+
   my $theFields = $query->param('fields') || '';
   my $theField = $query->param('field');
-  my $theEllipsis = $query->param('ellipsis') || 'off';
+  my $theEllipsis = Foswiki::Func::isTrue($query->param('ellipsis'));
   my $theLength = $query->param('length') || 0;
 
   if (defined $theLength) {
@@ -708,13 +788,14 @@ sub restSOLRTERMS {
 
   my @fields = split(/\s*,\s*/, $theFields);
   push(@fields, $theField) if defined $theField;
-  push(@fields, 'webtopic') unless @fields;
+  push(@fields, 'catchall') unless @fields;
 
   my $wikiUser = Foswiki::Func::getWikiName();
   my $solrParams = {
     "terms" => 'true',
     "terms.fl" => \@fields,
     "terms.mincount" => 1,
+    "terms.limit" => ($query->param('limit') || 10),
     "terms.lower" => $theQuery,
     "terms.prefix" => $theQuery,
     "terms.lower.incl" => 'false',
@@ -725,6 +806,7 @@ sub restSOLRTERMS {
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
   my $response = $this->solrRequest('terms', $solrParams);
+  #$this->log($response->raw_response->content()) if DEBUG;
 
   my %struct = ();
   try {
@@ -744,19 +826,18 @@ sub restSOLRTERMS {
         $strip = substr($theQuery, 0, -$theLength);
         $hilite = substr($theQuery, -$theLength);
       }
-      $title =~ s/$strip/.../ if $theEllipsis eq 'on';
+      $title =~ s/$strip/.../ if $theEllipsis;
 
+      # TODO: use different formats for new and old autocomplete library
       my $line = "$term|$title|$hilite|$freq";
       push(@result, $line);
     }
   }
-  if ($theRaw eq 'on') {
+  if ($theRaw) {
     my $result = '';
     try {
       $result = $response->raw_response->content();
-      if (RECODE_UTF8) {
-        $result = $this->fromUtf8($result);
-      }
+      $result = $this->fromUtf8($result);
     } catch Error::Simple with {
       #
     };
@@ -771,25 +852,25 @@ sub restSOLRTERMS {
 sub doSearch {
   my ($this, $query, $params) = @_;
 
-  my $theOutput = $params->{output} || '';
+  my $theXslt = $params->{xslt} || '';
+  my $theOutput = $params->{output} || $theXslt?'xslt':'json';
   my $theRows = $params->{rows};
   my $theFields = $params->{fields} || '*,score';
   my $theQueryType = $params->{type} || 'standard';
-  my $theHighlight = $params->{highlight} || 'off';
-  my $theSpellcheck = $params->{spellcheck} || 'off';
+  my $theHighlight = Foswiki::Func::isTrue($params->{highlight});
+  my $theSpellcheck = Foswiki::Func::isTrue($params->{spellcheck});
   my $theWeb = $params->{web};
   my $theContributor = $params->{contributor};
   my $theFilter = $params->{filter} || '';
   my $theExtraFilter = $params->{extrafilter};
-  my $theFacet = $params->{facet};
+  my $theDisjunktiveFacets = $params->{disjunctivefacets} || '';
+  my $theCombinedFacets = $params->{combinedfacets} || '';
+
+  my %disjunctiveFacets = map {$_ => 1} split(/\s*,\s*/, $theDisjunktiveFacets);
+  my %combinedFacets = map {$_ => 1} split(/\s*,\s*/, $theCombinedFacets);
 
   $theQueryType = Foswiki::Func::expandTemplate("solr::defaultquerytype") unless $theQueryType =~ /^(standard|dismax)$/;
   $theQueryType = 'standard' unless defined $theQueryType;
-
-  if ($theWeb) {
-    $theWeb =~ s/\//\./g;
-    $params->{web} = $theWeb;
-  }
 
   my $theStart = $params->{start} || 0;
 
@@ -821,11 +902,13 @@ sub doSearch {
     "rows" => $theRows,
     "fl" => $theFields,
     "sort" => $theSort,
-    "qt" => $theQueryType, # or is it defType?
-    "wt" => ($theOutput eq 'xml'?'xml':'json'),
+    "qt" => $theQueryType, # one of the requestHandlers defined in solrconfig.xml
+    "wt" => $theOutput,
   };
 
-  if ($theHighlight eq 'on' && $theRows > 0) {
+  $solrParams->{tr} = $theXslt if $theXslt;
+
+  if ($theHighlight && $theRows > 0) {
     $solrParams->{"hl"} = 'true';
     $solrParams->{"hl.fl"} = 'catchall';
     $solrParams->{"hl.requireFieldMatch"} = 'true';
@@ -839,7 +922,7 @@ sub doSearch {
     # TODO: some more hl params?
   }
 
-  if ($theSpellcheck eq 'on') {
+  if ($theSpellcheck) {
     $solrParams->{"spellcheck"} = 'true';
   }
 
@@ -850,20 +933,52 @@ sub doSearch {
 
   # create filter query
   my @filter;
-  my %seenFilter;
   my @tmpfilter = $this->parseFilter($theFilter);
+  my %seenDisjunctiveFilter = ();
+  my %seenCombinedFilter = ();
 
-  # add disjunctive filters
+  # gather different types of filters
   foreach my $item (@tmpfilter) {
-    if ($item =~ /^date:"?(.*?)"?$/) {
-      push(@{$seenFilter{'date'}}, $1);
-    } else {
-      push(@filter, $item);
+
+    if ($item =~ /^(.*):"?(.*?)"?$/) {
+      my $facetName = $1;
+      my $facetValue = $2;
+
+      # disjunctive
+      if ($disjunctiveFacets{$facetName} || $this->isDateField($facetName)) {
+	push(@{$seenDisjunctiveFilter{$facetName}}, $facetValue);
+	next;
+      }
+
+      # combined
+      if ($combinedFacets{$facetName}) {
+	push(@{$seenCombinedFilter{$facetValue}}, $facetName);
+	next;
+      }
     }
+
+    # normal
+    push(@filter, $item);
   }
-  foreach my $field (keys %seenFilter) {
-    my $expr = "{!tag=$field}$field:(".join(" OR ", @{$seenFilter{$field}}).")";
+
+  # add filters for disjunctive filters
+  foreach my $facetName (keys %seenDisjunctiveFilter) {
+    my $expr = "{!tag=$facetName}$facetName:(".join(" OR ", @{$seenDisjunctiveFilter{$facetName}}).")";
     push(@filter, $expr);
+  }
+
+  # add filters for combined filters
+  foreach my $facetValue (keys %seenCombinedFilter) {
+    my @expr = ();
+    foreach my $facetName (@{$seenCombinedFilter{$facetValue}}) {
+      push @expr, "$facetName:$facetValue";
+    }
+    push @filter, "(".join(" OR ", @expr).")";
+  }
+
+  if ($theWeb && $theWeb ne 'all') {
+    $theWeb =~ s/\//\./g;
+    push(@filter, "web:$theWeb");
   }
 
   # extra filter 
@@ -893,10 +1008,18 @@ sub doSearch {
     }
   }
 
-  $this->log("query=$query") if DEBUG;
+  #$this->log("query=$query") if DEBUG;
   my $response = $this->solrSearch($query, $solrParams);
 
   #$this->log("response:\n".$response->raw_response->content()) if DEBUG;
+
+  # DEBUG raw response
+  if (0) {
+    my $raw = $response->raw_response->content();
+    #$raw =~ s/"response":.*$//s;
+    $this->log("raw params=$raw");
+  }
+
 
   return $response;
 }
@@ -907,29 +1030,13 @@ sub solrSearch {
 
   $params ||= {};
   $params->{'q'} = $query if $query;
+
   return $this->solrRequest("select", $params);
 }
 
 ##############################################################################
 sub solrRequest {
   my ($this, $path, $params) = @_;
-
-  # convert params to utf8
-
-  if (RECODE_UTF8) {
-    unless($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
-      foreach my $key (keys %$params) {
-        my $val = $params->{$key};
-        if (ref($val) eq 'ARRAY') {
-          my @newVal = map($this->toUtf8($_), @$val);
-          $val = \@newVal;
-        } else {
-          $val = $this->toUtf8($val);
-        }
-        $params->{$key} = $val;
-      }
-    }
-  }
 
   return $this->{solr}->generic_solr_request($path, $params);
 }
@@ -1021,7 +1128,7 @@ sub getFacetParams {
     next if $facetID eq 'facetquery';
     if ($facetID =~ /^(tag|category)$/) {
       push(@$fieldFacets, "{!key=$facetLabel}$facetID");
-    } elsif ($facetID =~ /^((.*_d)|date|timestamp)$/) {
+    } elsif ($this->isDateField($facetID)) {
       push(@$dateFacets, "{!ex=$facetID, key=$facetLabel}$facetID");
     } else {
       push(@$fieldFacets, "{!ex=$facetID key=$facetLabel}$facetID");
@@ -1048,17 +1155,26 @@ sub getFacetParams {
 sub mapToIconFileName {
   my ($this, $type) = @_;
 
-  return 'picture.png' if $type =~ /(jpe?g)|gif|png/i;
-  return 'compress.png' if $type =~ /zip|tar|tar|rar/i;
-  return 'page_white_acrobat.png' if $type =~ /pdf/i;
-  return 'page_excel.png' if $type =~ /xlsx?/i;
-  return 'page_word.png' if $type =~ /docx?/i;
-  return 'page_white_powerpoint.png' if $type =~ /pptx?/i;
-  return 'page_white_flash.png' if $type =~ /flv|swf/i;
-  return 'page_white_text.png' if $type =~ /topic/i;
-  return 'comment.png' if $type =~ /comment/i;
+  my $pubUrlPath = $Foswiki::cfg{PubUrlPath}.'/'.$Foswiki::cfg{SystemWebName}.'/FamFamFamSilkIcons/';
 
-  return 'page_white.png';
+  # some specific icons
+  return $pubUrlPath.'page_white_edit.png' if $type =~ /topic/i;
+  return $pubUrlPath.'comment.png' if $type =~ /comment/i;
+
+  if (Foswiki::Func::getContext()->{MimeIconPluginEnabled}) {
+    require Foswiki::Plugins::MimeIconPlugin;
+    return Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", 16);
+  } 
+
+  return $pubUrlPath.'picture.png' if $type =~ /(jpe?g)|gif|png/i;
+  return $pubUrlPath.'compress.png' if $type =~ /zip|tar|tar|rar/i;
+  return $pubUrlPath.'page_white_acrobat.png' if $type =~ /pdf/i;
+  return $pubUrlPath.'page_excel.png' if $type =~ /xlsx?/i;
+  return $pubUrlPath.'page_word.png' if $type =~ /docx?/i;
+  return $pubUrlPath.'page_white_powerpoint.png' if $type =~ /pptx?/i;
+  return $pubUrlPath.'page_white_flash.png' if $type =~ /flv|swf/i;
+
+  return $pubUrlPath.'page_white.png';
 }
 
 ##############################################################################
@@ -1159,6 +1275,10 @@ sub getHighlights {
       my $hilite = $struct->{$id}{catchall};
       next unless $hilite;
       $hilite = join(" ... ", @{$hilite});
+
+      # bit of cleanup in case we only get half the comment
+      $hilite =~ s/<!--//g;
+      $hilite =~ s/-->//g;
       $hilites{$id} = $this->fromUtf8($hilite);
     }
   }
@@ -1188,7 +1308,6 @@ sub getCorrection {
   return '' unless $correction;
 
   return $correction;
-  return $this->fromUtf8($correction);
 }
 
 ##############################################################################
@@ -1293,19 +1412,32 @@ sub getScriptUrl {
     type=>$params->{type}, # standard, dismax
     web=>$params->{web},
     origtopic=>$params->{origtopic},
+    autosubmit=>$params->{autosubmit},
   );
 
+  # SMELL: duplicates parseFilter 
   $theFilter = urlDecode(entityDecode($theFilter));
-  while ($theFilter =~ /([^\s]+):([^\s"]+|(?:"[^"]+"))/g) {
+  while ($theFilter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",]+|(?:"[^"]+?")),?/g) {
     my $field = $1;
     my $value = $2;
     if (defined $value) {
       $value =~ s/^"//;
       $value =~ s/"$//;
       $value =~ s/,$//;
-      push(@urlParams, filter=>"$field:\"$value\"");
+      my $item;
+      if ($value =~ /\s/ && $value !~ /^["\[].*["\]]$/) {
+	#print STDERR "... adding quotes\n";
+	$item = '$field:"$value"';
+      } else {
+	#print STDERR "... adding as is\n";
+       	$item = '$field:$value';
+      }
+
+      $item =~ s/\$field/$field/g;
+      $item =~ s/\$value/$value/g;
+      push(@urlParams, filter=>$item);
     } else {
-      push(@urlParams, filter=>$value);
+      push(@urlParams, filter=>$value); # SMELL what for?
     }
   }
 
@@ -1314,23 +1446,29 @@ sub getScriptUrl {
 
 ##############################################################################
 sub parseFilter {
-  my ($this, $filter, $format) = @_; 
-
-  $format ||= '$field:"$value"';
+  my ($this, $filter) = @_; 
 
   my @filter = ();
   $filter ||= '';
   $filter = urlDecode(entityDecode($filter));
-  #print STDERR "filter=$filter\n";
-  while ($filter =~ /([^\s:]+?):([^\s",]+|(?:"[^"]+?")),?/g) {
+  #print STDERR "parseFilter($filter)\n";
+  while ($filter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",]+|(?:"[^"]+?")),?/g) {
     my $field = $1;
     my $value = $2;
     $value =~ s/^"//;
     $value =~ s/"$//;
     $value =~ s/,$//;
     $value =~ s/\//\./g if $field eq 'web';
+    #print STDERR "field=$field, value=$value\n";
     if ($value) {
-      my $item = $format;
+      my $item;
+      if ($value =~ /\s/ && $value !~ /^["\[].*["\]]$/) {
+	#print STDERR "... adding quotes\n";
+	$item = '$field:"$value"';
+      } else {
+	#print STDERR "... adding as is\n";
+       	$item = '$field:$value';
+      }
       $item =~ s/\$field/$field/g;
       $item =~ s/\$value/$value/g;
       #print STDERR "...adding=$item\n";
@@ -1377,7 +1515,8 @@ sub getListOfWebs {
   my $webFacet = $facets->{facet_fields}{"web"};
   my $len = scalar(@$webFacet);
   for (my $i = 0; $i < $len; $i+=2) {
-    push @webs, $webFacet->[$i];
+    my $web = $this->fromUtf8($webFacet->[$i]);
+    push @webs, $web;
   }
 
   return @webs;

@@ -8,7 +8,9 @@ use LWP::UserAgent;
 use WebService::Solr::Response;
 use HTTP::Request;
 use HTTP::Headers;
-use XML::Generator;
+use XML::Easy::Element;
+use XML::Easy::Content;
+use XML::Easy::Text ();
 
 has 'url' => (
     is      => 'ro',
@@ -28,15 +30,7 @@ has 'default_params' => (
     default    => sub { { wt => 'json' } }
 );
 
-has '_xml_generator' => (
-    is       => 'ro',
-    init_arg => undef,
-    default  => sub {
-        XML::Generator->new( ':std', escape => 'always,even-entities' );
-    },
-);
-
-our $VERSION = '0.10';
+our $VERSION = '0.14';
 
 sub BUILDARGS {
     my ( $self, $url, $options ) = @_;
@@ -58,17 +52,22 @@ sub add {
     my ( $self, $doc, $params ) = @_;
     my @docs = ref $doc eq 'ARRAY' ? @$doc : ( $doc );
 
+    my @elements = map {
+        (   '',
+            blessed $_
+            ? $_->to_element
+            : WebService::Solr::Document->new(
+                ref $_ eq 'HASH' ? %$_ : @$_
+                )->to_element
+            )
+    } @docs;
+
     $params ||= {};
-    my $xml = $self->_xml_generator->add(
-        $params,
-        map {
-            if ( blessed $_ ) { $_->to_xml }
-            else {
-                WebService::Solr::Document->new(
-                    ref $_ eq 'HASH' ? %$_ : @$_ )->to_xml;
-            }
-            } @docs
-    );
+    my $e
+        = XML::Easy::Element->new( 'add', $params,
+        XML::Easy::Content->new( [ @elements, '' ] ),
+        );
+    my $xml = XML::Easy::Text::xml10_write_element( $e );
 
     my $response = $self->_send_update( $xml );
     return $response->ok;
@@ -81,9 +80,9 @@ sub update {
 sub commit {
     my ( $self, $params ) = @_;
     $params ||= {};
-    my $response
-        = $self->_send_update( $self->_xml_generator->commit( $params ), {},
-        0 );
+    my $e        = XML::Easy::Element->new( 'commit', $params, [ '' ] );
+    my $xml      = XML::Easy::Text::xml10_write_element( $e );
+    my $response = $self->_send_update( $xml, {}, 0 );
     return $response->ok;
 }
 
@@ -96,19 +95,25 @@ sub rollback {
 sub optimize {
     my ( $self, $params ) = @_;
     $params ||= {};
-    my $gen = XML::Generator->new( ':std', escape => 'always,even-entities' );
-    my $response = $self->_send_update( $gen->optimize( $params ), {}, 0 );
+    my $e        = XML::Easy::Element->new( 'optimize', $params, [ '' ] );
+    my $xml      = XML::Easy::Text::xml10_write_element( $e );
+    my $response = $self->_send_update( $xml, {}, 0 );
     return $response->ok;
 }
 
 sub delete {
     my ( $self, $options ) = @_;
-    my $gen = $self->_xml_generator;
 
     my $xml = '';
     for my $k ( keys %$options ) {
         my $v = $options->{ $k };
-        $xml .= $gen->$k( $_ ) for ref $v ? @$v : $v;
+        $xml .= join(
+            '',
+            map {
+                XML::Easy::Text::xml10_write_element(
+                    XML::Easy::Element->new( $k, {}, [ $_ ] ) )
+                } ref $v ? @$v : $v
+        );
     }
 
     my $response = $self->_send_update( "<delete>${xml}</delete>" );
@@ -117,16 +122,12 @@ sub delete {
 
 sub delete_by_id {
     my ( $self, $id ) = @_;
-    my $response = $self->_send_update( "<delete><id>$id</id></delete>" );
-    return $response->ok;
+    return $self->delete( { id => $id } );
 }
 
 sub delete_by_query {
     my ( $self, $query ) = @_;
-    my $gen = $self->_xml_generator;
-    my $response
-        = $self->_send_update( $gen->delete( $gen->query( $query ) ) );
-    return $response->ok;
+    return $self->delete( { query => $query } );
 }
 
 sub ping {
@@ -223,11 +224,23 @@ enterprise-grade indexing and searching platform.
 
 =item * agent - a user agent object
 
-=item * autocommit - a boolean value for automatic commit() after add/update/delete
+=item * autocommit - a boolean value for automatic commit() after add/update/delete (default: enabled)
 
 =item * default_params - a hashref of parameters to send on every request
 
 =back
+
+=head1 HTTP KEEP-ALIVE
+
+Enabling HTTP Keep-Alive is as simple as passing your custom user-agent to the
+constructor.
+
+    my $solr = WebService::Solr->new( $url,
+        { agent => LWP::UserAgent->new( keep_alive => 1 ) }
+    );
+
+Visit L<LWP::UserAgent>'s documentation for more information and available
+options.
 
 =head1 METHODS
 
@@ -296,10 +309,10 @@ more details about the available options (http://wiki.apache.org/solr/TermsCompo
 =head2 commit( \%options )
 
 Sends a commit command. Returns true on success, false otherwise. You must do
-a commit after an add, update or delete. You can turn autocommit on to have
-the library do it for you:
+a commit after an add, update or delete. By default, autocommit is enabled. 
+You may disable autocommit to allow you to issue commit commands manually:
 
-    my $solr = WebService::Solr->new( undef, { autocommit => 1 } );
+    my $solr = WebService::Solr->new( undef, { autocommit => 0 } );
     $solr->add( $doc ); # will not automatically call commit()
     $solr->commit;
 
@@ -352,11 +365,11 @@ own correspodingly named function (e.g. C<dataimport> ).
 
 Brian Cassidy E<lt>bricas@cpan.orgE<gt>
 
-Kirk Beers E<lt>kirk.beers@nald.caE<gt>
+Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2009 National Adult Literacy Database
+Copyright 2008-2011 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

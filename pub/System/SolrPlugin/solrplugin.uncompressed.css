@@ -15,8 +15,12 @@
   font-size:100%;
   line-height:1.3864em; 
   background-repeat:no-repeat;
+  padding:0px;
+}
+.solrSearchHitsList h3 {
   padding:0px 0px 0px 23px;
 }
+
 .solrSearchHits h3 a {
   text-decoration:underline;
 }
@@ -36,40 +40,83 @@
   margin:1.3864em 0em;
 }
 .solrSearchHitsGrid .solrSearchHit {
-  border:1px solid #ddd;
-  width:100px;
-  height:100px;
-  margin:0em 1em 1em 0px;
+  width:17%;
+  border:1px solid #fff;
+  min-width:100px;
+  max-width:150px;
   overflow:hidden;
   float:left;
+  position:relative;
+  height:150px;
+  margin:0 1% 1em 0;
   padding:0.5em;
-  /*
-  background-image:url(stripes-bg.png);
-  background-repeat:no-repeat;
-  background-position:0px -50px;
-  */
 }
-.solrSearchHitsGrid .solrImageHit {
-  text-align:center;
+.solrSearchHitsGrid .solrTopicHit,
+.solrSearchHitsGrid .solrAttachmentHit {
+  border-color:#eee;
 }
-.solrSearchHitsGrid .solrImageHit .solrImageFrame {
+.solrSearchHitsGrid .solrRevision {
+  position:absolute;
+  padding:0.5em;
+  bottom:0;
+  left:0;
+  background-color:#fff;
+}
+.solrSearchHitsGrid .solrHilite {
   overflow:hidden;
-  height:100px;
+}
+.solrSearchHitsGrid .solrImageFrame {
+  background-color:#fff;
+  height:150px;
+  position:relative;
+  margin:-0.5em;
+}
+.solrSearchHitsGrid .solrImageHit img {
+  /*max-width:100%;*/
+  height:auto;
 }
 .solrImageHit .solrImageCaption {
-  position:relative;
-  top:-1em;
-  background:#fff;
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  font-size:95%;
+  /* toggled by js */
+  display:none;
+  margin-top:-100%;
 }
 .solrImageCaption a {
   text-decoration:none;
+  background-color:#fff;
+  color:#000;
+  font-weight:bold;
+  display:block;
+  padding:0.5em;
+  opacity:0.7;
+}
+.solrImageCaption a:hover {
+  background-color:#0055b5;
+  color:#fff;
+  opacity:1.0;
+}
+.solrSearchHitsList .solrImageFrame {
+  float:left;
+  border:1px solid #ddd;
+  padding:2px;
+  background-color:#fff;
+  margin-right:1em;
+}
+.solrImageFrame .imageSimple {
+  float:left;
+}
+.solrSearchHitsList .solrImageFrame .imageSimple {
+  max-height:64px;
+  overflow:hidden;
 }
 
 .solrRevision,
 .solrRevision a {
   text-decoration:none;
-}
-.solrRevision a {
   color:#049804;
 }
 .solrSortion {
@@ -89,7 +136,7 @@
   border-bottom:1px solid #ddd;
 }
 .solrHeader .foswikiRight th {
-  padding:0px 0px 0px 2.5em;
+  padding:0px;
 }
 .solrHeader .foswikiRight td {
   padding:0px 0px 0px 5px;
@@ -152,6 +199,9 @@
   color:white !important;
 }
 
+.tagCloud {
+  text-align:center;
+}
 .solrTagCloud .tagCloud,
 .solrSettings {
   margin:10px 20px 0px 20px;
@@ -175,14 +225,6 @@
   background-position:0% 50%;
   padding-left:25px;
   float:left;
-}
-.solrHierarchy {
-  margin:10px 0px 0px 20px;
-}
-.natSideBar .solrHierarchy {
-  margin:0px;
-}
-.natSideBar .solrHierarchy ul {
 }
 .natSideBar .solrHierarchy ul ul {
   margin:6px 0px 0px 25px;
@@ -208,47 +250,12 @@
 .natSideBar .solrCategory {
   padding:0px;
 }
-
-/* facet pager */
-.solrFacetPager {
-  overflow:hidden;
-  padding:0em;
-  display:none; /* switched on by javascript */
+.solrCheckboxContainer {
+  margin-top:0.3em;
 }
-.solrFacetPager .panel {
-  width:39000px;
-}
-.solrFacetPager .items {
-  margin:0em;
-  padding:0em;
-  float:left;
-  width:15.3846em; /* 200px */
-  overflow:hidden;
-}
-.solrFacetPagerButtons {
-  padding:5px 0em 6px;
-}
-.solrFacetPagerCounter {
-  text-align:center;
-}
-a.solrFacetPagerPrev,
-a.solrFacetPagerPrev:hover {
-  float:left;
-  background-image:url('../FamFamFamSilkIcons/control_rewind.png');
-  background-repeat:no-repeat;
-  padding-left:25px;
-  background-position:0% 50%;
-}
-a.solrFacetPagerNext,
-a.solrFacetPagerNext:hover {
-  float:right;
-  background-image:url('../FamFamFamSilkIcons/control_fastforward.png');
-  background-repeat:no-repeat;
-  background-position:100% 50%;
-  padding-right:25px;
-}
-
 .solrCheckboxContainer p {
   float:left;
 }
-
+.solrFacetContainer .jqSerialPager li {
+  white-space:nowrap;
+}

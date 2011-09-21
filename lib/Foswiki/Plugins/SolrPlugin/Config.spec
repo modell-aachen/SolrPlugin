@@ -13,7 +13,7 @@ $Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTo
 
 # **STRING**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
-$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf';
+$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
 # **STRING**
 # List of attachments to skip                                                                                         
@@ -60,5 +60,9 @@ $Foswiki::cfg{SolrPlugin}{SolrStartCmd} = $Foswiki::cfg{ToolsDir}.'/solrstart %S
 # Path to the directory containing the <code>start.jar</code> file. That's where the jetty engine is 
 # located and where solr puts its data further down the directory structure
 $Foswiki::cfg{SolrPlugin}{SolrHome} = '/home/www-data/foswiki/solr';
+
+# **STRING**
+# Default collection where to put foswiki content to (including topic text as well as all attachments)
+$Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
 
 1;

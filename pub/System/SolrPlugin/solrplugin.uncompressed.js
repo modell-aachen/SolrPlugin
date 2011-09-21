@@ -17,6 +17,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
 
     /* basic properties */
     self.container = $(elem);
+    self.submitButton = self.container.find(".solrSubmitButton");
     self.opts = opts;
     self.suppressSubmit = false; 
     //self.suppressSetFilter = false;
@@ -28,6 +29,14 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
   };
 
   /***************************************************************************
+   * bind: forward bind() to element that receives the event to listen to
+   */
+  $.SolrManager.prototype.bind = function(type, data, fn) {
+    var self = this;
+    return self.container.bind(type, data, fn);
+  };
+
+  /***************************************************************************
    * initMapping: read meta data and establish a translation map for strings
    */
   $.SolrManager.prototype.initMapping = function () {
@@ -35,15 +44,40 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     self.log("initMapping called");
 
     /* get mappings from meta tags */
-    $("meta[name^=foswiki.SolrPlugin.mapping]").each(function() {
-      var $this = $(this);
-      var key = $this.attr('name').replace(/^.*\./, '');
-      var val = $this.attr('content');
-      self.mapping['DATA::'+key] = val; // adding DATA:: prefix to prevent clashes with prototype properties of Arrays, like 'filter' 
+    $("meta[name^='foswiki.SolrPlugin.mapping']").each(function() {
+      var $this = $(this),
+	  key = $this.attr('name').replace(/^.*\./, ''),
+	  val = $this.attr('content');
+      self.addMapping(key, val);
       //self.log("mapping key="+key+", val="+val);
     });
 
     /* get mappings from facet values */
+  };
+
+  /***************************************************************************
+   * addMapping: adds a key-value pair to the name mapper. this only
+   * adds a new mapping if it doesnt exist yet. returns the current mapping
+   */
+  $.SolrManager.prototype.addMapping = function(key, val) {
+    var self = this, 
+	_key = 'DATA::'+key;
+	// adding DATA:: prefix to prevent clashes with prototype properties of Arrays, like 'filter' 
+
+    if (typeof(self.mapping[_key]) === 'undefined') {
+      self.log("mapping key="+key+", val="+val);
+      self.mapping[_key] = val; 
+    }
+
+    return self.mapping[_key];
+  };
+
+  /***************************************************************************
+   * getMapping: returns the mapping for the given key
+   */
+  $.SolrManager.prototype.getMapping = function(key) {
+    var self = this;
+    return self.mapping['DATA::'+key];
   };
  
   /***************************************************************************
@@ -54,7 +88,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     var $elem = $(elem);
     var val = $elem.attr('value');
     var title = $elem.attr('title') || undefined;
-    //self.log("getFacetValue called for element "+$elem.attr('id')+", val="+val+" title="+title);
+    self.log("getFacetValue called, val="+val+" title="+title);
     var match = /^(.*?):(.*)$/.exec(val);
     if (match !== undefined) {
       var facetValue = {};
@@ -85,7 +119,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
         "</table>"+
         "</li>";
       
-      //self.debugSelection();
+      self.debugSelection();
 
       var list = $(".solrYourSelection > ul");
       for (var i = 0; i < self.selection.length; i++) {
@@ -93,13 +127,13 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
         var valueTitle = fv.valueTitle;
         var facetTitle = fv.facetTitle;
         if (valueTitle === undefined) {
-          valueTitle = self.mapping['DATA::'+fv.value];
+          valueTitle = self.getMapping(fv.value);
           if (valueTitle === undefined) {
             valueTitle = fv.value;
           }
         }
         if (facetTitle === undefined) {
-          facetTitle = self.mapping['DATA::'+fv.facet];
+          facetTitle = self.getMapping(fv.facet);
           if (facetTitle === undefined) {
             facetTitle = fv.facet;
           }
@@ -137,21 +171,25 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
   };
 
   /***************************************************************************
-   * selectFacetValue: adds a FacetValue to the selection and updates the ui
+   * selectFacetValue: adds a FacetValue to the selection and updates the ui.
+   * returns 0: error
+   *         1: new fv
+   *         2: replaced an old one
    */
   $.SolrManager.prototype.selectFacetValue = function(fv) {
+    var self = this, retVal = 0, indexOf = -1;
     if (fv === undefined) {
-      return 0;
+      return retVal;
     }
 
-    var self = this;
-    var retVal = 0; // 0: new fv, 1: replaced an old one
+    // trigger select event
+    self.container.trigger("selectFacetValue", [fv]);
 
     //fv.value = fv.value.replace(/"/g, '');
-    self.log("selectFacetValue("+fv.facet+", "+fv.value+", "+fv.facetTitle+", "+fv.valueTitle+") called");
+    self.log("selectFacetValue() called: fv=", fv);
 
     /* filter out old */
-    var indexOf = -1;
+    retVal = 1;
     for (var i = 0; i < self.selection.length; i++) {
       if (self.selection[i].facet == fv.facet && self.selection[i].value == fv.value) {
         indexOf = i;
@@ -160,7 +198,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     }
     if (indexOf >= 0) {
       self.selection.splice(indexOf, 1);
-      retVal = 1;
+      retVal = 2;
     }
     self.selection.push(fv);
 
@@ -168,26 +206,23 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       var keywords = self.getKeywordsFromSelection().join(' ');
       $(".solrSearchField").val(keywords);
     } else {
-      $(".solrFacetValue[value="+fv.facet+":"+fv.value+"]").addClass("current").filter("input").attr('checked', 'checked');
+      $(".solrFacetValue[value='"+fv.facet+":"+fv.value+"']").addClass("current").filter("input").attr('checked', 'checked');
     }
-
-
     return retVal; 
   };
 
   /***************************************************************************
-   * unselectFacetValue: removes a FacetValue from the selection and updates the ui
+   * clearFacetValue: removes a FacetValue from the selection and updates the ui
    */
-  $.SolrManager.prototype.unselectFacetValue = function(fv) {
+  $.SolrManager.prototype.clearFacetValue = function(fv) {
+    var self = this, retVal = 0;
+
     if (fv === undefined) {
       return 0
     }
 
-    var self = this;
-    var retVal = 0;
-
     //fv.value = fv.value.replace(/"/g, '');
-    self.log("unselectFacetValue("+fv.facet+", "+fv.value+", "+fv.facetTitle+", "+fv.valueTitle+") called");
+    self.log("clearFacetValue("+fv.facet+", "+fv.value+", "+fv.facetTitle+", "+fv.valueTitle+") called");
     
     /* filter out old */
     var indexOf = -1;
@@ -205,9 +240,15 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     if (fv.facet === 'keyword') {
       $(".solrSearchField").val(self.getKeywordsFromSelection().join(' '));
     } else {
-      $(".solrFacetValue[value="+fv.facet+":"+fv.value+"]").removeClass("current").filter("input").removeAttr('checked');
+      $(".solrFacetValue[value='"+fv.facet+":"+fv.value+"']")
+      .removeClass("current")
+      .filter("input").removeAttr('checked');
     }
 
+    // trigger clear event
+    if (retVal) {
+      self.container.trigger("clearFacetValue", [fv]);
+    }
 
     return retVal;
   };
@@ -292,7 +333,10 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     });
 
     /* init autocompletion */
-    var filter = [];
+    var $searchField = $(".solrSearchField"), 
+	searchFieldOpts = $.extend({}, $searchField.metadata()),
+	filter = searchFieldOpts.filter?searchFieldOpts.filter:[];
+
     for (var i = 0; i < self.selection.length; i++) {
       var fv = self.selection[i];
       if (fv.facet !== 'keyword') {
@@ -300,75 +344,41 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       }
     }
     if (filter.length) {
-      filter = "?filter="+filter.join(",");
+      filter = ";filter="+filter.join(",");
     }
-    $(".solrSearchField").autocomplete(foswiki.getPreference("SCRIPTURL")+'/rest/SolrPlugin/autocomplete'+filter, {
-      selectFirst: false,
-      autoFill:false,
-      matchCase:false,
-      matchSubset:false,
-      matchContains:false,
-      scrollHeight:'20em',
-      formatItem: function(row, index, max, search) {
-        return "<table width='100%'><tr><td>"+row[0]+"</td><td align='right'>"+row[2]+"</td></tr></table>";
-      }
-    });
 
-    /* init facet container */
-    $(".solrFacetContainer:not(.jqInitedFacetContainer)").each(function() {
-      var $this = $(this);
-      var $pager = $this.find('.solrFacetPager');
-      if ($pager.length) {
-        var $ul = $pager.find("ul:first");
-        $this.addClass('jqInitedFacetContainer');
+    // TODO: test for newer autocomplete library
+    if (1) {
+      $searchField.autocomplete({
+	source:foswiki.getPreference("SCRIPTURL")+'/rest/SolrPlugin/autocomplete?'+filter
+      }).data("autocomplete")._renderItem = function(ul, item) {
+	return $("<li></li>")
+	  .data("item.autocomplete", item)
+	  .append("<a><table width='100%'><tr><td align='left'>"+item.label+"</td><td align='right'>"+item.frequency+"</td></tr></table></a>")
+	  .appendTo(ul);
+      };
+    } else {
+      $searchField.autocomplete(
+	foswiki.getPreference("SCRIPTURL")+'/rest/SolrPlugin/autocomplete?'+filter, {
+	  selectFirst: false,
+	  autoFill:false,
+	  matchCase:false,
+	  matchSubset:false,
+	  matchContains:false,
+	  scrollHeight:'20em',
+	  formatItem: function(row, index, max, search) {
+	    return "<table width='100%'><tr><td align='left'>"+row[0]+"</td><td align='right'>"+row[2]+"</td></tr></table>";
+	  }
+      });
+    }
 
-        // get options
-        var opts = $.extend({
-            pagesize: 10
-          }, $pager.metadata());
+    /* init autocompletion */
+    var filter = [];
 
-        var nrVals = $ul.children('li').length;
-        if (nrVals <= 1) {
-          $this.hide();
-          $pager.removeClass("solrFacetPager");
-        } else {
-          if ($pager.length && nrVals > opts.pagesize) {
-            // add pager if pagesize is exceeded
-            var $panel = $("<div class='panel'></div>").appendTo($pager);
-            var nrPages = Math.ceil(nrVals / opts.pagesize);
-            for (var page = 0; page < nrPages; page++) {
-              var $newUl = $("<ul class='items'></ul>").appendTo($panel);
-              $ul.find("li:lt("+opts.pagesize+")").appendTo($newUl);
-            }
-            var $buttons = $("<div class='solrFacetPagerButtons'></div>").insertAfter($pager);
-            var prev = $("<a href='#' class='solrFacetPagerPrev'>prev</a>").appendTo($buttons);
-            var next = $("<a href='#' class='solrFacetPagerNext'>next</a>").appendTo($buttons);
-            var $counter = $("<div class='solrFacetPagerCounter'>1/"+nrPages+"</div>").appendTo($buttons);
-            $("<span class='foswikiClear' />").appendTo($buttons);
-            $ul.remove();
-            $pager.serialScroll({
-              items:'.items',
-              prev:prev,
-              next:next,
-              constant:false,
-              duration:500,
-              start:0,
-              force:false,
-              cycle:true,
-              lock:false,
-              easing:'easeOutQuart',
-              onBefore:function(e, elem, $pane, items, pos) {
-                $counter.html((pos+1)+"/"+nrPages);
-              }
-            });
-            $this.find(".foswikiClear").insertAfter($buttons);
-            $this.find(".solrClear").addClass('solrInPagedFacet').insertAfter($buttons);
-          } else {
-            $pager.removeClass("solrFacetPager");
-          }
-        }
-      }
-    });
+    /* init facet pager */
+    $(".solrSerialPager")
+      .addClass("jqSerialPager")
+      .removeClass("solrSerialPager"); // triggers pager plugin now, not earlier
 
     /* behavior for sorting */
     $("#solrSorting").change(function() {
@@ -397,38 +407,43 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       /* get mapping */
       var fv = self.getFacetValue(this);
       if (fv && fv.valueTitle) {
-        self.mapping['DATA::'+fv.value] = fv.valueTitle;
-        //self.log("mapping key="+fv.value+", val="+fv.valueTitle+" found in "+$(this).attr('id'));
+	self.addMapping(fv.value, fv.valueTitle);
       }
 
       /* update selection */
       if ($this.is(".current, :checked")) {
-        if (self.selectFacetValue(fv) == 1) {
+        if (self.selectFacetValue(fv) > 0) {
           self.showSelection();
           self.debugSelection();
-        }
+	}
       }
 
-      /* install change handler */
-      $this.click(function(e) {
+      /* callback used by click and change handler */
+      function _changed() {
         self.log("solrFacetValue changed");
         if ($this.is("input[type=radio]")) {
           $("[name="+$this.attr('name')+"]").each(function() {
             var fv = self.getFacetValue(this);
-            self.unselectFacetValue(fv);
+            self.clearFacetValue(fv);
           });
         }
         $this.toggleClass("current");
-        $(".solrDeleteFacetValue[value="+$this.val()+"]").removeAttr("checked");
+        $(".solrDeleteFacetValue[value='"+$this.val()+"']").removeAttr("checked");
         if ($this.is(".current")) {
           self.selectFacetValue(fv);
         } else {
-          self.unselectFacetValue(fv);
+          self.clearFacetValue(fv);
         }
         self.showSelection();
         self.submit();
         return false;
-      });
+      }
+
+      /* install change handler */
+      $this.not("a").change(_changed);
+      $this.filter("a").click(_changed);
+
+      /* install click handler */
 
       /* add hover handler */
       $this.parents('li:first').hover(
@@ -446,7 +461,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
         self.log("solrDeleteFacetValue clicked");
         var fv = self.getFacetValue(this);
         $this.removeAttr('checked');
-        self.unselectFacetValue(fv);
+        self.clearFacetValue(fv);
         self.showSelection();
         self.submit();
       });
@@ -480,7 +495,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       /* clear selection */
       $(selector).each(function() {
         var fv = self.getFacetValue(this);
-        self.unselectFacetValue(fv);
+        self.clearFacetValue(fv);
       });
       self.showSelection();
       self.submit();
@@ -504,6 +519,18 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       }
     );
 
+    /* behavior for autosubmit */
+    function updateAutoSubmit() {
+      var $toggleAutoSubmit = $(".solrToggleAutoSubmit");
+      if ($toggleAutoSubmit.is(":checked") || $toggleAutoSubmit.is("[type=hidden][value=on]") ) {
+	$.SolrManager.SUPPRESSSUBMIT = 0;
+      } else {
+	$.SolrManager.SUPPRESSSUBMIT = 1;
+      }
+    }
+    $(".solrToggleAutoSubmit").change(updateAutoSubmit);
+    updateAutoSubmit();
+
     /* switch on */
     self.showSelection();
     $(".solrYourSelection label").css('visibility', 'hidden');
@@ -521,7 +548,6 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
   $.SolrManager.prototype.submit = function() {
     var self = this;
     self.log("submit called");
-    $("body, a, input").css('cursor', 'progress');
 
     var $form = $(".solrSearchForm");
     $form.find(".solrFilter").remove();
@@ -529,9 +555,11 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       var fv = self.selection[i];
       if (fv.facet !== 'keyword') {
         var filter = fv.facet+":";
-        if (fv.value.match(/\s|(%20)/) && !fv.value.match(/^".*"$/)) {
+        if (fv.value.match(/\s|(%20)/) && !fv.value.match(/^["\[].*["\]]$/)) {
+          self.log("... adding quotes to "+fv.value);
           filter += "\""+fv.value+"\"";
         } else {
+          self.log("... adding as is "+fv.value);
           filter += fv.value;
         }
         self.log("filter value="+filter);
@@ -540,20 +568,25 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     }
 
     if (self.suppressSubmit || $.SolrManager.SUPPRESSSUBMIT) {
+      self.submitButton.stop().effect("pulsate", {times:3});
       self.log("... suppressed");
       return;
     }
 
+    $("body, a, input").css('cursor', 'progress');
     $(".solrSearchForm").submit();
   };
 
   /***************************************************************************
    * logger
    */
-  $.SolrManager.prototype.log = function(msg)  {
+  $.SolrManager.prototype.log = function()  {
     if ($.SolrManager.DEBUG) {
-      //$.log("SOLR: "+msg);
-      window.console.log("SOLR: "+msg);
+      var args = ["SOLR: "];
+      for (var i = 0; i < arguments.length; i++) {
+        args.push(arguments[i]);
+      }
+      window.console.log.apply(window.console, args);
     }
   };
 
@@ -572,7 +605,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
   /***************************************************************************
    * plugin constructor
    */
-  $.fn.solrize = function(opts) {
+  $.fn.solrManager = function(opts) {
     solr = new $.SolrManager(this, opts);
   };
 
@@ -581,7 +614,25 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       var $this = $(this);
       var opts = $.extend({}, $.SolrManager.defaults, $this.metadata());
       $this.addClass("solrSearchInited");
-      $this.solrize(opts);
+      $this.solrManager(opts);
+    });
+
+    $(".solrSearchHitsGrid .solrImageHit").livequery(function() {
+      var $this = $(this), $caption = $this.find(".solrImageCaption");
+      $this.hover(
+        function() {
+          $caption.show().animate({
+            'margin-top':0
+          });
+        },
+        function() {
+          $caption.stop().animate({
+            'margin-top':-100
+          }, function() {
+            $(this).hide();
+          });
+        }
+      );
     });
   });
 

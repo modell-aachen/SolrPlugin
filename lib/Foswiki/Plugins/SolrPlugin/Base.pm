@@ -19,6 +19,7 @@ use Foswiki::Plugins ();
 use WebService::Solr ();
 use Error qw( :try );
 
+##############################################################################
 sub new {
   my $class = shift;
   my $session = shift;
@@ -46,6 +47,7 @@ sub new {
   return $this;
 }
 
+##############################################################################
 sub startDaemon {
   my ($this) = @_;
 
@@ -81,6 +83,7 @@ sub startDaemon {
   }
 }
 
+##############################################################################
 sub connect {
   my ($this) = @_;
 
@@ -115,13 +118,22 @@ sub connect {
   return $this->{solr};
 }
 
+##############################################################################
 sub log {
   my ($this, $logString, $noNewLine) = @_;
 
-  print STDERR "$logString".($noNewLine?'':"\n");
-  #Foswiki::Func::writeDebug($logString);
+  #print STDERR "$logString".($noNewLine?'':"\n");
+  Foswiki::Func::writeDebug($logString);
 }
 
+##############################################################################
+sub isDateField {
+  my ($this, $name) = @_;
+
+  return ($name =~ /^((.*_dt)|createdate|date|timestamp)$/)?1:0;
+}
+
+##############################################################################
 sub isSkippedWeb {
   my ($this, $web) = @_;
 
@@ -136,6 +148,7 @@ sub isSkippedWeb {
   return 0;
 }
 
+##############################################################################
 sub isSkippedTopic {
   my ($this, $web, $topic) = @_;
 
@@ -145,6 +158,7 @@ sub isSkippedTopic {
   return 0;
 }
 
+##############################################################################
 sub isSkippedAttachment {
   my ($this, $web, $topic, $attachment) = @_;
  
@@ -160,6 +174,24 @@ sub isSkippedAttachment {
   return 0;
 }
 
+##############################################################################
+sub isSkippedExtension {
+  my ($this, $fileName) = @_;
+ 
+  my $indexExtensions = $this->indexExtensions;
+
+  my $extension = '';
+  if ($fileName =~ /^(.+)\.(\w+?)$/) {
+    $extension = lc($2);
+  }
+  $extension = 'jpg' if $extension =~ /jpe?g/i;
+
+  return 0 if $indexExtensions->{$extension};
+  return 1;
+}
+
+
+##############################################################################
 # List of webs that shall not be indexed
 sub skipWebs {
   my $this = shift;
@@ -178,6 +210,7 @@ sub skipWebs {
   return $skipwebs;
 }
 
+##############################################################################
 # List of attachments to be skipped.
 sub skipAttachments {
   my $this = shift;
@@ -196,6 +229,7 @@ sub skipAttachments {
   return $skipattachments;
 }
 
+##############################################################################
 # List of topics to be skipped.
 sub skipTopics {
   my $this = shift;
@@ -214,6 +248,7 @@ sub skipTopics {
   return $skiptopics;
 }
 
+##############################################################################
 # List of file extensions to be stringified
 sub indexExtensions {
   my $this = shift;
@@ -223,7 +258,7 @@ sub indexExtensions {
   unless (defined $indexextensions) {
     $indexextensions = {};
     my $extensions = $Foswiki::cfg{SolrPlugin}{IndexExtensions} || 
-      "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf";
+      "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt";
     foreach my $tmpextension (split(/\s*,\s*/, $extensions)) {
       $indexextensions->{$tmpextension} = 1;
     }
@@ -234,11 +269,13 @@ sub indexExtensions {
   return $indexextensions;
 }
 
+##############################################################################
 sub inlineError {
   my ($this, $text) = @_;
   return "<span class='foswikiAlert'>$text</span>";
 }
 
+##############################################################################
 sub fromUtf8 {
   my ($this, $string) = @_;
 
@@ -274,6 +311,7 @@ sub fromUtf8 {
   }
 }
 
+##############################################################################
 sub toUtf8 {
   my ($this, $string) = @_;
 
@@ -306,5 +344,40 @@ sub toUtf8 {
     }
   }
 }
+
+###############################################################################
+sub normalizeWebTopicName {
+  my ($this, $web, $topic) = @_;
+
+  # better defaults
+  $web ||= $this->{session}->{webName};
+  $topic ||= $this->{session}->{topicName};
+
+  ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
+
+  $web =~ s/\//\./g; # normalize web using dots all the way
+
+  return ($web, $topic);
+}
+
+###############################################################################
+# compatibility wrapper 
+sub takeOutBlocks {
+  my $this = shift;
+
+  return Foswiki::takeOutBlocks(@_) if defined &Foswiki::takeOutBlocks;
+  return $this->{session}->renderer->takeOutBlocks(@_);
+}
+
+###############################################################################
+# compatibility wrapper 
+sub putBackBlocks {
+  my $this = shift;
+
+  return Foswiki::putBackBlocks(@_) if defined &Foswiki::putBackBlocks;
+  return $this->{session}->renderer->putBackBlocks(@_);
+}
+
+
 
 1;

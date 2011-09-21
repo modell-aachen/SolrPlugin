@@ -13,7 +13,7 @@ LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
 THROTTLE=10
 
 # lock file
-LOCKFILE=/var/lock/solrindex.lock
+LOCKFILE=$FOSWIKI_ROOT/working/tmp/solrindex.lock
 
 # set time format
 TIME="%E real, %U user, %S system"

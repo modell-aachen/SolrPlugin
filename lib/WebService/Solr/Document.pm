@@ -1,23 +1,31 @@
 package WebService::Solr::Document;
 
-use Moose;
-
 use WebService::Solr::Field;
-require XML::Generator;
+use XML::Easy::Element;
+use XML::Easy::Content;
+use XML::Easy::Text ();
+use Scalar::Util 'blessed';
 
-has 'fields' => (
-    is         => 'rw',
-    isa        => 'ArrayRef[Object]',
-    default    => sub { [] },
-    auto_deref => 1
-);
-
-has 'boost' => ( is => 'rw', isa => 'Maybe[Num]' );
-
-sub BUILDARGS {
+sub new {
     my ( $class, @fields ) = @_;
 
-    return { fields => [ _parse_fields( @fields ) ] };
+    my $self = {
+        fields => [ _parse_fields( @fields ) ]
+    };
+
+    return bless $self, $class;
+}
+
+sub boost {
+    my $self = shift;
+    $self->{ boost } = $_[ 0 ] if @_;
+    return $self->{ boost };
+}
+
+sub fields {
+    my $self = shift;
+    $self->{ fields } = $_[ 0 ] if @_;
+    return wantarray ? @{ $self->{ fields } } : $self->{ fields };
 }
 
 sub add_fields {
@@ -41,12 +49,18 @@ sub _parse_fields {
         }
 
         my $v = shift @fields;
-        my @values = ( ref $v and !blessed $v ) ? @$v : ( "$v" );
+        my @values = ( ref $v and !blessed $v ) ? @$v : $v;
         push @new_fields,
-            map { WebService::Solr::Field->new( $f => $_ ) } @values;
+            map { WebService::Solr::Field->new( $f => "$_" ) } @values;
     }
 
     return @new_fields;
+}
+
+sub field_names {
+    my ( $self ) = @_;
+    my %names = map { $_->name => 1 } $self->fields;
+    return keys %names;
 }
 
 sub value_for {
@@ -59,17 +73,22 @@ sub values_for {
     return map { $_->value } grep { $_->name eq $key } $self->fields;
 }
 
-sub to_xml {
+sub to_element {
     my $self = shift;
-    my $gen = XML::Generator->new( ':std', escape => 'always,even-entities' );
     my %attr = ( $self->boost ? ( boost => $self->boost ) : () );
 
-    return $gen->doc( \%attr, map { $_->to_xml } $self->fields );
+    my @elements = map { ( '' => $_->to_element ) } $self->fields;
+
+    return XML::Easy::Element->new( 'doc', \%attr,
+        XML::Easy::Content->new( [ @elements, '' ] ),
+    );
 }
 
-no Moose;
+sub to_xml {
+    my $self = shift;
 
-__PACKAGE__->meta->make_immutable;
+    return XML::Easy::Text::xml10_write_element( $self->to_element );
+}
 
 1;
 
@@ -118,6 +137,10 @@ A Moose override to allow our custom constructor.
 
 Adds C<@fields> to the document.
 
+=head2 field_names
+
+Returns a list of field names that are in this document.
+
 =head2 value_for( $name )
 
 Returns the first value for C<$name>.
@@ -125,6 +148,10 @@ Returns the first value for C<$name>.
 =head2 values_for( $name )
 
 Returns all values for C<$name>.
+
+=head2 to_element( )
+
+Serializes the object to an XML::Easy::Element object.
 
 =head2 to_xml( )
 
@@ -134,11 +161,11 @@ Serializes the object to xml.
 
 Brian Cassidy E<lt>bricas@cpan.orgE<gt>
 
-Kirk Beers E<lt>kirk.beers@nald.caE<gt>
+Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2009 National Adult Literacy Database
+Copyright 2008-2011 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

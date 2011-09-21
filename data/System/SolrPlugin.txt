@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1291890836" format="1.1" reprev="6" version="7"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1309416307" format="1.1" reprev="9" version="10"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -47,7 +47,7 @@ allow connections from localhost for security reasons. You can change these
 settings in
 
 <verbatim>
-<foswiki-dir>/solr-run/etc/jetty.xml
+<foswiki-dir>/solr/etc/jetty.xml
 </verbatim>
 
 After checking these settings start the Solr daemon in the background using
@@ -62,6 +62,59 @@ url in [[%SCRIPTURL{"configure"}%][configure]].
 Now test that SolrSearch is working fine. Note that it won't show any search results
 by now as we didn't index any content yet.
 
+---+++ Setting up separate cores for virtual hosting
+
+!SolrPlugin supports virtual hosting using Foswiki:Extensions/VirtualHostingContrib by assigning a separate "core" to each
+virtual host. This ensures that indexes are created for each virtual host separately and content from one host does not leak to another while still using a single solr service answering queries for all virtual hosts installed.
+
+Multiple cores are located in sub-directories under =../solr/multicore/=. By default !SolrPlugin comes with a predefined 
+core named "foswiki". All data of this core is thus stored in the =.../solr/multicore/foswiki/= directory. All cores
+have got separate URLs to access them:
+
+<verbatim>
+http://<server-name>:<port>/solr/<core-name>
+</verbatim>
+
+To create a new core, copy the =.../solr/multicore/_template= directory to a new directory under the multicore directory, e.g. =../solr/multicore/mydomain.com= All known cores are listed in the =../solr/multicore/solr.xml= file. So adding
+your new =mydomain.com= core alter this file to:
+
+<verbatim class="xml">
+<?xml version="1.0" encoding="UTF-8" ?>
+<solr persistent="false" sharedLib="lib">
+  <cores adminPath="/admin/cores" sharedSchema="true">
+    <core name="foswiki" instanceDir="foswiki" /> <!-- default core -->
+    <core name="mydomain.com" instanceDir="mydomain.com" /> <!-- additional core for mydomain.com -->
+    <!-- ... other cores ... -->
+  </cores>
+</solr>
+</verbatim>
+
+You are required to restart the solr server when you make any changes to the =solr.xml= file. Test if your new core is available by accessing the admin
+console.
+
+<verbatim>
+http://<server-name>:<port>/solr/<core-name>/admin
+</verbatim>
+
+Note: depending on your tomcat or jetty configuration access to this port might be restricted.
+In this case use the =..&lt;foswiki-dir>/tools/virtualhost-solrsearch= tool to make a basic query.
+
+<verbatim>
+cd ..<foswiki-dir>/tools
+./virtualhost-solrsearch host=mydomain.com
+</verbatim>
+
+Use the =host= parameter to access other virtual hosts.
+
+There is a set of additional tools that have a variation for a virtual host setup:
+
+   * virtualhost-solrsearch
+   * virtualhost-solrindex
+   * virtualhost-solrdelete
+
+The =solrjob= tool itself is a wrapper around the =solrindex= and will either use =solrindex= or =virtualhost-solrindex=
+depending on the =host= commandline parameter.
+
 ---+++ Indexing existing content offline
 Before using SolrSearch you will need to index your content completely. Afterwards
 Foswiki will keep the index up-to-date whenever you change a topic or upload another attachment.
@@ -69,7 +122,7 @@ Foswiki will keep the index up-to-date whenever you change a topic or upload ano
 Let's first test if the indexer is working fine by indexing a single topic:
 
 <verbatim>
-<foswiki-dir>/tools/solrindex topic=Main.WebHome
+<foswiki-dir>/tools/virtualhost-solrindex topic=Main.WebHome
 </verbatim>
 
 Now check if this topic shows up in SolrSearch.
@@ -77,8 +130,11 @@ Now check if this topic shows up in SolrSearch.
 If that worked out fine go for the complete thing:
 
 <verbatim>
-<foswiki-dir>/tools/solrindex mode=full optimize=on
+<foswiki-dir>/tools/virtualhost-solrindex host=<core-name> mode=full optimize=on
 </verbatim>
+
+Replace &lt;core-mame> with the name of your virtual host, or with "foswiki" to access the pre-defined default
+core.
 
 This will crawl all webs, topics and attachment and submit them to the Solr server which in turn
 will build up the search index. This can take a while depending on the amount of content and number of users
@@ -122,8 +178,10 @@ In any case it is strongly recommended to *fully reindex* all of your documents 
 To achieve this install a cron-job like this one:
 
 <verbatim>
-0 0 * * * <foswiki-dir>/tools/solrjob full
+0 0 * * * <foswiki-dir>/tools/solrjob --mode full --hosts all
 </verbatim>
+
+%RED%host=all for vhost, else normal%ENDCOLOR%
 
 This will read all existing webs one by one and re-index all topics and attachments. Afterwards the index is optimized for size and performance.
 
@@ -131,7 +189,7 @@ In addition you'd like to set up *delta indexing* in a rather short term, by rei
 the last time the delta indexing was performed. This is set up using a cron job like this:
 
 <verbatim>
-0-59/5 * * * * <foswiki-dir>/tools/solrjob delta
+0-59/5 * * * * <foswiki-dir>/tools/solrjob --mode delta --hosts all
 </verbatim>
 
 This will start =solrindex= in delta mode every 5 minutes. You could even think about shortening this interval even more. However 5 minutes seems to be a good tradeoff of wasting resources vs. having all content updated in a timely manner. 
@@ -147,27 +205,210 @@ Instead of waiting for cron to trigger the delta indexing job, [[http://iwatch.s
   <watchlist>
     <title>Foswiki</title>
     <contactpoint email="root@localhost" name="Administrator"/>
-    <path type="recursive" alert="off" syslog="on" exec="su -c <foswiki-dir>/tools/solrjob <httpd-user>"><foswiki-dir>/data</path>
-    <path type="regexception">\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]</path>
+    <path type="recursive" alert="off" syslog="on" exec="su www-data -c '<foswiki-dir>/tools/solrjob --host mydomain.com'"><vhosts-dir>/mydomain.com/data</path>
+    <!-- add other virtual hosts here -->
+    <path type="regexception">\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]</path>
   </watchlist>
 </config>
 </verbatim>
 
-Make sure to replace &lt;foswiki-dir> and &lt;httpd-user> with the appropriate values on your platform.
+Make sure to replace =&lt;foswiki-dir>=, =&lt;httpd-user>= and =&lt;vhosts-dir>= with the appropriate values on your platform.
 
 Note that delta indexing is strongly recommended when one of the settings =EnableOnSaveUpdates=, =EnableOnUploadUpdates= or =EnableOnRenameUpdates= is disabled.
 
 ---++ Usage
 
+In general it is recommended to replace Foswiki's default !AutoViewTemplatePlugin with Foswiki:Extensions/AutoTemplatePlugin. This will allow you to replace the default WebSearch, WebSearchAdvanced, WebChanges and %SYSTEMWEB%.SiteChanges with a solr-driven interface for better usability and performance.
+
+Configure !AutoTemplatePlugin by adding the following ={ViewTemplateRules}=
+
+<verbatim>
+$Foswiki::cfg{Plugins}{AutoTemplatePlugin}{ViewTemplateRules} = {
+...
+  'WebSearchAdvanced' => 'SolrSearchView',
+  'WebSearch' => 'SolrSearchView',
+  'WebChanges' => 'WebChangesView',
+  'SiteChanges' => 'SiteChangesView',
+...
+};
+</verbatim>
+
+You might also override the !WebSearch of an individual web using a rule along the following lines:
+
+<verbatim>
+   'MyWeb.WebSearch' => 'SolrSearchView'
+</verbatim>
+
 ---+++ Faceted search interface
+
+%RED%todo%ENDCOLOR%
 
 ---+++ Macros
 
+SolrPlugin comes with a set of search macros tailored to the extensive capabilities of solr's responses to search queries.
+All of them make use of the same set of options to render a response as listed in [[#SOLRSEARCH][SOLRSEARCH]].
+
+<a name="SOLRSEARCH"></a>
 ---++++ SOLRSEARCH
+
+This is the most central macro of SolrPlugin. It allows to interact with the solr search server and display results within wiki applications. 
+An example search looks like
+
+<verbatim class="tml">
+%SOLRSEARCH{"test"
+  format="   1 $web.$topic$n"
+  sort="date desc"
+}%
+</verbatim>
+
+This will list the 10 most recently changed topics that match the string "test".
+To list the 20 most recently changed topics topics that have the string "test" in their name use
+
+<verbatim class="tml">
+%SOLRSEARCH{"topic_search:test"
+  format="   1 $web.$topic$n"
+  sort="date desc"
+  rows="20"
+}%
+</verbatim>
+
+SOLRSEARCH allows you to use the full power of the lucene query language.
+Consult the [[http://lucene.apache.org/java/3_1_0/queryparsersyntax.html][Lucene Query Syntax]] 
+guide to learn more about how to form more complicated queries.
+
+In addition to the full featured lucene query language SOLRSEARCH allows you to
+run a query in "dismax" mode. The dismax query handler is a maximum tolerant
+query processor that is robust against any sorts of user input to be fed to the
+search engine. While the default lucene query handler comes will a quite
+complex query language of itself, the dismax handler sacrifices this by aiming
+for more robustness. 
+
+| *Parameter* | *Description* | *Default* |
+| id | a search can be cached optionally for the time of the current request, for example using id="solr1". further calls to %SOLRFORMAT can make use of the cached solr response to render it independent from the location of the %SOLRSEARCH call on the wiki page | |
+| search | query string: depending on the search type this can either be a free-form text (type=dismax), a valid lucene query (type=standard) or a combination of both (edismax) | <nop>*:* |
+| type | dismax/edismax/standard: query type | standard |
+| fields | list of fields to be returned in the result; by default all fields in solr documents are returned; communication between foswiki and the solr search can be optimized by specifying only those fields that you are interested in while rendering the response | *, score |
+| *Flags:* |||
+| jump | on/off: jump to the topic specified explicitly in the seach string  | on |
+| lucky | on/off: jump to the first result found | off |
+| highlight | switch on/off highlighting of found terms | off |
+| spellcheck | switch on/off spellchecking to propose alternative spellings in case no search result was found | off | 
+| *Pagination:* |||
+| start | integer index within the result from where to start listing results | 0 |
+| rows | maximum number of documents to return | 10 |
+| *Filter parameters:* |||
+| web | filter by web: this can be any webname | all |
+| contributor | filter by contributor to a topic | |
+| filter | lucene query to filter results | |
+| extrafilter | additional lucene filter query (see %SYSTEMWEB%.SolrSearchBaseTemplate for the difference in =filter= and =extrafilter= | |
+| reverse | on/off - reverts sorting if switched on; note: this overrides sorting order specified in =sort= | off |
+| sort | sorting expression; examples: =score desc=, =date desc=, =createdate=, =topic_sort= | |
+| *Faceting:* |||
+| facets | list of facets to be rendered during search; each facet can be a =title=name= pair specifying the facet name and the title label used to display it in the result; example: %BR% =%MAKETEXT<nop>{"Webs"}%=web, %MAKETEXT<nop>{"Applications"}%=field_TopicType_lst= | |
+| facetquery | query to be used for a facet query | |
+| facetoffset | used to page through a list of facets being returned by a search | |
+| facetlimit | maximum number of values to be displayed per facet; this is a list of pairs =name=integer= specifying a per-facet limit; example: =50, tag=100, contributor=10, category=10= will constraint the global limit of facet values to be returned to 50, tags to 100, list the top 10 contributors in the hit set as well as the 10 most used categories |
+| facetmincount | minimum frequency of a facet to be included in the result | 1 | 
+| facetprefix | prefix string of a facet to be included | |
+| facetdatestart | part of a date facet describing the start of a time interval | NOW/DAY-7DAYS | 
+| facetdateend | part of a date facet describing the end of a time interval | NOW/DAY+1DAYS |
+| facetdateother | part of a date facet describing the time intervals excluding the one specified with facetdatestart and facetdateend | before |
+| hidesingle | comma separated list of facets to be hidden if there's only one choice left | | 
+| disjunctivefacets | list of facets that are queried using OR; so searching within one facet will _expand_ the search instead of drilling down | facet values are combined using AND | 
+| combinedfacets | list of facets where values are queried in each of them using OR; for example listing =field_ProjectMembers_lst= and =field_ProjectManager_s= will result in a lucne filter of the form =field_ProjectMembers_lst:%WIKINAME% OR field_ProjectManager_s:%WIKINAME%= | | 
+| *Formating results:* ||| 
+| correction | format string for corrections proposed by the spellchecker | Did you mean &lt;a href='$url'>$correction&lt;/a> |
+| header | format string prepended to the result | |
+| format | format string used to render each hit in the result set| |
+| separator | format string used to separate hit results rendered using =format= | |
+| footer | format string appended to the result | |
+| header_interesting | format string prepended to more-like-this queries (see =%SOLRSIMILAR=) | |
+| format_interesting | format string used to render more-like-this results| |
+| separator_interesting | format string used to separate hit results in more-like-this queries | |
+| footer_interesting | format string appended to more-like-this queries | |
+| include_interesting | regular expression terms must match in a more-lile-this result | |
+| exclude_interesting | regular expression terms must _not_ match in a more-lile-this result | |
+| header_&lt;facet> | format string prepended to a facet result | |
+| format_&lt;facet> | format string used to render a facet value | |
+| separator_&lt;facet> | format string used to separate facet values | |
+| footer_&lt;facet> | format string appended to facet results | |
+| include_&lt;facet> | regular expression facet values must match to be displayed | |
+| exclude_&lt;facet> | regular expression facet values must _not_ match to be displayed | |
 
 ---++++ SOLRFORMAT
 
+When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][SOLRSEARCH]], it can be reused by subsequent calls to %SOLRFORMAT.
+
+<verbatim class="tml">
+%SOLRSEARCH{"test" 
+  id="solr1"
+  facets="web,contributor"
+  facetlimit="web=10, contributor=10"
+}%
+
+<noautolink>
+*Results:*
+%SOLRFORMAT{"solr1"
+  format="   1 [[$web.$topic][$topic]]$n"
+}%
+
+*Webs:*
+%SOLRFORMAT{"solr1"
+  format_web="   * $key ($count)$n"
+}%
+
+*Contributors:*
+%SOLRFORMAT{"solr1"
+  format_contributor="   * $key ($count)$n"
+  exclude_contributor="UnknownUser|AdminGroup|AdminUser|RegistrationAgent|TestUser"
+}%
+</noautolink>
+</verbatim>
+
 ---++++ SOLRSIMILAR
+
+SOLRSIMILAR allows to return a list of similar topics given the current one.
+
+| *Parameter* | *Description* | *Default* |
+| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC% | 
+| like | list of fields used to compute similarity | category, tag |
+| fields | list of fields and their boost value to be included in result items | web, topic, title, score |
+| filter | restricts results to those matching this filter | type:topic |
+| include | switches on/off inclusion of the matched document found in the query parameter | off |
+| limit | maximum number of results to return | 100 |
+| boost | | |
+| mintermfrequency | | |
+| mindocumentfrequency | | |
+| mindwordlength | | |
+| maxdwordlength | | |
+
+
+%SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%"
+   filter="web:%BASEWEB% type:topic"
+   fields="web,topic,title,score"
+   header="<h2>Similar Topics</h2>$n<ul>" 
+   footer="</ul>"
+   format="<li>
+       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic' title='score: $score'>
+         $percntDBCALL{\"Applications.RenderTopicThumbnail\"
+           OBJECT=\"$web.$topic\"
+           TYPE=\"plain\"
+         }$percnt<!-- -->
+         <!-- -->$title
+         $percntDBQUERY{
+           header=\"<br /><span class='foswikiTopicInfo foswikiSmallish'>\"
+           topic=\"$web.$topic\" 
+           format=\"$formfield(Summary)\"
+           footer=\"</span>\"
+         }$percnt
+         %CLEAR%
+       </a>
+     </li>"
+   separator="$n"
+   rows="5"
+}%<!-- solrsimilar -->
+
+---++++ SOLRSCRIPTURL
 
 ---+++ Rest inteface
 
@@ -224,6 +465,27 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  21 Sep 2011: | upgrading to solr-3.4.0; \
+                  fixed utf8 handling; \
+                  added jump and i-feel-lucky options; \
+                  made hidesingle configurable per facet; \
+                  added disjunctivefacets and combinedfacets; \
+                  fixed handling of date fields; \
+                  support new ui::autocomplete in !JQueryPlugin; \
+                  using type-specific icons in Foswiki:Extensions/MimeIconPlugin if installed; \
+                  fixed quoting lucene queries; \
+                  indexing outgoing links to support fast backlinks; \
+                  adding fields createauthor, language and collection to schema; \
+                  disabling phonetic boost in schema by default; \
+                  be more robust in case of mallformed !DataForm definitions; \
+                  copying every string field into a search field also to allow exact as well as fuzzy search; \
+                  enhancing normalizeWebTopicName to create uniform web names using dots, not slashes everywhere; \
+                  fixed parsing inline topic permissions; \
+                  externalized sidebar pager into a new plugin of its own: Foswiki:Extensions/JQSerialPagerContrib; \
+                  upgrading to <nop>WebService::Solr-0.14 ... which now requires CPAN:XML::Easy instead of CPAN:XML::Generator; \
+                  lots of improvements to !SolrSearchBaseTemplate; \
+                  now supporting Foswiki:Extensions/InfiniteScrollContrib in !SolrSearch; \
+                  documentation improvements |
 |  19 Apr 2011: | shipping a multicore setup by default; \
                   added support for Foswiki:Extensions/VirtualHostingContrib; \
                   fixed utf8 recoding; \
@@ -242,6 +504,5 @@ Note that delta indexing is strongly recommended when one of the settings =Enabl
 |  22 Nov 2010: | fixes integration with pattern skin |
 |  18 Nov 2010: | initial public release |
 
-%META:FILEATTACHMENT{name="SolrPlugin-bin.tar.gz" attachment="SolrPlubin-bin.tar.gz" attr="" comment="" date="1290089830" size="36686861" user="ProjectContributor" version="1"}%
 %META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1290091281" size="93552" user="ProjectContributor" version="1"}%
 %META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1290091283" size="158013" user="ProjectContributor" version="1"}%

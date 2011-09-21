@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1275577175" format="1.1" reprev="2" version="4"}%
+%META:TOPICINFO{author="ProjectContributor" date="1309519615" format="1.1" reprev="1.4" version="1.4"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -26,6 +26,9 @@
 %TMPL:DEF{"solr::defaultquerytype"}%dismax%TMPL:END%
 %TMPL:DEF{"solr::defaultsort"}%score desc%TMPL:END%
 %TMPL:DEF{"solr::defaultdisplay"}%list%TMPL:END%
+%TMPL:DEF{"solr::defaultautosubmit"}%on%TMPL:END%
+%TMPL:DEF{"solr::defaultinfinitescroll"}%on%TMPL:END%
+%TMPL:DEF{"solr::defaultserialpageropts"}%prevText:'%MAKETEXT{"prev"}%', nextText:'%MAKETEXT{"next"}%'%TMPL:END%
 %TMPL:DEF{"solr::incontribs"}%%TMPL:P{"solr::input::checkboxes::inmycontribs"}%%TMPL:END%
 %TMPL:DEF{"solr::extrafilter"}%%IF{
   "defined 'SOLR_EXTRAFILTER'" 
@@ -41,10 +44,10 @@
   %MAKETEXT{"Category"}%=category,
   %MAKETEXT{"Tag"}%=tag,
   %MAKETEXT{"Application"}%=field_TopicType_lst,
-  %MAKETEXT{"Top contributors"}%=contributor
+  %MAKETEXT{"Collection"}%=collection,
+  %MAKETEXT{"Top contributors"}%=contributor,
 %TMPL:END%
 %TMPL:DEF{"solr::extramapping"}%
-  %MAKETEXT{"Web"}%=web,
   %MAKETEXT{"Contributor"}%=contributor,
   %MAKETEXT{"Timespan"}%=date,
   %MAKETEXT{"Keyword"}%=keyword
@@ -60,14 +63,19 @@
   %MAKETEXT{"1 year"}%=date:[NOW-1YEAR TO NOW],
   %MAKETEXT{"older"}%=date:[* TO NOW/YEAR]
 %TMPL:END%
+%TMPL:DEF{"solr::hidesinglefacets"}%web, type, collection, language, contributor, field_TopicType_lst, facetquery%TMPL:END%
+%TMPL:DEF{"solr::disjunctivefacets"}%%TMPL:END%
+%TMPL:DEF{"solr::combinedfacets"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::include::web"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::include::type"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::include::field_TopicType_lst"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::include::contributor"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::exclude::web"}%%TMPL:END%
+%TMPL:DEF{"solr::facet::include::field_TopicType_lst"}%%TMPL:END%
+%TMPL:DEF{"solr::facet::exclude::field_TopicType_lst"}%ApplicationLicense|TopicStub|TopicType|ClassifiedTopic|TaggedTopic|CategorizedTopic|DataForm|WikiTopic|WebTool|ApplicationTopic|DocuTopic|TopicView|TopicTemplate|TopicFunction|WikiApplication%TMPL:END%
+%TMPL:DEF{"solr::facet::include::contributor"}%%TMPL:END%
+%TMPL:DEF{"solr::facet::exclude::contributor"}%UnknownUser|WikiGuest|(TWiki|Project)Contributor|AdminGroup|RegistrationAgent|AdminUser|TestUser%TMPL:END%
+%TMPL:DEF{"solr::facet::include::type"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::exclude::type"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::exclude::field_TopicType_lst"}%TopicStub|TopicType|TaggedTopic|CategorizedTopic|DataForm%TMPL:END%
-%TMPL:DEF{"solr::facet::exclude::contributor"}%UnknownUser|WikiGuest|(TWiki|Project)Contributor|AdminGroup%TMPL:END%
+%TMPL:DEF{"solr::facet::include::collection"}%%TMPL:END%
+%TMPL:DEF{"solr::facet::exclude::collection"}%%TMPL:END%
 %TMPL:DEF{"solr::spellcheck"}%on%TMPL:END%
 %{</verbatim>}%
 
@@ -88,8 +96,46 @@
 %TMPL:P{"solr::hits"}%
 %TMPL:P{"solr::footer"}%
 %TMPL:P{"solr::css"}%<!-- -->
-%JQREQUIRE{"focus, serialscroll"}%<!-- -->
+%JQREQUIRE{"focus, serialpager"}%<!-- -->
+%IF{"context PrettyPhotoEnabled"
+  then="$percntJQREQUIRE{\"prettyphoto\"}$percnt"
+}%<!-- -->
+%IF{"'%TMPL:P{"solr::defaultinfinitescroll"}%'='on' and context InfiniteScrollEnabled"
+  then="$percntTMPL:P{\"solr::infinitescroll\"}$percnt"
+}%<!-- -->
 </noautolink></div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::infinitescroll"}%%ADDTOZONE{"script"
+  id="SOLRPLUGIN::INFINITESCROLL::JS"
+  text="<literal><script>
+jQuery(function($) {
+  $('.solrSearchHits').infinitescroll({
+    navSelector: '.solrPager',
+    nextSelector: '.solrFooter .solrPagerNext',
+    itemSelector: '.solrSearchHit',
+    loadMsgSelector: '.solrFooter',
+    pathParse: function(path, page) {
+      return path.match(/^(.*start=)\d+(.*)$/).slice(1).join(page);
+    },
+    donetext: '',
+    loadingMsgRevealSpeed: 0,
+    loadingText: '',
+    bufferPx: 600,
+    zeroBased: true,
+    loadingImg: '%PUBURLPATH%/%SYSTEMWEB%/InfiniteScrollContrib/loading.gif'
+  }, function() {
+    if (jQuery.prettyPhoto) {
+      $('.jqPrettyPhoto').trigger('update.prettyphoto');
+    }
+    $('.solrSearchHits .foswikiClear:last').remove();
+    $('.solrSearchHits').append('<span class=\"foswikiClear\">');
+  });
+});
+</script></literal>"
+  requires="JQUERYPLUGIN::INFINITESCROLL"
+}%%JQREQUIRE{"infinitescroll"}%<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -107,20 +153,29 @@
 %TMPL:DEF{"solr::search"}%%SOLRSEARCH{
   "%URLPARAM{"search"}%"
   id="solr1"
-  web="%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%"
   jump="%URLPARAM{"jump"}%"
+  lucky="%URLPARAM{"lucky"}%"
   contributor="%URLPARAM{"contributor"}%"
   display="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%"
-  origtopic="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%"
+  origtopic="%URLPARAM{"origtopic" default="%BASEWEB%.%BASETOPIC%"}%"
   type="%URLPARAM{"type" default="%TMPL:P{"solr::defaultquerytype"}%"}%"
   start="%URLPARAM{"start" default="0"}%"
   rows="%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%"
   sort="%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%"
   facets="%MAKETEXT{"Webs"}%=web,%TMPL:P{"solr::facets"}%"
+  disjunctivefacets="%TMPL:P{"solr::disjunctivefacets"}%"
+  combinedfacets="%TMPL:P{"solr::combinedfacets"}%"
+  hidesingle="%TMPL:P{"solr::hidesinglefacets"}%"
   facetquery="%TMPL:P{"solr::facetquery"}%"
+  facetdatestart="%TMPL:P{"solr::facetdatestart"}%"
+  facetdateend="%TMPL:P{"solr::facetdateend"}%"
+  facetdategap="%TMPL:P{"solr::facetdategap"}%"
+  facetdateother="%TMPL:P{"solr::facetdategother"}%"
   facetlimit="50,tag=100,contributor=10,category=50"
+  facetsort="%TMPL:P{"solr::facetsort"}%"
   filter="%URLPARAM{"filter" multiple="on" separator=", "}%"
-  extrafilter="%IF{"'%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%'!='all'" then="web:%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%, "}% %TMPL:P{"solr::extrafilter"}%"
+  web="%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%" 
+  extrafilter="%TMPL:P{"solr::extrafilter"}%"
   spellcheck="%TMPL:P{"solr::spellcheck"}%"
   highlight="on"
   correction="%MAKETEXT{"Did you mean [_1]" args="<a href='$url' class='solrCorrection'>%ENCODE{"$correction" type="quote"}%</a>"}%"
@@ -156,6 +211,7 @@
     include="%TMPL:P{"solr::facet::include::web"}%"
     exclude="%TMPL:P{"solr::facet::exclude::web"}%"
     extraclass="solrSort"
+    pageropts=""
   }%
   %TMPL:P{"solr::facet"
     id="type"
@@ -165,6 +221,7 @@
     include="%TMPL:P{"solr::facet::include::type"}%"
     exclude="%TMPL:P{"solr::facet::exclude::type"}%"
     extraclass=""
+    pageropts=""
   }%
   %TMPL:P{"solr::facet"
     id="field_TopicType_lst"
@@ -174,6 +231,17 @@
     include="%TMPL:P{"solr::facet::include::field_TopicType_lst"}%"
     exclude="%TMPL:P{"solr::facet::exclude::field_TopicType_lst"}%"
     extraclass="solrSort"
+    pageropts=""
+  }%
+  %TMPL:P{"solr::facet"
+    id="collection"
+    format="$key&nbsp;($count)"
+    value="$id:$key"
+    input="checkbox"
+    include="%TMPL:P{"solr::facet::include::collection"}%"
+    exclude="%TMPL:P{"solr::facet::exclude::collection"}%"
+    extraclass="solrSort"
+    pageropts=""
   }%
   %TMPL:P{"solr::facet"
     id="contributor"
@@ -184,6 +252,7 @@
     include="%TMPL:P{"solr::facet::include::contributor"}%"
     exclude="%TMPL:P{"solr::facet::exclude::contributor"}%"
     extraclass=""
+    pageropts=""
   }%
   %TMPL:P{"solr::facet"
     id="facetquery"
@@ -194,6 +263,7 @@
     include=""
     exclude=""
     extraclass=""
+    pageropts=""
   }%
 }%<!-- -->
 </noautolink>
@@ -223,7 +293,7 @@
 %TMPL:DEF{"solr::sidebar::hierarchy"}%<!-- -->
 %IF{
   "'%SOLRFORMAT{"solr1" header_category="$total"}%'!=''
-   and '%SOLRFORMAT{"solr1" header_web="$rows"}%'='1' 
+   and '%SOLRFORMAT{"solr1" header_web="$rows" hidesingle=""}%'='1' 
   " 
   then="$percntTMPL:P{\"solr::sidebar::hierarchy::impl\"}$percnt"
   else="<!-- -->"
@@ -294,7 +364,7 @@
       showimgleft=\"%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png\"
       hideimgleft=\"%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png\"
     }$percnt
-    <div class='solrFacetPager'>
+    <div class=\"solrSerialPager {%TMPL:P{"solr::defaultserialpageropts"}% %pageropts%}\">
     <ul>"
   format_%id%="<li>
     <table class='foswikiLayoutTable' width='100%'>
@@ -326,8 +396,10 @@
 %TMPL:DEF{"solr::header"}%<div class='solrHeader'>
 %TMPL:P{"solr::searchform"}%
 %TMPL:P{"solr::spellchecker"}%
-%TMPL:P{"solr::header::results"}%
-%TMPL:P{"solr::header::pager"}%
+%IF{"'%TMPL:P{"solr::defaultinfinitescroll"}%'='on' and context InfiniteScrollEnabled"
+  then="$percntTMPL:P{\"solr::header::results::infinitescroll\"}$percnt" 
+  else="$percntTMPL:P{\"solr::header::results\"}$percnt$percntTMPL:P{\"solr::header::pager\"}$percnt"
+}%
 </div>%TMPL:END%
 %{</verbatim>}%
 
@@ -344,9 +416,7 @@
 %{ ###########################################################################
    solr::header::pager - this adds a page navigation above the hit set
 }%
-%TMPL:DEF{"solr::header::pager"}%<!-- -->
-%SOLRFORMAT{"solr1" header="$pager"}%
-<!-- -->%TMPL:END%
+%TMPL:DEF{"solr::header::pager"}%%SOLRFORMAT{"solr1" header="$pager"}%%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -391,13 +461,30 @@
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
+   solr::header::results::infinitescroll - this variation of the results header is
+   used when the InfiniteScrollContrib is installed
+}%
+%TMPL:DEF{"solr::header::results::infinitescroll"}%<!-- -->
+<div class='solrHeaderResults'>
+      %SOLRFORMAT{"solr1" 
+        header="<div class='solrNumResults'>
+                  $percntIF{\"$count>0\" 
+                    then=\"$percntMAKETEXT{\"Found <strong>[_1]</strong> results\" args=\"$count\"}$percnt\"
+                    else=\"<span class='foswikiAlert'>%MAKETEXT{"nothing found"}%</span>\"
+                  }$percnt
+                </div>"
+      }%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
    solr::footer - this is appended to all search results, 
    i.e repeating the pager
 }%
 %TMPL:DEF{"solr::footer"}%<div class='solrFooter'>
-%SOLRFORMAT{"solr1" 
-  footer="$pager"
-}%
+%SOLRFORMAT{"solr1" footer="$pager"}%
 </div>%TMPL:END%
 %{</verbatim>}%
 
@@ -406,11 +493,13 @@
    solr::hits - this macro either calls "solr::hits::list" or solr::hist::grid
    depending of the display style given in the display urlparam
 }%
-%TMPL:DEF{"solr::hits"}%%IF{
+%TMPL:DEF{"solr::hits"}%<!-- -->
+%IF{
   "'%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%'='list'" 
   then="$percntTMPL:P{\"solr::hits::list\"}$percnt"
   else="$percntTMPL:P{\"solr::hits::grid\"}$percnt"
-}%%TMPL:END%
+}%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -425,24 +514,24 @@
 }%
 %TMPL:DEF{"solr::hits::list"}%<!-- -->
 %SOLRFORMAT{"solr1"
-  header="<div class='solrSearchHits solrSearchHitsList'>"
+  header="<div class='solrSearchHits solrSearchHitsList jqPrettyPhoto {itemSelector:\".solrImageFrame a\"}'>"
   footer="</div>"
   format="$percntTMPL:P{\"solr::format::list::$format\" 
+      author=\"$author\"
+      comment=\"$percntENCODE{\"$comment\" type=\"html\"}$percnt\"
+      date=\"$date\"
+      hilite=\"$percntENCODE{\"$hilite\" type=\"quote\"}$percnt\"
+      icon=\"$icon\"
       id=\"$id\"
+      index=\"$index\"
+      name=\"$name\"
+      score=\"$score\"
+      size=\"$size\"
       title=\"$percntENCODE{\"$title\" type=\"html\"}$percnt\"
+      topic=\"$topic\"
+      type=\"$type\"
       url=\"$url\"
       web=\"$web\"
-      topic=\"$topic\"
-      name=\"$name\"
-      index=\"$index\"
-      comment=\"$percntENCODE{\"$comment\" type=\"html\"}$percnt\"
-      author=\"$author\"
-      size=\"$size\"
-      icon=\"$icon\"
-      date=\"$date\"
-      score=\"$score\"
-      type=\"$type\"
-      hilite=\"$percntENCODE{\"$hilite\" type=\"quote\"}$percnt\"
    }$percnt%CLEAR%"
 }%
 <!-- -->%TMPL:END%
@@ -457,18 +546,23 @@
 %TMPL:DEF{"solr::hits::grid"}%<!-- -->
 %SOLRFORMAT{"solr1" 
   separator="$n"
-  header="<div class='solrSearchHits solrSearchHitsGrid'>"
+  header="<div class='solrSearchHits solrSearchHitsGrid jqPrettyPhoto {itemSelector:\".solrImageFrame a\"}'>"
   footer="%CLEAR%</div>"
   format="$percntTMPL:P{\"solr::format::grid::$format\" 
-      id=\"$id\"
-      title=\"$title\"
-      url=\"$url\"
-      web=\"$web\"
-      topic=\"$topic\"
-      name=\"$name\"
       author=\"$author\"
       date=\"$date\"
+      hilite=\"$percntENCODE{\"$hilite\" type=\"quote\"}$percnt\"
       icon=\"$icon\"
+      id=\"$id\"
+      index=\"$index\"
+      name=\"$name\"
+      score=\"$score\"
+      size=\"$size\"
+      title=\"$title\"
+      topic=\"$topic\"
+      type=\"$type\"
+      url=\"$url\"
+      web=\"$web\"
    }$percnt"
 }%
 <!-- -->%TMPL:END%
@@ -501,11 +595,11 @@
 <input type='hidden' name='sort' value='%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%' id='solrSortOption' />
 <input type='hidden' name='display' value='%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%' id='solrDisplayOption' />
 <input type='hidden' name='rows' value='%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%' id='solrRowsOption' />
-<input type='hidden' name='origtopic' value='%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%' />
+<input type='hidden' name='origtopic' value='%URLPARAM{"origtopic" default="%BASEWEB%.%BASETOPIC%"}%' />
 %FORMATLIST{
   "%URLPARAM{"filter" multiple="on" separator="#" encode="none"}%#%TMPL:P{"solr::extraselection"}%" 
   split="#"
-  pattern="(.*):(.*)"
+  pattern="^(.*?):(.*)$"
   format="<input type='hidden' name='filter' value='$1:$2' class='solrFilter {facet:\"$1\", value:\"$percntENCODE{\"$2\" type=\"url\"}$percnt\"}' />"
   separator="$n"
 }%<!-- -->%TMPL:END%
@@ -540,7 +634,7 @@
     <div class='tagCloud' style='text-align:center'>"
   format="<span style='font-size:$weightpx;line-height:110%'><a href='#' style='color:$fadeRGB(104,144,184,0,102,255);' class='solrFacetValue tag_$term' value='tag:$term' name='tag_$term'>$term</a></span>"
   footer="</div>$percntENDTWISTYTOGGLE$percnt</div></div>"
-  group="<strong>$group</strong>"
+  group="<strong>$group</strong>&nbsp;"
   split="\s*,\s*"
   buckets="20"
   offset="11"
@@ -555,7 +649,7 @@
 %TMPL:DEF{"solr::hierarchystep"}%<!-- -->
 %IF{
   "'%SOLRFORMAT{"solr1" header_category="$total"}%'!=''
-   and '%SOLRFORMAT{"solr1" header_web="$rows"}%'='1' 
+   and '%SOLRFORMAT{"solr1" header_web="$rows" hidesingle=""}%'='1' 
   " 
   then="$percntTMPL:P{\"solr::hierarchystep::impl\"}$percnt"
   else="<!-- -->"
@@ -580,8 +674,14 @@
   %TWISTYTOGGLE{id="solrhierarchy" mode="div"}%
     <div class='solrHierarchy'>
       %DBCALL{"Applications.ClassificationApp.RenderCategoryEditor" 
-        THEWEB="%SOLRFORMAT{"solr1" format_web="$key"}%" 
-        VALUE="%FORMATLIST{"%URLPARAM{"filter" multiple="$item" separator=","}%" split="\s*,\s*" pattern="(.*):(.*)" include="^category:.*" format="$2"}%"
+        THEWEB="%SOLRFORMAT{"solr1" format_web="$key" hidesingle=""}%" 
+        VALUE="%FORMATLIST{
+	  "%URLPARAM{"filter" multiple="$item" separator=","}%" 
+	  split="\s*,\s*" 
+	  pattern="^(.*?):(.*)$" 
+	  include="^category:.*" 
+	  format="$2"
+	}%"
         ONCLICK="jQuery(this).change();"
         THEFORMAT="solrfacet"
         BUTTONS="off"
@@ -647,17 +747,39 @@
 </div>
 <table class='foswikiNullTable'>
   <tr>
-    <td><input type='text' class='foswikiInputField jqFocus solrSearchField' name='search' size='60' value='%URLPARAM{"search" encode="entity"}%' style='margin-right:8px;'/></td>
     <td>
-      %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find"}%
+      <input type='text' autocomplete='off' class='foswikiInputField jqFocus solrSearchField %FORMATLIST{
+        "%IF{"'%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%'!='all'" then="web:%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%, "}% %TMPL:P{"solr::extrafilter"}%" 
+        split="\s*,\s*"
+        header="{filter: ["
+        format="\"$1\""
+        footer="]}"
+        separator=", "
+      }%' name='search' size='60' value='%URLPARAM{"search" encode="entity"}%' style='margin-right:8px;'/>
     </td>
-    <!-- td><a href='%SCRIPTURL{"view"}%/%BASEWEB%/%BASETOPIC%'>%MAKETEXT{"Start over"}%</a></td-->
+    <td>
+      %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find" class="solrSubmitButton"}%
+      %TMPL:P{"solr::inputstep::autosubmit::hidden"}%<!-- -->
+    </td>
   </tr>
 </table>
-
 %TMPL:P{"solr::input::checkboxes"}%
 %CLEAR%
 </div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::inputstep::autosubmit"}%<!-- -->
+<input type="checkbox" name="autosubmit" value="on" class="solrToggleAutoSubmit" %IF{"'%URLPARAM{"autosubmit" default="%TMPL:P{"solr::defaultautosubmit"}%"}%'='on'" then="checked='checked'"}%" id="autosubmit" />
+<label for="autosubmit" class="foswikiGrayText">%MAKETEXT{"auto-submit"}%</label>
+<input type="hidden" name="autosubmit" value="off" />
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::inputstep::autosubmit::hidden"}%<!-- -->
+<input type="hidden" name="autosubmit" class="solrToggleAutoSubmit" value="%TMPL:P{"solr::defaultautosubmit"}%" />
 <!-- -->%TMPL:END%
 %{</verbatim>}%
 
@@ -671,9 +793,9 @@
     <th>%MAKETEXT{"Sort by"}%:&nbsp;</th>
     <td>
       <select class='foswikiSelect' id='solrSorting'>
-        <option class='foswikiOption' value='score desc' %IF{"$'URLPARAM{sort}'='sort desc'" then="selected"}%>%MAKETEXT{"Relevance"}%</option>
-        <option class='foswikiOption' value='date desc' %IF{"$'URLPARAM{sort}'='date desc'" then="selected"}%>%MAKETEXT{"Last changed"}%</option>
-        <option class='foswikiOption' value='topic_sort asc' %IF{"$'URLPARAM{sort}'='topic_sort asc'" then="selected"}%>%MAKETEXT{"Name"}%</option>
+        <option class='foswikiOption' value='score desc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='sort desc'" then="selected"}%>%MAKETEXT{"Relevance"}%</option>
+        <option class='foswikiOption' value='date desc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='date desc'" then="selected"}%>%MAKETEXT{"Last changed"}%</option>
+        <option class='foswikiOption' value='topic_sort asc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='topic_sort asc'" then="selected"}%>%MAKETEXT{"Name"}%</option>
       </select>
     </td>
   </tr>
@@ -759,7 +881,7 @@
 }%
 %TMPL:DEF{"solr::format::list::topic"}%<!-- -->
 <div class='solrSearchHit solrTopicHit'>
-  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+  <h3 style='background-image:url(%icon%)' title='%type%'>
     [[%web%.%topic%][%topic%]]
     <span class='foswikiGrayText'>
       %WEBLINK{"%web%" 
@@ -771,7 +893,11 @@
     <literal>%hilite%</literal>
   </div>
   <div class='solrRevision'> 
-    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+    %date%, 
+    %IF{"istopic '%USERINFO{"%author%" format="$wikiusername"}%'"
+      then="%USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%"
+      else="%USERINFO{"%author%" format="<nop>$wikiname"}%"
+    }% 
   </div>
 </div>
 <!-- -->%TMPL:END%
@@ -797,15 +923,16 @@
 }%
 %TMPL:DEF{"solr::format::list::attachment"}%<!-- -->
 <div class='solrSearchHit solrAttachmentHit'>
-  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
-    [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
+  <h3 style='background-image:url(%icon%)' title='%type%'>
+    [[%url%][%name%]]
     <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
+    %IF{"'%comment%'!=''" then="<div class='foswikiGrayText'>%comment%</div>" else="<!-- -->"}%
   </h3>
   <div class='solrHilite'>
     <literal>%hilite%</literal>
   </div>
   <div class='solrRevision'> 
-    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+    %date%, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
 <!-- -->%TMPL:END%
@@ -826,25 +953,26 @@
 }%
 %TMPL:DEF{"solr::format::list::image"}%<!-- --> 
 <div class='solrSearchHit solrImageHit'>
-  %IMAGE{"%name%" 
-    topic="%web%.%topic%" 
-    width="50" 
-    height="50" 
-    type="frame" 
-    align="left"
-    tooltip="on"
-    warn="off"
-  }%
+  <div class='solrImageFrame'>
+    %IMAGE{"%name%" 
+      topic="%web%.%topic%" 
+      size="64>" 
+      tooltip="off"
+      warn="off"
+    }%
+  </div>
   <h3>
-    [[%url%][%name%%IF{"'%comment%'!=''" then=": %comment%"}%]]
+    [[%url%][%name%]]
     <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
+    %IF{"'%comment%'!=''" then="<div class='foswikiGrayText'>%comment%</div>" else="<!-- -->"}%
   </h3>
   <div class='solrHilite'>
     <literal>%hilite%</literal>
   </div>
   <div class='solrRevision'> 
-    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+    %date%, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
+  %CLEAR%
 </div>
 <!-- -->%TMPL:END%
 %{</verbatim>}%
@@ -856,7 +984,7 @@
 }%
 %TMPL:DEF{"solr::format::list::comment"}%<!-- -->
 <div class='solrSearchHit solrCommentHot'>
-  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+  <h3 style='background-image:url(%icon%)' type='%type%'>
     [[%url%][%title%]]
     <span class='foswikiGrayText'>%MAKETEXT{"in [_1]" args="[[%web%.%topic%][%topic%]]"}%</span>
   </h3>
@@ -864,7 +992,7 @@
     <literal>%hilite%</literal>
   </div>
   <div class='solrRevision'> 
-    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a>, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+    %date%, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
 <!-- -->%TMPL:END%
@@ -877,12 +1005,14 @@
 }%
 %TMPL:DEF{"solr::format::grid::topic"}%<!-- -->
 <div class='solrSearchHit solrTopicHit'>
-  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+  <h3>
     [[%web%.%topic%][%SPACEOUT{%title%}%]]
   </h3>
-  <div class='solrTopicInfo foswikiGrayText foswikiSmallish'> 
-    <a href='%SCRIPTURLPATH{"rdiff"}%/%web%/%topic%?type=last'>%date%</a> %BR%
-    %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  <div class='solrHilite'>
+    <literal>%hilite%</literal>
+  </div>
+  <div class='solrRevision'> 
+    %date%, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
 <!-- -->%TMPL:END%
@@ -895,13 +1025,13 @@
 }%
 %TMPL:DEF{"solr::format::grid::attachment"}%<!-- -->
 <div class='solrSearchHit solrAttachmentHit'>
-  <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/%icon%)'>
+  <img src='%icon%' width='16' height='16' class='foswikiRight' />
+  <h3>
     [[%url%][%SPACEOUT{%title%}%]]
   </h3>
-  <div class='foswikiGrayText foswikiSmallish'>
-    in&nbsp;[[%web%.%topic%][%topic%]] %BR%
-    %date% %BR%
-    %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
+  <div class='foswikiGrayText'>in&nbsp;[[%web%.%topic%][%topic%]]</div>
+  <div class='solrRevision'>
+    %date%, %USERINFO{"%author%" format="[[$wikiusername][$wikiname]]"}%
   </div>
 </div>
 <!-- -->%TMPL:END%
@@ -915,9 +1045,16 @@
 %TMPL:DEF{"solr::format::grid::image"}%<!-- -->
 <div class='solrSearchHit solrImageHit'>
   <div class='solrImageFrame'>
-    %IMAGE{"%name%" topic="%web%.%topic%" size="120" type="simple" tooltip="on" warn="off" }%
+    %IMAGE{"%name%" 
+      topic="%web%.%topic%" 
+      height="150"
+      DIS_crop="on"
+      type="simple" 
+      tooltip="off" 
+      warn="off" 
+    }%
   </div>
-  <div class='solrImageCaption foswikiSmallish'>
+  <div class='solrImageCaption'>
     [[%web%.%topic%][%topic%]]
   </div>
 </div>
