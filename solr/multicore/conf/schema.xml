@@ -45,14 +45,16 @@
     that avoids logging every request
 -->
 
-<schema name="foswiki" version="1.2">
+<schema name="foswiki" version="1.4">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
        Applications should change this to reflect the nature of the search collection.
-       version="1.2" is Solr's version number for the schema syntax and semantics.  It should
+       version="1.4" is Solr's version number for the schema syntax and semantics.  It should
        not normally be changed by applications.
        1.0: multiValued attribute did not exist, all fields are multiValued by nature
        1.1: multiValued attribute introduced, false by default 
        1.2: omitTermFreqAndPositions attribute introduced, true by default except for text fields.
+       1.3: removed optional field compress feature
+       1.4: default auto-phrase (QueryParser feature) to off
      -->
 
   <types>
@@ -64,11 +66,7 @@
        org.apache.solr.analysis package.
     -->
 
-    <!-- The StrField type is not analyzed, but indexed/stored verbatim.  
-       - StrField and TextField support an optional compressThreshold which
-       limits compression (if enabled in the derived fields) to values which
-       exceed a certain size (in characters).
-    -->
+    <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 
     <!-- boolean type: "true" or "false" -->
@@ -212,11 +210,11 @@
       </analyzer>
     </fieldType>
 
-    <!-- A text field that uses WordDelimiterFilter to enable splitting and matching of
-        words on case-change, alpha numeric boundaries, and non-alphanumeric chars,
-        so that a query of "wifi" or "wi fi" could match a document containing "Wi-Fi".
-        Synonyms and stopwords are customized by external files, and stemming is enabled.
-        -->
+    <!-- A general text field that has reasonable, generic
+         cross-language defaults: it tokenizes with StandardTokenizer,
+	 removes stop words from case-insensitive "stopwords.txt"
+	 (empty by default), and down cases.  At query time only, it
+	 also applies synonyms. -->
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
@@ -461,10 +459,39 @@
       </analyzer>
     </fieldType>
 
+    <fieldType name="text_path" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.PathHierarchyTokenizerFactory"/>
+      </analyzer>
+    </fieldType>
+
     <!-- since fields of this type are by default not stored or indexed,
          any data added to them will be ignored outright.  --> 
-    <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" /> 
+    <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
 
+    <!-- This point type indexes the coordinates as separate fields (subFields)
+      If subFieldType is defined, it references a type, and a dynamic field
+      definition is created matching *___<typename>.  Alternately, if 
+      subFieldSuffix is defined, that is used to create the subFields.
+      Example: if subFieldType="double", then the coordinates would be
+        indexed in fields myloc_0___double,myloc_1___double.
+      Example: if subFieldSuffix="_d" then the coordinates would be indexed
+        in fields myloc_0_d,myloc_1_d
+      The subFields are an implementation detail of the fieldType, and end
+      users normally should not need to know about them.
+     -->
+    <fieldType name="point" class="solr.PointType" dimension="2" subFieldSuffix="_d"/>
+
+    <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
+    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+
+   <!--
+    A Geohash is a compact representation of a latitude longitude pair in a single field.
+    See http://wiki.apache.org/solr/SpatialSearch
+   -->
+    <fieldtype name="geohash" class="solr.GeoHashField"/>
+    
+    
     <fieldtype name="type" class="solr.TextField">
       <analyzer type="index">
           <tokenizer class="solr.KeywordTokenizerFactory"/>
@@ -486,9 +513,6 @@
        <types> section
      indexed: true if this field should be indexed (searchable or sortable)
      stored: true if this field should be retrievable
-     compressed: [false] if this field should be stored using gzip compression
-       (this will only apply if the field type is compressable; among
-       the standard field types, only TextField and StrField are)
      multiValued: true if this field may contain multiple values per document
      omitNorms: (expert) set to true to omit the norms associated with
        this field (this disables length normalization and index-time
@@ -517,14 +541,23 @@
    <!-- id: Main.WebHome, Main.WebHome.logo.png -->
    <field name="id" type="string" required="true" /> 
 
+   <!-- collection: wiki content is normally in collection "wiki"; other collections can be named as required;
+        while solr can separate content of different kind into isolated cores, collections are a way to make
+        content query-able accross different kinds of collections 
+   -->
+   <field name="collection" type="string" required="true" /> 
+
+   <!-- language: language of this document -->
+   <field name="language" type="string" /> 
+
    <!-- url: pointing to the page to render the hit -->
    <field name="url" type="string" required="true" /> 
 
    <!-- type: topic, gif, jpg, png, ... all kind of extensions -->
-   <field name="type" type="type" required="true" termVectors="on" />
-   <field name="web" type="string" required="true" />
-   <field name="topic" type="string" required="true" />
-   <field name="webtopic" type="string" required="true" /> <!-- useful for autocompletion in a jump box -->
+   <field name="type" type="type" required="true" termVectors="true" />
+   <field name="web" type="string" />
+   <field name="topic" type="string" />
+   <field name="webtopic" type="string" /> <!-- useful for autocompletion in a jump box -->
 
    <!-- this field stores the ACLs of a topic or attachment -->
    <field name="access_granted" type="string" stored="false" multiValued="true" />
@@ -539,6 +572,7 @@
    <field name="version" type="float" indexed="false" />
    <field name="text" type="textgen" stored="false"  />
    <field name="date" type="tdate" />
+   <field name="createauthor" type="string" />
    <field name="createdate" type="tdate" />
    <field name="catchall" type="textgen" multiValued="true" />
    <field name="substrings" type="text_substring" multiValued="true" />
@@ -562,18 +596,23 @@
    <!-- attachments: this is a list of all attachment names of this topic -->
    <field name="attachment" type="string" multiValued="true" />
 
+   <!-- outgoing: list of outgoing links -->
+   <field name="outgoing" type="string" multiValued="true" store="false" />
+
    <!-- ATTACHMENTS: -->
    <field name="name" type="string" />
    <field name="comment" type="textgen" />
    <field name="size" type="sint" />
 
    <!-- ClassificationPlugin -->
+   
    <!-- category: this field catches all formfield values of type cat; will be propagated from topics to attachments -->
    <field name="category" type="string" multiValued="true" termVectors="true" />
-   <field name="category_search" type="textgen" multiValued="true" stored="false" termVectors="on" omitNorms="on" />
-   <!-- category: this field catches all formfield values of type tag; will be propagated from topics to attachments -->
+   <field name="category_search" type="textgen" multiValued="true" stored="true" termVectors="true" omitNorms="true" />
+
+   <!-- tag: this field catches all formfield values of type tag; will be propagated from topics to attachments -->
    <field name="tag" type="string" multiValued="true" termVectors="true" />
-   <field name="tag_search" type="textgen" multiValued="true" stored="false" termVectors="on" omitNorms="on" />
+   <field name="tag_search" type="textgen" multiValued="true" stored="true" termVectors="true" omitNorms="true" />
 
    <!-- dynamicFields: these are used to cover formfield definitions
         a formfield is named using a field_ prefix to prevent a name
@@ -599,7 +638,7 @@
    <dynamicField name="*_f"  type="float"/>
    <dynamicField name="*_d"  type="double"/>
    <dynamicField name="*_dt" type="date"/>
-   <dynamicField name="*_lst" type="string" multiValued="true" termVectors="on"/>
+   <dynamicField name="*_lst" type="string" multiValued="true" termVectors="true"/>
 
    <!-- some trie-coded dynamic fields for faster range queries -->
    <dynamicField name="*_ti" type="tint"/>
@@ -609,7 +648,7 @@
    <dynamicField name="*_tdt" type="tdate"/>
 
    <!-- search & sort fields  -->
-   <dynamicField name="*_search" type="textgen" stored="false" termVectors="on" />
+   <dynamicField name="*_search" type="textgen" stored="true" termVectors="true" />
    <dynamicField name="*_sort" type="alphaOnlySort" stored="false" />
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -650,19 +689,21 @@
    <copyField source="attachment" dest="catchall"/>
    <copyField source="category" dest="catchall"/>
    <copyField source="comment" dest="catchall"/>
-   <copyField source="contributor" dest="catchall"/>
    <copyField source="field_*" dest="catchall"/>
    <copyField source="form" dest="catchall"/>
    <copyField source="name" dest="catchall"/>
-   <copyField source="parent" dest="catchall"/>
-   <copyField source="preference_*" dest="catchall"/>
    <copyField source="tag" dest="catchall"/>
    <copyField source="text" dest="catchall"/>
    <copyField source="title" dest="catchall"/>
    <copyField source="topic" dest="catchall"/>
    <copyField source="type" dest="catchall"/>
+<!--
+   <copyField source="preference_*" dest="catchall"/>
+   <copyField source="parent" dest="catchall"/>
    <copyField source="web" dest="catchall"/>
    <copyField source="webtopic" dest="catchall"/>
+   <copyField source="contributor" dest="catchall"/>
+-->
 
    <copyField source="attachment" dest="substrings"/>
    <copyField source="category" dest="substrings"/>
