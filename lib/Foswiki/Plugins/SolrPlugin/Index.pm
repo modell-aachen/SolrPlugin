@@ -39,6 +39,29 @@ use constant COMMIT_THRESHOLD => 100; # commit every 100 topics on a bulk index 
 use constant WAIT_FLUSH => 0;
 use constant WAIT_SEARCHER => 0;
 
+##############################################################################
+sub new {
+  my ($class, $session) = @_;
+
+  my $this = $class->SUPER::new($session);
+
+  $this->{url} = 
+    $Foswiki::cfg{SolrPlugin}{UpdateUrl} || $Foswiki::cfg{SolrPlugin}{Url};
+
+  throw Error::Simple("no solr url defined") unless defined $this->{url};
+
+  # Compared to the Search constructor there's no autostarting here
+  # to prevent any indexer to accidentally create a solrindex lock and further
+  # java inheriting it. So we simply test for connectivity and barf if that fails.
+  $this->connect();
+
+  unless ($this->{solr}) {
+    $this->log("ERROR: can't conect solr daemon");
+  }
+
+  return $this;
+}
+
 ################################################################################
 sub finish {
   my $this = shift;
@@ -318,13 +341,15 @@ sub indexTopic {
   my $url = Foswiki::Func::getViewUrl($web, $topic);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-  my $language = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || "en"; # SMELL: standardize
+  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
+  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
+  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
 
   $doc->add_fields(
     # common fields
     id => "$web.$topic",
     collection => $collection,
-    language => $language,
+    language => ($prefsLanguage || $siteLanguage),
     url => $url,
     topic => $topic,
     web => $web,
@@ -443,7 +468,7 @@ sub indexTopic {
       my $value = $pref->{value};
       $doc->add_fields(
         'preference_'.$name.'_t' => $value,
-        'preference' => $value
+        'preference' => $name,
       );
     }
   }
@@ -628,14 +653,16 @@ sub indexAttachment {
     filename=>$name);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-  my $language = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || "en"; # SMELL: standardize; what about attachment metadata to specify locale
+  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
+  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
+  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
       # common fields
       id => $id,
       collection => $collection,
-      language => $language,
+      language => ($prefsLanguage || $siteLanguage),
       url => $url,
       web => $web,
       topic => $topic,

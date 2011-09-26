@@ -241,7 +241,15 @@ You might also override the !WebSearch of an individual web using a rule along t
 
 ---+++ Faceted search interface
 
-%RED%todo%ENDCOLOR%
+<a href="%ATTACHURLPATH%/SolrPluginSnap1.png" class="foswikiImage">
+  <img src="%ATTACHURLPATH%/SolrPluginSnap1.png" width="300" />
+</a>
+
+<a href="%ATTACHURLPATH%/SolrPluginSnap2.png" class="foswikiImage">
+  <img src="%ATTACHURLPATH%/SolrPluginSnap2.png" width="300" />
+</a>
+
+%RED%Todo: explain usage%ENDCOLOR%
 
 ---+++ Macros
 
@@ -287,7 +295,7 @@ for more robustness.
 | id | a search can be cached optionally for the time of the current request, for example using id="solr1". further calls to %SOLRFORMAT can make use of the cached solr response to render it independent from the location of the %SOLRSEARCH call on the wiki page | |
 | search | query string: depending on the search type this can either be a free-form text (type=dismax), a valid lucene query (type=standard) or a combination of both (edismax) | <nop>*:* |
 | type | dismax/edismax/standard: query type | standard |
-| fields | list of fields to be returned in the result; by default all fields in solr documents are returned; communication between foswiki and the solr search can be optimized by specifying only those fields that you are interested in while rendering the response | *, score |
+| fields | list of fields to be returned in the result; by default all fields in solr documents are returned; communication between Foswiki and the solr search can be optimized by specifying only those fields that you are interested in while rendering the response | *, score |
 | *Flags:* |||
 | jump | on/off: jump to the topic specified explicitly in the seach string  | on |
 | lucky | on/off: jump to the first result found | off |
@@ -303,11 +311,15 @@ for more robustness.
 | extrafilter | additional lucene filter query (see %SYSTEMWEB%.SolrSearchBaseTemplate for the difference in =filter= and =extrafilter= | |
 | reverse | on/off - reverts sorting if switched on; note: this overrides sorting order specified in =sort= | off |
 | sort | sorting expression; examples: =score desc=, =date desc=, =createdate=, =topic_sort= | |
+| *Dismax Parameter: |||
+| boostquery | a raw query string (in the solr query syntax) that will be included with the user's query to influence the score. example: =type:topic^1000= will boost results of type topic | see solrconfig.xml and %System.SolrSearchBaseTemplate |
+| queryfields | list of fields and their boosts giving each field a significance when a term was found in them. the format supported is fieldOne^2.3 fieldTwo fieldThree^0.4, which indicates that fieldOne has a boost of 2.3, fieldTwo has the default boost, and fieldThree has a boost of 0.4 ... this indicates that matches in fieldOne are much more significant than matches in fieldTwo, which are more significant than matches in fieldThree |  see solrconfig.xml and %System.SolrSearchBaseTemplate |
+| phrasefields | list of fields and their boosts similar to =queryfields=. this parameter may contain fields and boosts that _pharses_ (specified in quotes) are matched against. boosting those fields higher than their counterpart in =queryfields= allows you to prefer phrase matches over separate word matches | see solrconfig.xml and %System.SolrSearchBaseTemplate |
 | *Faceting:* |||
 | facets | list of facets to be rendered during search; each facet can be a =title=name= pair specifying the facet name and the title label used to display it in the result; example: %BR% =%MAKETEXT<nop>{"Webs"}%=web, %MAKETEXT<nop>{"Applications"}%=field_TopicType_lst= | |
 | facetquery | query to be used for a facet query | |
 | facetoffset | used to page through a list of facets being returned by a search | |
-| facetlimit | maximum number of values to be displayed per facet; this is a list of pairs =name=integer= specifying a per-facet limit; example: =50, tag=100, contributor=10, category=10= will constraint the global limit of facet values to be returned to 50, tags to 100, list the top 10 contributors in the hit set as well as the 10 most used categories |
+| facetlimit | maximum number of values to be displayed per facet; this is a list of pairs =name=integer= specifying a per-facet limit; example: =50, tag=100, contributor=10, category=10= will constraint the global limit of facet values to be returned to 50, tags to 100, list the top 10 contributors in the hit set as well as the 10 most used categories | 100 |
 | facetmincount | minimum frequency of a facet to be included in the result | 1 | 
 | facetprefix | prefix string of a facet to be included | |
 | facetdatestart | part of a date facet describing the start of a time interval | NOW/DAY-7DAYS | 
@@ -334,6 +346,10 @@ for more robustness.
 | footer_&lt;facet> | format string appended to facet results | |
 | include_&lt;facet> | regular expression facet values must match to be displayed | |
 | exclude_&lt;facet> | regular expression facet values must _not_ match to be displayed | |
+
+<!--
+| morelikethis | switch on/off more-like-this results per document found | off |
+-->
 
 ---++++ SOLRFORMAT
 
@@ -434,6 +450,202 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 
 ---++++ registerIndexAttachmentHandler()
 
+---++ Solr indexing schema
+
+!SolrPlugin comes with a custom schema to index general Foswiki data as defined
+in the =&lt;solr-home-dir>conf/schema.xml= file. It offers support for generic
+!DataForm values, so adding any new !DataForm definition will allow to use
+those formfields for faceting directly without changing configurations or having to reindex 
+the content. 
+
+The process of indexing content is configured on the Foswiki side which will crawl all webs, topics
+and their attachments thus creating lucene documents which are then sent over to the solr server.
+A lucene document is made up of fields of a certain type which defines the way the document should be processed
+by the solr server. This is configured in the =schema.xml= file.
+
+While the schema is able to cover all Foswiki related data it is still kept generic enough to be used for non-wiki
+content as well. Different kinds of content are distinguished using the =collection= field (see below).
+
+---+++ Field types
+
+This is the list of the most common field types used in the default schema.
+See the =schema.xml= for more exotic field types like =point= and =location=
+useful for spacial search.
+
+| *Type* | *Description* |
+| string | not analyzed, but indexed/stored verbatim |
+| boolean | boolean values (true, false) |
+| binary | the data should be sent/retrieved in as Base64 encoded strings |
+| int, float, long, double | default numeric field types. for faster range queries, consider the tint/tfloat/tlong/tdouble types |
+| date | the format for this date field is of the form 1995-12-31T23:59:59Z, \
+         and is a more restricted form of the canonical representation of \
+         [[http://www.w3.org/TR/xmlschema-2/#dateTime][dateTime]].  The trailing \
+         "Z" designates UTC time and is mandatory.  Optional fractional seconds \
+         are allowed: 1995-12-31T23:59:59.999Z All other components are \
+         mandatory. Note: for faster range queries, consider the tdate type |
+| text_ws | a text field that only splits on whitespace for exact matching of words |
+| text | a general text field that has reasonable, generic cross-language \
+         defaults: it tokenizes with !StandardTokenizer, removes stop words from \
+         case-insensitive "stopwords.txt", and down cases.  At query time only, it also \
+         applies synonyms.|
+| text_generic | same as =text= but also splits words on case change while generating word parts. \
+         a general unstemmed text field - good if one does not know the language of the field. \
+         this field type is usful when searching for parts of a !WikiWord |
+| text_substring | same as =text_generic= but with substring decomposition |
+| text_spell | generic text analysis for spell checking |
+| text_sort | this is a text field suitable for sorting alphabetically |
+| text_rev | a general unstemmed text field that indexes tokens normally and also \
+         reversed, to enable more efficient leading wildcard queries. |
+| type | a text field used to analyse different content type; Type mappings are defined in =typemaping.txt=; for example, that's where all image file extension are mapped to "image", same for "video" |
+
+---+++ Fields
+
+| *Name* | *Type* | *Multivalued* | *Stored* | *Description* |
+| timestamp | tdate | | stored | time when the document was added to the index |
+| spell | text_spell | multivalued | | used for spellchecking |
+| id | string | | stored | unique identifier for each document; this is the _external_ id usable in applications; there's an internal solr document id not related to this field |
+| collection | string | | stored | identifies a set of documents comming from the same content collection; by default all content stored in Foswiki (topics and attachments) is gathered in the =wiki= collection set in =Foswiki::cfg{SolrPlugin}{DefaultCollection}= |
+| language | string | | stored | language of the current document; this is derived from  =Foswiki::cfg{Site}{Locale}= but may be overwritten using the =CONTENT_LANGUAGE= preference |
+| url | string | | stored | url used to  access the document being indexed |
+| type | type | | stored | holds the type facet of the document; this is "image" for all kinds of images, "video" for all kinds of videos, "topic" for Foswiki topics and the verbatim file extension for everything else; note: plugins like Foswiki:Extensions/MetaCommentPlugin might use specific types as well (like "comment" in this case) |
+| web | string | | stored | name of the web this document is located in |
+| topic | string | | stored | name of the topic |
+| webtopic | string | | stored | concatenation of the web and topic part |
+| access_granted | string | multivalued | | this field controls access of users to this topic or attachment in the search index; every query is augmented with an ACL check against this field; only users listed in this field are allowed view rights; special value is "all" when there are no view restrictions |
+| title | string | | stored | title of a document; a topic title is read from a =TopicTitle= formfield, a =TOPICTITLE= preference variable or defaults to the =topic= name itself; for attachments this is the filename with the extension stripped off |
+| summary | text_generic | | stored | this is a plainified summary of the topic text |
+| author | string | | stored | the name of the user that changed the document most recently |
+| contributor | string | multivalued | stored | list of users that contributed to this topic at some point in time |
+| date | tdate | | stored | time the the document was changed last |
+| version | float | | | current version of the topic |
+| text | text_generic | | | document text |
+| createauthor | string | | stored | author of the initial version of this document |
+| createdate | tdate | | stored | date when the initial version of this document was created |
+| catchall | text_generic | multivalued | stored | copy-field that gathers content from (allmost) all fields; this is the default search field for the "standard" query parser; note that fields to be queried can be configured per request using the "dismax" handler |
+| substrings | text_substring | multivalued | | holds substring analysis of the most important search fields |
+| phonetic | phonetic | multivalued | | holds the phonetic analysis of the most important search fields |
+| state | string | | | used by comments or any other application that tracks specific states of a document, such as "new", "unapproved", "approved", "draft", "unpublished", "published", ... |
+| parent | string | | stored | parent topic of the current topic |
+| form | string | | stored | name of the form attached to the current topic |
+| preference | string | multivalued | stored | this field catches all topic preferences. each preference is captured in a dynamic field as well (see dynamic fields below) |
+| attachment | string | multivalued | stored | list of all attachment names of this topic |
+| outgoing | string | multivalued | stored | list of all outgoing links; this information is used to detect backlinks |
+| category | string | multivalued | stored | list of categories this document is in; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; it will populate it with the list of all categories up to !TopCategory; content of this field is copied to =category_search= as well (see generic fields below) |
+| tag | string | multivalued | stored | list of tags assigned to this document; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; content of this field is copied to =category_search= as well (see generic fields below) |
+| name | string | | stored | filename of an attachment |
+| comment | text_generic | | stored | comment field of an attachment | 
+| size | tint | | stored | size of an attachment in bytes |
+
+---+++ Dynamic fields
+
+Dynamic fields are generated based on the content properties of the document to
+be indexed. Fields are specified using some kind of wildcard in =schema.xml=.
+When a document is indexed, the wildcard will be expanded to create a proper
+field name. Dynamic fields allow to apply specific ways of analyzing fields
+based on their name, as well as cover fields that aren't known in advance, like
+the name of all formfields of a !DataForm that ever could be invented.
+
+When !SolrPlugin is about to index a !DataForm attached to a topic, it tries to
+guess the data type of each formfield. Normally, Foswiki does not specify any
+type information within a !DataForm definition. Exceptions are (1) date: these
+are mapped to a *_dt field and (2) checkbox, select, radio, textboxlist: these
+are potentially multi-value fields and are thus indexed in a *_lst field.
+
+Every other formfield is stored into an *_s field as well as into a *_search field.
+The former captures the exact content while the latter analyses the text more thoroughly
+optimized for fuzzy searching.
+
+!DataForm formfields are mapped to lucene document fields by prepending the =field_*=
+prefix to prevent name clashes with other dynamic fields generated on the fly.
+So for example a formfield =ProjectManager= will be stored in =field_ProjectManager_s= 
+and =field_ProjectManager_search=. Likewise a select+multi formfield =ProjectMembers=
+will be stored in =field_ProjectMembers_lst= as it is a multivalued field.
+
+If a formfield name already comes with one of the below suffixes (_i, _l, _f, _dt, etc)
+then this suffix will be used instead of any heuristics trying to derive the best 
+field type for the lucene field. That way !DataForm fields although untyped by Foswiki
+can be indexed type-specific nevertheless.
+
+Similarly topic preferences are indexed using a =preference_*= prefix.
+
+
+| *Name* | *Type* | *Multivalued* | *Stored* | *Description* |
+| *_i | tint | | stored | fields with a _i suffix are indexed as an integer number |
+| *_l | tlong | | stored | fields with a _l suffix are indexed as a long integer |
+| *_f | tfloat | | stored | fields with a _f suffix are indexed as a float |
+| *_d | tdouble | | stored | fields with a _f suffix are indexed as a double precision float |
+| *_b | boolean | | stored | true, false |
+| *_s | string | | stored | dynamic field for unanalyzed text |
+| *_t | text_generic | | stored | generic text |
+| *_dt | tdate | | stored | a dateTime value |
+| *_lst | string | multivalued | stored | this field is used for any multi-valued formfield in !DataForms like, select, radio, checkbox, textboxlist |
+| preference_* | string | | stored | preference values such as =preference_NAMEOFPREFERENCE_t= |
+| *_search | text_generic | | stored | generic text, optimized for searching |
+| *_sort | text_sort | | stored | text optimized for sorting alphabetically |
+
+---+++ Copy fields
+
+Finally, after having defined all field type there are some fields that are created by copying some
+source field to a destination field using the =copyField= feature of solr. So while most of a lucene document
+to be indexed is created by the crawler and indexer explicitly, some more are created automatically to facilitate
+specific search applications. The destination fields are then analysed using the dynamic field definitions as given above.
+
+| *Source* | *Destination* | 
+| web | web_sort | 
+| topic | topic_sort |
+| title | title_sort |
+| category | category_search |
+| tag | tag_search |
+| title | title_search |
+| topic | topic_search |
+| web | web_search |
+| webtopic | webtopic_search |
+| attachment | catchall | 
+| category | catchall |
+| comment | catchall | 
+| field_* | catchall |
+| form | catchall |
+| name | catchall |
+| tag | catchall |
+| text | catchall |
+| title | catchall |
+| topic | catchall |
+| type | catchall |
+| state | catchall |
+| attachment | substrings |
+| category | substrings |
+| comment | substrings |
+| contributor | substrings |
+| field_* | substrings |
+| form | substrings |
+| name | substrings |
+| tag | substrings |
+| text | substrings |
+| title | substrings |
+| topic | substrings |
+| type | substrings |
+| attachment | phonetics |
+| category | phonetics |
+| comment | phonetics |
+| contributor | phonetics |
+| field_* | phonetics |
+| form | phonetics |
+| name | phonetics |
+| tag | phonetics |
+| text | phonetics |
+| title | phonetics |
+| topic | phonetics |
+| type | phonetics |
+| attachment | spell |
+| comment | spell |
+| field_* | spell |
+| form | spell |
+| name | spell |
+| text | spell |
+| title | spell |
+| topic | spell |
+| web | spell |
+
 ---++ Templates
 
 ---+++ Structure of !SolrSearchBaseTemplate
@@ -442,16 +654,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 
 ---+++ Creating custom search interfaces
 
----++ Solr indexing schema
 
----++ Screenshots
-<a href="%ATTACHURLPATH%/SolrPluginSnap1.png" class="foswikiImage">
-  <img src="%ATTACHURLPATH%/SolrPluginSnap1.png" width="300" />
-</a>
-
-<a href="%ATTACHURLPATH%/SolrPluginSnap2.png" class="foswikiImage">
-  <img src="%ATTACHURLPATH%/SolrPluginSnap2.png" width="300" />
-</a>
 
 ---++ Plugin Info
 <!--
@@ -465,6 +668,11 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  26 Sep 2011: | improved default boosting in dismax to prefer topic hits a lot stronger than attachments; \
+                  improved default cache settings for better default performace; \
+                  added support to distribute updates and search in a master-slave setup; \
+                  added =boostquery=, =queryfields=, =phrasefields= parameter to customize boosting and sorting; \
+                  improved default schema while documenting it |
 |  21 Sep 2011: | upgrading to solr-3.4.0; \
                   fixed utf8 handling; \
                   added jump and i-feel-lucky options; \

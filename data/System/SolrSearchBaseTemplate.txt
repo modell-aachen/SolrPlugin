@@ -28,6 +28,20 @@
 %TMPL:DEF{"solr::defaultdisplay"}%list%TMPL:END%
 %TMPL:DEF{"solr::defaultautosubmit"}%on%TMPL:END%
 %TMPL:DEF{"solr::defaultinfinitescroll"}%on%TMPL:END%
+%TMPL:DEF{"solr::boostquery"}%type:topic^200%TMPL:END%
+%TMPL:DEF{"solr::queryfields"}%
+  webtopic_search^8.0 
+  title_search^3.0
+  category_search
+  tag_search
+  catchall
+  substrings^0.5
+%TMPL:END%
+%TMPL:DEF{"solr::phrasefields"}%
+  webtopic_search^8.0 
+  title_search^3.0
+  substrings^0.5
+%TMPL:END%
 %TMPL:DEF{"solr::defaultserialpageropts"}%prevText:'%MAKETEXT{"prev"}%', nextText:'%MAKETEXT{"next"}%'%TMPL:END%
 %TMPL:DEF{"solr::incontribs"}%%TMPL:P{"solr::input::checkboxes::inmycontribs"}%%TMPL:END%
 %TMPL:DEF{"solr::extrafilter"}%%IF{
@@ -159,6 +173,9 @@ jQuery(function($) {
   display="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%"
   origtopic="%URLPARAM{"origtopic" default="%BASEWEB%.%BASETOPIC%"}%"
   type="%URLPARAM{"type" default="%TMPL:P{"solr::defaultquerytype"}%"}%"
+  boostquery="%TMPL:P{"solr::boostquery"}%"
+  queryfields="%TMPL:P{"solr::queryfields"}%"
+  phrasefields="%TMPL:P{"solr::phrasefields"}%"
   start="%URLPARAM{"start" default="0"}%"
   rows="%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%"
   sort="%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%"

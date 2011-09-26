@@ -26,6 +26,30 @@ use Error qw(:try);
 use constant DEBUG => 0; # toggle me
 
 ##############################################################################
+sub new {
+  my ($class, $session) = @_;
+
+  my $this = $class->SUPER::new($session);
+
+  $this->{url} = 
+    $Foswiki::cfg{SolrPlugin}{SearchUrl} || $Foswiki::cfg{SolrPlugin}{Url};
+
+  throw Error::Simple("no solr url defined") unless defined $this->{url};
+
+  if (!$this->connect() && $Foswiki::cfg{SolrPlugin}{AutoStartDaemon}) {
+    $this->startDaemon();
+    $this->connect();
+  }
+
+  unless ($this->{solr}) {
+    $this->log("ERROR: can't conect solr daemon");
+  }
+
+  return $this;
+}
+
+
+##############################################################################
 sub handleSOLRSEARCH {
   my ($this, $params, $theWeb, $theTopic) = @_;
 
@@ -151,6 +175,11 @@ HERE
     $hilites = $this->getHighlights($response);
   }
 
+  my $moreLikeThis;
+  if ($theFormat =~ /\$morelikethis/ || $theHeader =~ /\$morelikethis/ || $theFooter =~ /\$morelikethis/) {
+    $moreLikeThis = $this->getMoreLikeThis($response);
+  }
+
   my $spellcheck = '';
   if ($theFormat =~ /\$spellcheck/ || $theHeader =~ /\$spellcheck/ || $theFooter =~ /\$spellcheck/) {
     my $correction = $this->getCorrection($response);
@@ -186,8 +215,9 @@ HERE
 
       foreach my $field ($doc->fields) {
         my $name = $field->{name};
-        my $value = $field->{value};
+        next unless $line =~ /\$$name/g;
 
+        my $value = $field->{value};
 	$name = $this->fromUtf8($name);
       	$value = $this->fromUtf8($value);
 
@@ -196,8 +226,6 @@ HERE
         $web = $value if $name eq 'web';
         $topic = $value if $name eq 'topic';
         $summary = $value if $name eq 'summary';
-
-        next unless $line =~ /\$$name/g;
 
         $value = sprintf('%.02f', $value)
           if $name eq 'score';
@@ -216,6 +244,14 @@ HERE
 
       my $hilite = '';
       $hilite = ($hilites->{$id} || $summary) if $id && $hilites;
+
+      my $mlt = '';
+      $mlt = $moreLikeThis->{$id} if $id && $moreLikeThis;
+      if ($mlt) {
+        # TODO: this needs serious improvements
+        #$line =~ s/\$morelikethis/$mlt->{id}/g;
+      }
+
       my $icon = $this->mapToIconFileName($type);
       my $itemFormat = 'attachment';
       $itemFormat = 'image' if $type =~ /^(gif|jpe?g|png|bmp)$/i;
@@ -405,6 +441,7 @@ HERE
   $result =~ s/\$to/$to/g;
   $result =~ s/\$name//g; # cleanup
   $result =~ s/\$rows/0/g; # cleanup
+  $result =~ s/\$morelikethis//g; # cleanup
   
   if ($params->{fields}) {
     my $cleanupPattern = '('.join('|', split(/\s*,\s*/, $params->{fields})).')';
@@ -859,12 +896,16 @@ sub doSearch {
   my $theQueryType = $params->{type} || 'standard';
   my $theHighlight = Foswiki::Func::isTrue($params->{highlight});
   my $theSpellcheck = Foswiki::Func::isTrue($params->{spellcheck});
+  my $theMoreLikeThis = Foswiki::Func::isTrue($params->{morelikethis});
   my $theWeb = $params->{web};
   my $theContributor = $params->{contributor};
   my $theFilter = $params->{filter} || '';
   my $theExtraFilter = $params->{extrafilter};
   my $theDisjunktiveFacets = $params->{disjunctivefacets} || '';
   my $theCombinedFacets = $params->{combinedfacets} || '';
+  my $theBoostQuery = $params->{boostquery};
+  my $theQueryFields = $params->{queryfields};
+  my $thePhraseFields = $params->{phrasefields};
 
   my %disjunctiveFacets = map {$_ => 1} split(/\s*,\s*/, $theDisjunktiveFacets);
   my %combinedFacets = map {$_ => 1} split(/\s*,\s*/, $theCombinedFacets);
@@ -907,19 +948,34 @@ sub doSearch {
   };
 
   $solrParams->{tr} = $theXslt if $theXslt;
+  $solrParams->{bq} = $theBoostQuery if $theBoostQuery;
+  $solrParams->{qf} = $theQueryFields if $theQueryFields;
+  $solrParams->{pf} = $thePhraseFields if $thePhraseFields;
 
   if ($theHighlight && $theRows > 0) {
     $solrParams->{"hl"} = 'true';
     $solrParams->{"hl.fl"} = 'catchall';
-    $solrParams->{"hl.requireFieldMatch"} = 'true';
-    $solrParams->{"hl.usePraseHighlighter"} = 'true';
-    $solrParams->{"hl.highligtMultiTerm"} = 'true';
-    $solrParams->{"hl.mergeContignuous"} = 'true';
-    $solrParams->{"hl.fragsize"} = '150';
     $solrParams->{"hl.snippets"} = '2';
+    $solrParams->{"hl.fragsize"} = '300';
+    $solrParams->{"hl.mergeContignuous"} = 'true';
+    $solrParams->{"hl.usePhraseHighlighter"} = 'true';
+    $solrParams->{"hl.highlightMultiTerm"} = 'true';
     $solrParams->{"hl.alternateField"} = 'summary';
     $solrParams->{"hl.maxAlternateFieldLength"} = '300';
-    # TODO: some more hl params?
+    $solrParams->{"hl.useFastVectorHighlighter"} = 'true';
+#    $solrParams->{"hl.requireFieldMatch"} = 'true';
+#    $solrParams->{"hl.fragmenter"} = 'gap';
+#    $solrParams->{"hl.fragmentsBuilder"} = 'colored';
+  }
+
+  if ($theMoreLikeThis) {
+    # TODO: add params to configure this 
+    $solrParams->{"mlt"} = 'true';
+    $solrParams->{"mlt.mintf"} = '1';
+    $solrParams->{"mlt.fl"} = 'web,topic,title,type,category,tag';
+    $solrParams->{"mlt.qf"} = 'web^100 category^10 tag^10 type^200';
+    $solrParams->{"mlt.boost"} = 'true';
+    $solrParams->{"mlt.maxqt"} = '100';
   }
 
   if ($theSpellcheck) {
@@ -1285,6 +1341,22 @@ sub getHighlights {
 
   return \%hilites;
 }
+
+##############################################################################
+sub getMoreLikeThis {
+  my ($this, $response) = @_;
+
+  my $moreLikeThis = [];
+
+  try {
+    $moreLikeThis = $response->content->{moreLikeThis};
+  } catch Error::Simple with {
+    #ignore
+  };
+
+  return $moreLikeThis;
+}
+
 
 ##############################################################################
 sub getCorrection {

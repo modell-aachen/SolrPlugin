@@ -47,6 +47,19 @@ $Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexC
 # Url where to find the solr server
 $Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr';
 
+# **STRING** 
+# Url of the server to send updates to. Note, you will only need this setting
+# in a solr setup with master-slave replication where all updates are sent to
+# a single master which in turn replicates them to the clients. This setting
+# will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{UpdateUrl} = '';
+
+# **STRING** 
+# Url of a slave server to get search results from.  Note, you will only
+# need this server in a solr setup with master-slave replication.  This
+# setting will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{SearchUrl} = '';
+
 # **BOOLEAN**
 # Enable this flag to automatically start a solr instance coming with this plugin
 $Foswiki::cfg{SolrPlugin}{AutoStartDaemon} = 0;

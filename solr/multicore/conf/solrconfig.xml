@@ -95,7 +95,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>./multicore/${solr.core.name}/data</dataDir>
+  <!-- dataDir>/var/lib/solr/multicore/${solr.core.name}/data</dataDir -->
 
 
   <!-- The DirectoryFactory to use for indexes.
@@ -427,19 +427,19 @@
                and old cache.  
       -->
     <filterCache class="solr.FastLRUCache"
-                 size="1024"
+                 size="512"
                  initialSize="512"
-                 autowarmCount="0"/>
+                 autowarmCount="256"/>
 
     <!-- Query Result Cache
          
          Caches results of searches - ordered lists of document ids
          (DocList) based on a query, a sort, and the range of documents requested.  
       -->
-    <queryResultCache class="solr.LRUCache"
-                     size="1024"
+    <queryResultCache class="solr.FastLRUCache"
+                     size="512"
                      initialSize="512"
-                     autowarmCount="0"/>
+                     autowarmCount="256"/>
    
     <!-- Document Cache
 
@@ -447,10 +447,10 @@
          document).  Since Lucene internal document ids are transient,
          this cache will not be autowarmed.  
       -->
-    <documentCache class="solr.LRUCache"
-                   size="1024"
-                   initialSize="512"
-                   autowarmCount="0"/>
+    <documentCache class="solr.FastLRUCache"
+                   size="10240"
+                   initialSize="10240"
+                   autowarmCount="5120"/>
     
     <!-- Field Value Cache
          
@@ -521,7 +521,7 @@
         then documents 0 through 49 will be collected and cached.  Any further
         requests in that range can be satisfied via the cache.  
      -->
-   <queryResultWindowSize>20</queryResultWindowSize>
+   <queryResultWindowSize>100</queryResultWindowSize>
 
    <!-- Maximum number of documents to cache for any entry in the
         queryResultCache. 
@@ -558,7 +558,7 @@
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
         <lst>
-          <str name="q">foswiki rocks</str>
+          <str name="q">foswiki</str>
         </lst>
       </arr>
     </listener>
@@ -732,15 +732,13 @@
       <float name="tie">0.01</float>
       <str name="qf"> 
         webtopic_search^8.0 
-        web_search^4.0 
-        topic_search^4.0 
         title_search^3.0 
         category_search^2.0 
         tag_search^2.0 
         catchall
         substrings^0.5
         <!-- enable this if you like to add sound-like search hits 
-             phonetic^0.01 
+             phonetic^0.0001 
         -->
       </str>
       <!-- boost more recent documents -->
@@ -751,15 +749,11 @@
       <str name="bq">type:topic^16</str>
       <str name="pf">
         webtopic_search^8.0 
-        web_search^4.0 
-        topic_search^4.0 
         title_search^3.0 
         category_search^2.0 
-        tag_search^2.0
-        catchall
         substrings^0.5
         <!-- enable this if you like to add sound-like search hits 
-             phonetic^0.01 
+             phonetic^0.0001 
         -->
       </str>
       <int name="ps">1</int>
@@ -794,16 +788,14 @@
         tag_search^2.0 
         catchall
         substrings^0.5
-        <!-- enable this if you like to add sound-like search hits 
-             phonetic^0.01 
-        -->
+        phonetic^0.0001 
       </str>
       <!-- boost more recent documents -->
       <str name="bf">
         recip(ms(NOW,date),3.16e-11,1,1)
       </str>
       <!-- boost topics in favor of attachments -->
-      <str name="bq">type:topic^16</str>
+      <str name="bq">type:topic^200</str>
       <str name="pf">
         webtopic_search^8.0 
         web_search^4.0 
@@ -813,9 +805,7 @@
         tag_search^2.0
         catchall
         substrings^0.5
-        <!-- enable this if you like to add sound-like search hits 
-             phonetic^0.01 
-        -->
+        phonetic^0.0001 
       </str>
       <int name="ps">1</int>
       <int name="qs">1</int>
