@@ -1,0 +1,400 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/russian/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - - The format was modified to the Solr stopwords format
+
+# a russian stop word list. comments begin with '#'. each stop
+# word is at the start of a line.
+
+# this is a ranked list (commonest to rarest) of stopwords derived from
+# a large text sample.
+
+# letter `ё' is translated to `е'.
+
+# and
+и
+# in/into
+в
+# alternative form
+во
+# not
+не
+# what/that
+что
+# he
+он
+# on/onto
+на
+# i
+я
+# from
+с
+# alternative form
+со
+# how
+как
+# milder form of `no' (but)
+а
+# conjunction and form of `that'
+то
+# all
+все
+# she
+она
+# so, thus
+так
+# him
+его
+# but
+но
+# yes/and
+да
+# thou
+ты
+# towards, by
+к
+# around, chez
+у
+# intensifier particle
+же
+# you
+вы
+# beyond, behind
+за
+# conditional/subj. particle
+бы
+# up to, along
+по
+# only
+только
+# her
+ее
+# to me
+мне
+# it was
+было
+# here is/are, particle
+вот
+# away from
+от
+# me
+меня
+# still, yet, more
+еще
+# no, there isnt/arent
+нет
+# about
+о
+# out of
+из
+# to him
+ему
+# now
+теперь
+# when
+когда
+# even
+даже
+# so, well
+ну
+# suddenly
+вдруг
+# interrogative particle
+ли
+# if
+если
+# already, but homonym of `narrower'
+уже
+# or
+или
+# neither
+ни
+# to be
+быть
+# he was
+был
+# prepositional form of его
+него
+# up to
+до
+# you accusative
+вас
+# indef. suffix preceded by hyphen
+нибудь
+# again
+опять
+# already, but homonym of `adder'
+уж
+# to you
+вам
+# he said
+сказал
+# particle `after all'
+ведь
+# there
+там
+# then
+потом
+# oneself
+себя
+# nothing
+ничего
+# to her
+ей
+# usually with `быть' as `maybe'
+может
+# they
+они
+# here
+тут
+# where
+где
+# there is/are
+есть
+# got to, must
+надо
+# prepositional form of  ей
+ней
+# for
+для
+# we
+мы
+# thee
+тебя
+# them, their
+их
+# than
+чем
+# she was
+была
+# self
+сам
+# in order to
+чтоб
+# without
+без
+# as if
+будто
+# man, person, one
+человек
+# genitive form of `what'
+чего
+# once
+раз
+# also
+тоже
+# to oneself
+себе
+# beneath
+под
+# life
+жизнь
+# will be
+будет
+# short form of intensifer particle `же'
+ж
+# then
+тогда
+# who
+кто
+# this
+этот
+# was saying
+говорил
+# genitive form of `that'
+того
+# for that reason
+потому
+# genitive form of `this'
+этого
+# which
+какой
+# altogether
+совсем
+# prepositional form of `его', `они'
+ним
+# here
+здесь
+# prepositional form of `этот'
+этом
+# one
+один
+# almost
+почти
+# my
+мой
+# instrumental/dative plural of `тот', `то'
+тем
+# full form of `in order that'
+чтобы
+# her (acc.)
+нее
+# it seems
+кажется
+# now
+сейчас
+# they were
+были
+# where to
+куда
+# why
+зачем
+# to say
+сказать
+# all (acc., gen. preposn. plural)
+всех
+# never
+никогда
+# today
+сегодня
+# possible, one can
+можно
+# by
+при
+# finally
+наконец
+# two
+два
+# alternative form of `о', about
+об
+# another
+другой
+# even
+хоть
+# after
+после
+# above
+над
+# more
+больше
+# that one (masc.)
+тот
+# across, in
+через
+# these
+эти
+# us
+нас
+# about
+про
+# in all, only, of all
+всего
+# prepositional form of `они' (they)
+них
+# which, feminine
+какая
+# lots
+много
+# interrogative particle
+разве
+# she said
+сказала
+# three
+три
+# this, acc. fem. sing.
+эту
+# my, feminine
+моя
+# moreover, besides
+впрочем
+# good
+хорошо
+# ones own, acc. fem. sing.
+свою
+# oblique form of `эта', fem. `this'
+этой
+# in front of
+перед
+# sometimes
+иногда
+# better
+лучше
+# a little
+чуть
+# preposn. form of `that one'
+том
+# one must not
+нельзя
+# such a one
+такой
+# to them
+им
+# more
+более
+# always
+всегда
+# of course
+конечно
+# acc. fem. sing of `all'
+всю
+# between
+между
+
+
+# b: some paradigms
+#
+# personal pronouns
+#
+# я  меня  мне  мной  [мною]
+# ты  тебя  тебе  тобой  [тобою]
+# он  его  ему  им  [него, нему, ним]
+# она  ее  эи  ею  [нее, нэи, нею]
+# оно  его  ему  им  [него, нему, ним]
+#
+# мы  нас  нам  нами
+# вы  вас  вам  вами
+# они  их  им  ими  [них, ним, ними]
+#
+#   себя  себе  собой   [собою]
+#
+# demonstrative pronouns: этот (this), тот (that)
+#
+# этот  эта  это  эти
+# этого  эты  это  эти
+# этого  этой  этого  этих
+# этому  этой  этому  этим
+# этим  этой  этим  [этою]  этими
+# этом  этой  этом  этих
+#
+# тот  та  то  те
+# того  ту  то  те
+# того  той  того  тех
+# тому  той  тому  тем
+# тем  той  тем  [тою]  теми
+# том  той  том  тех
+#
+# determinative pronouns
+#
+# (a) весь (all)
+#
+# весь  вся  все  все
+# всего  всю  все  все
+# всего  всей  всего  всех
+# всему  всей  всему  всем
+# всем  всей  всем  [всею]  всеми
+# всем  всей  всем  всех
+#
+# (b) сам (himself etc)
+#
+# сам  сама  само  сами
+# самого саму  само  самих
+# самого самой самого  самих
+# самому самой самому  самим
+# самим  самой  самим  [самою]  самими
+# самом самой самом  самих
+#
+# stems of verbs `to be', `to have', `to do' and modal
+#
+# быть  бы  буд  быв  есть  суть
+# име
+# дел
+# мог   мож  мочь
+# уме
+# хоч  хот
+# долж
+# можн
+# нужн
+# нельзя

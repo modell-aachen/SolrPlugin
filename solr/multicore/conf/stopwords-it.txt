@@ -1,0 +1,405 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/italian/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+#  - contractions were removed from the single letter forms section: 
+#    Instead we handle these with an elision filter
+#  - added è (is)
+
+# An Italian stop word list. Comments begin with #. Each stop
+# word is at the start of a line.
+
+#  a (to) before vowel
+ad
+#  a + il
+al
+#  a + lo
+allo
+#  a + i
+ai
+#  a + gli
+agli
+#  a + l'
+all
+#  a + gl'
+agl
+#  a + la
+alla
+#  a + le
+alle
+#  with
+con
+#  con + il
+col
+#  con + i (forms collo, cogli etc are now very rare)
+coi
+#  from
+da
+#  da + il
+dal
+#  da + lo
+dallo
+#  da + i
+dai
+#  da + gli
+dagli
+#  da + l'
+dall
+#  da + gll'
+dagl
+#  da + la
+dalla
+#  da + le
+dalle
+#  of
+di
+#  di + il
+del
+#  di + lo
+dello
+#  di + i
+dei
+#  di + gli
+degli
+#  di + l'
+dell
+#  di + gl'
+degl
+#  di + la
+della
+#  di + le
+delle
+#  in
+in
+#  in + el
+nel
+#  in + lo
+nello
+#  in + i
+nei
+#  in + gli
+negli
+#  in + l'
+nell
+#  in + gl'
+negl
+#  in + la
+nella
+#  in + le
+nelle
+#  on
+su
+#  su + il
+sul
+#  su + lo
+sullo
+#  su + i
+sui
+#  su + gli
+sugli
+#  su + l'
+sull
+#  su + gl'
+sugl
+#  su + la
+sulla
+#  su + le
+sulle
+#  through, by
+per
+#  among
+tra
+#  against
+contro
+#  I
+io
+#  thou
+tu
+#  he
+lui
+#  she
+lei
+#  we
+noi
+#  you
+voi
+#  they
+loro
+#  my
+mio
+mia
+miei
+mie
+#  thy
+tuo
+tua
+tuoi
+tue
+#  his, her
+suo
+sua
+suoi
+sue
+#  our
+nostro
+nostra
+nostri
+nostre
+#  your
+vostro
+vostra
+vostri
+vostre
+#  me
+mi
+#  thee
+ti
+#  us, there
+ci
+#  you, there
+vi
+#  him, the
+lo
+#  her, the
+la
+#  them
+li
+#  them, the
+le
+#  to him, the
+gli
+#  from there etc
+ne
+#  the
+il
+#  a
+un
+#  a
+uno
+#  a
+una
+#  but
+ma
+#  and
+ed
+#  if
+se
+#  why, because
+perché
+#  also
+anche
+#  how
+come
+#  where (as dov')
+dov
+#  where
+dove
+#  who, that
+che
+#  who
+chi
+#  whom
+cui
+#  not
+non
+#  more
+più
+#  who, that
+quale
+#  how much
+quanto
+quanti
+quanta
+quante
+#  that
+quello
+quelli
+quella
+quelle
+#  this
+questo
+questi
+questa
+queste
+#  yes
+si
+#  all
+tutto
+#  all
+tutti
+
+#  single letter forms:
+
+#  at
+a
+#  and              
+e
+# is
+è
+#  the
+i
+#  or
+o
+
+# forms of avere, to have (not including the infinitive):
+ho
+hai
+ha
+abbiamo
+avete
+hanno
+abbia
+abbiate
+abbiano
+avrò
+avrai
+avrà
+avremo
+avrete
+avranno
+avrei
+avresti
+avrebbe
+avremmo
+avreste
+avrebbero
+avevo
+avevi
+aveva
+avevamo
+avevate
+avevano
+ebbi
+avesti
+ebbe
+avemmo
+aveste
+ebbero
+avessi
+avesse
+avessimo
+avessero
+avendo
+avuto
+avuta
+avuti
+avute
+
+# forms of essere, to be (not including the infinitive):
+sono
+sei
+è
+siamo
+siete
+sia
+siate
+siano
+sarò
+sarai
+sarà
+saremo
+sarete
+saranno
+sarei
+saresti
+sarebbe
+saremmo
+sareste
+sarebbero
+ero
+eri
+era
+eravamo
+eravate
+erano
+fui
+fosti
+fu
+fummo
+foste
+furono
+fossi
+fosse
+fossimo
+fossero
+essendo
+
+# forms of fare, to do (not including the infinitive, fa, fat-):
+faccio
+fai
+facciamo
+fanno
+faccia
+facciate
+facciano
+farò
+farai
+farà
+faremo
+farete
+faranno
+farei
+faresti
+farebbe
+faremmo
+fareste
+farebbero
+facevo
+facevi
+faceva
+facevamo
+facevate
+facevano
+feci
+facesti
+fece
+facemmo
+faceste
+fecero
+facessi
+facesse
+facessimo
+facessero
+facendo
+
+# forms of stare, to be (not including the infinitive):
+sto
+stai
+sta
+stiamo
+stanno
+stia
+stiate
+stiano
+starò
+starai
+starà
+staremo
+starete
+staranno
+starei
+staresti
+starebbe
+staremmo
+stareste
+starebbero
+stavo
+stavi
+stava
+stavamo
+stavate
+stavano
+stetti
+stesti
+stette
+stemmo
+steste
+stettero
+stessi
+stesse
+stessimo
+stessero
+stando

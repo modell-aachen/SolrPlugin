@@ -624,18 +624,18 @@ specific search applications. The destination fields are then analysed using the
 | title | substrings |
 | topic | substrings |
 | type | substrings |
-| attachment | phonetics |
-| category | phonetics |
-| comment | phonetics |
-| contributor | phonetics |
-| field_* | phonetics |
-| form | phonetics |
-| name | phonetics |
-| tag | phonetics |
-| text | phonetics |
-| title | phonetics |
-| topic | phonetics |
-| type | phonetics |
+| attachment | phonetic |
+| category | phonetic |
+| comment | phonetic |
+| contributor | phonetic |
+| field_* | phonetic |
+| form | phonetic |
+| name | phonetic |
+| tag | phonetic |
+| text | phonetic |
+| title | phonetic |
+| topic | phonetic |
+| type | phonetic |
 | attachment | spell |
 | comment | spell |
 | field_* | spell |
@@ -668,6 +668,12 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  28 Sep 2011: |  added multilanguage support per document; \
+                   fixed default values in %SOLRSIMILAR; \
+                   speeding up indexing by better caching ACLs; \
+                   implemented mapping facet values to any other label; \
+                   during query time; \
+                   added Language facet to default search interface |
 |  26 Sep 2011: | improved default boosting in dismax to prefer topic hits a lot stronger than attachments; \
                   improved default cache settings for better default performace; \
                   added support to distribute updates and search in a master-slave setup; \

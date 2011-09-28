@@ -50,7 +50,7 @@
   else="-field_TopicType_lst:Category"
 }% %IF{
   "not $USERNAME ingroup 'AdminGroup'"
-  then="-web_search:Applications*"
+  then="-web_search:Applications"
 }%%TMPL:END%
 %TMPL:DEF{"solr::facets"}%
   %MAKETEXT{"Recently changed"}%=facetquery,
@@ -59,12 +59,26 @@
   %MAKETEXT{"Tag"}%=tag,
   %MAKETEXT{"Application"}%=field_TopicType_lst,
   %MAKETEXT{"Collection"}%=collection,
+  %MAKETEXT{"Language"}%=language,
   %MAKETEXT{"Top contributors"}%=contributor,
 %TMPL:END%
 %TMPL:DEF{"solr::extramapping"}%
   %MAKETEXT{"Contributor"}%=contributor,
   %MAKETEXT{"Timespan"}%=date,
-  %MAKETEXT{"Keyword"}%=keyword
+  %MAKETEXT{"Keyword"}%=keyword,
+  %MAKETEXT{"English"}%=en,
+  %MAKETEXT{"German"}%=de,
+  %MAKETEXT{"Chinese/Japanese/Korean"}%=cjk,
+  %MAKETEXT{"Danish"}%=da,
+  %MAKETEXT{"Spanish"}%=es,
+  %MAKETEXT{"Finnish"}%=fi,
+  %MAKETEXT{"French"}%=fr,
+  %MAKETEXT{"Italian"}%=it,
+  %MAKETEXT{"Dutch"}%=nl,
+  %MAKETEXT{"Portuguese"}%=pt,
+  %MAKETEXT{"Russian"}%=ru,
+  %MAKETEXT{"Swedish"}%=se,
+  %MAKETEXT{"Turkish"}%=tr
 %TMPL:END%
 %TMPL:DEF{"solr::facetquery"}%
   %MAKETEXT{"1 hour"}%=date:[NOW-1HOUR TO NOW],
@@ -257,6 +271,16 @@ jQuery(function($) {
     input="checkbox"
     include="%TMPL:P{"solr::facet::include::collection"}%"
     exclude="%TMPL:P{"solr::facet::exclude::collection"}%"
+    extraclass="solrSort"
+    pageropts=""
+  }%
+  %TMPL:P{"solr::facet"
+    id="language"
+    format="$key&nbsp;($count)"
+    value="$id:$key"
+    input="checkbox"
+    include="%TMPL:P{"solr::facet::include::language"}%"
+    exclude="%TMPL:P{"solr::facet::exclude::language"}%"
     extraclass="solrSort"
     pageropts=""
   }%

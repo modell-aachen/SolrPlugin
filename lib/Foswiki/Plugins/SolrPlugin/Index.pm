@@ -35,7 +35,7 @@ use constant VERBOSE => 1; # toggle me
 use constant PROFILE => 0; # toggle me
 #use Time::HiRes (); # enable this too when profiling
 
-use constant COMMIT_THRESHOLD => 100; # commit every 100 topics on a bulk index job
+use constant COMMIT_THRESHOLD => 1000; # commit every 1000 topics on a bulk index job
 use constant WAIT_FLUSH => 0;
 use constant WAIT_SEARCHER => 0;
 
@@ -349,7 +349,6 @@ sub indexTopic {
     # common fields
     id => "$web.$topic",
     collection => $collection,
-    language => ($prefsLanguage || $siteLanguage),
     url => $url,
     topic => $topic,
     web => $web,
@@ -365,6 +364,16 @@ sub indexTopic {
     # topic specific
     parent => $parent,
   );
+
+  # tag and analyze language
+  my $contentLanguage = $this->getContentLanguage();
+  if (defined $contentLanguage) {
+    $doc->add_fields(
+      language => $contentLanguage,
+      'text_'.$contentLanguage => $text,
+    );
+  }
+
 
   # process form
   my $formName = $meta->getFormName();
@@ -543,6 +552,21 @@ sub indexTopic {
 }
 
 ################################################################################
+# returns one of the SupportedLanguages or undef if not found
+sub getContentLanguage {
+  my $this = shift;
+
+  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
+  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
+  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
+
+  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage || $siteLanguage};
+  #print STDERR "contentLanguage=$contentLanguage\n";
+
+  return $contentLanguage;
+}
+
+################################################################################
 sub extractOutgoingLinks {
   my ($this, $web, $topic, $text, $outgoingLinks) = @_;
 
@@ -653,16 +677,12 @@ sub indexAttachment {
     filename=>$name);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
-  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
-  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
       # common fields
       id => $id,
       collection => $collection,
-      language => ($prefsLanguage || $siteLanguage),
       url => $url,
       web => $web,
       topic => $topic,
@@ -678,6 +698,16 @@ sub indexAttachment {
       comment => $comment,
       size => $size,
   );
+
+  # tag and analyze language
+  # SMELL: silently assumes all attachments to a topic are the same langauge
+  my $contentLanguage = $this->getContentLanguage();
+  if (defined $contentLanguage) {
+    $doc->add_fields(
+      language => $contentLanguage,
+      'text_'.$contentLanguage => $attText,
+    );
+  }
 
   # add extra fields, i.e. ACLs
   $doc->add_fields(@$commonFields) if $commonFields;
@@ -1079,35 +1109,57 @@ sub getRevisionInfo {
 }
 
 ################################################################################
+# returns the list of users granted view access, or "all" if all users have got view access
 sub getGrantedUsers {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  # get {knownUsers}
+  # set {knownUsers} and {nrKnownUsers}
   $this->getListOfUsers();
 
   $text ||= '';
 
   my @grantedUsers = ();
 
-  foreach my $wikiName (keys %{$this->{knownUsers}}) {
-    # check web permission
-    my $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName};
-    unless (defined $webViewPermission) {
-      $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName} =
-        Foswiki::Func::checkAccessPermission('VIEW', $wikiName, undef, undef, $web);
+  my $topicHasPerms  = ($text =~ /(ALLOW|DENY)/ || 
+     $meta->get('PREFERENCE', 'ALLOWTOPICVIEW') ||
+     $meta->get('PREFERENCE', 'DENYTOPICVIEW'))?1:0;
+
+  if ($this->{_webViewPermission}{$web}{all} && !$topicHasPerms) {
+
+    # short circuit the rest as we already know all have access
+    push @grantedUsers, 'all';
+
+    #print STDERR "all got access to $web.$topic (found in cache)\n";
+
+  } else {
+    
+    # test each user. smell: no api in foswiki, so we need to do it hard core
+    foreach my $wikiName (keys %{$this->{knownUsers}}) {
+
+      if ($topicHasPerms) {
+        # detailed access check
+        if (Foswiki::Func::checkAccessPermission('VIEW', $wikiName, $text, $topic, $web, $meta)) {
+          push @grantedUsers, $wikiName;
+        }
+      } else {
+
+        # check web permission
+        my $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName};
+
+        unless (defined $webViewPermission) {
+          $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName} =
+            Foswiki::Func::checkAccessPermission('VIEW', $wikiName, undef, undef, $web);
+        }
+
+        push @grantedUsers, $wikiName if $webViewPermission;
+      }
     }
 
-    my $topicHasPerms  = ($text =~ /(ALLOW|DENY)/ || 
-       $meta->get('PREFERENCE', 'ALLOWTOPICVIEW') ||
-       $meta->get('PREFERENCE', 'DENYTOPICVIEW'))?1:0;
-
-    if ($topicHasPerms) {
-      # detailed access check
-      if (Foswiki::Func::checkAccessPermission('VIEW', $wikiName, $text, $topic, $web, $meta)) {
-        push @grantedUsers, $wikiName;
-      }
-    } else {
-      push @grantedUsers, $wikiName if $webViewPermission;
+    # check if this is all users
+    if (scalar(@grantedUsers) == $this->{nrKnownUsers}) {
+      $this->{_webViewPermission}{$web}{all} = 1;
+      @grantedUsers = ( 'all' );
+      #print STDERR "all got access to $web.$topic\n";
     }
   }
 
@@ -1124,14 +1176,8 @@ sub getAclFields {
 
   # permissions
   my @grantedUsers = $this->getGrantedUsers($web, $topic, $meta, $text);
-  #print STDERR "grantedUsers=@grantedUsers\n";
-  if (scalar(@grantedUsers) == $this->{nrKnownUsers}) {
-    push @aclFields, 'access_granted' => 'all';
-
-  } else {
-    foreach my $wikiName (@grantedUsers) {
-      push @aclFields, 'access_granted' => $wikiName;
-    }
+  foreach my $wikiName (@grantedUsers) {
+    push @aclFields, 'access_granted' => $wikiName;
   }
 
   return @aclFields;

@@ -84,12 +84,14 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
    * getFacetValue: creates a FacetValue from the data embeded in a dom element
    */
   $.SolrManager.prototype.getFacetValue = function(elem) {
-    var self = this;
-    var $elem = $(elem);
-    var val = $elem.attr('value');
-    var title = $elem.attr('title') || undefined;
+    var self = this,
+        $elem = $(elem),
+        val = $elem.attr('value'),
+        title = $elem.attr('title') || undefined,
+        match = /^(.*?):(.*)$/.exec(val);
+
     self.log("getFacetValue called, val="+val+" title="+title);
-    var match = /^(.*?):(.*)$/.exec(val);
+
     if (match !== undefined) {
       var facetValue = {};
       facetValue.facet = match[1];
@@ -98,6 +100,51 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
         facetValue.valueTitle = title;
       }
       return facetValue;
+    }
+  };
+
+  /***************************************************************************
+   * applyMapping: replace the label of a facet with its mapping
+   */
+  $.SolrManager.prototype.applyMapping = function(elem) {
+    var self = this,
+        $elem = $(elem),
+        id = $elem.attr("id"),
+        $label, match,
+        title, mappedTitle,
+        regex = /^(.*?)\s+\((\d+)\)$/;
+
+    if ($elem.is("a")) {
+      title = $elem.text();
+      if (match = regex.exec(title)) {
+        mappedTitle = self.getMapping(match[1]);
+        title = mappedTitle+' ('+match[2]+')';
+      } else {
+        mappedTitle = self.getMapping(title);
+        if (mappedTitle !== "undefined") {
+          title = mappedTitle;
+        }
+      }
+      $elem.text(title);
+      return;
+    } 
+    
+    if ($elem.is("input")) {
+      if (typeof(id) !== "undefined") {
+        $label = $("label[for='"+id+"']");
+        if ($label.length) {
+          title = $label.text();
+          match = regex.exec(title);
+          if (match) {
+            mappedTitle = self.getMapping(match[1]);
+            if (typeof(mappedTitle) !== "undefined") {
+              title = mappedTitle+' ('+match[2]+')';
+              $label.text(title);
+            }
+          }
+          return mappedTitle;
+        }
+      }
     }
   };
 
@@ -409,6 +456,9 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       if (fv && fv.valueTitle) {
 	self.addMapping(fv.value, fv.valueTitle);
       }
+
+      /* apply mapping */
+      self.applyMapping(this);
 
       /* update selection */
       if ($this.is(".current, :checked")) {

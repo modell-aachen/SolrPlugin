@@ -111,8 +111,8 @@ sub connect {
 sub log {
   my ($this, $logString, $noNewLine) = @_;
 
-  #print STDERR "$logString".($noNewLine?'':"\n");
-  Foswiki::Func::writeDebug($logString);
+  print STDERR "$logString".($noNewLine?'':"\n");
+  #Foswiki::Func::writeDebug($logString);
 }
 
 ##############################################################################

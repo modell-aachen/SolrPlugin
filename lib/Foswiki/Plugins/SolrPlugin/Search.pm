@@ -757,7 +757,7 @@ sub doSimilar {
   $theFilter = 'type:topic' unless defined $theFilter;
   $theRows = 10 unless defined $theRows;
 
-  $theFields = 'web_search,topic_search,title_search,score' unless defined $theFields;
+  $theFields = 'web,topic,title,score' unless defined $theFields;
 
   my $wikiUser = Foswiki::Func::getWikiName();
   my @filter = $this->parseFilter($theFilter);
@@ -1522,8 +1522,10 @@ sub parseFilter {
 
   my @filter = ();
   $filter ||= '';
-  $filter = urlDecode(entityDecode($filter));
+  $filter = $this->toUtf8(urlDecode(entityDecode($filter)));
+
   #print STDERR "parseFilter($filter)\n";
+
   while ($filter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",]+|(?:"[^"]+?")),?/g) {
     my $field = $1;
     my $value = $2;
