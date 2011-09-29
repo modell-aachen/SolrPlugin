@@ -1091,7 +1091,7 @@
      -->
   <searchComponent name="spellcheck" class="solr.SpellCheckComponent">
 
-    <str name="queryAnalyzerFieldType">textSpell</str>
+    <str name="queryAnalyzerFieldType">text_spell</str>
 
     <!-- Multiple "Spell Checkers" can be declared and used by this
          component
@@ -1104,20 +1104,10 @@
       <str name="name">default</str>
       <str name="field">spell</str>
       <str name="spellcheckIndexDir">spellchecker</str>
-      <float name="thresholdTokenFrequency">.01</float>
+      <str name="distanceMeasure">org.apache.lucene.search.spell.JaroWinklerDistance</str>
+      <float name="thresholdTokenFrequency">.0001</float>
+      <str name="buildOnOptimize">true</str>
     </lst>
-
-    <!-- a spellchecker that uses a different distance measure -->
-    <!--
-       <lst name="spellchecker">
-         <str name="name">jarowinkler</str>
-         <str name="field">spell</str>
-         <str name="distanceMeasure">
-           org.apache.lucene.search.spell.JaroWinklerDistance
-         </str>
-         <str name="spellcheckIndexDir">spellcheckerJaro</str>
-       </lst>
-     -->
 
     <!-- a spellchecker that use an alternate comparator 
 

@@ -668,12 +668,20 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
-|  28 Sep 2011: |  added multilanguage support per document; \
-                   fixed default values in %SOLRSIMILAR; \
-                   speeding up indexing by better caching ACLs; \
-                   implemented mapping facet values to any other label; \
-                   during query time; \
-                   added Language facet to default search interface |
+|  29 Sep 2011: | improved schema.xml: \
+                  replaced !StandardTokenizer with !WhitespaceTokenizer, \
+                  using new !ClassicTokenizer and !ClassicFilter to feed the spellchecker, \
+                  switched spellchecker to !JaroWinklerDistance and lowered the \
+                  frequency threshold for a term to be added to the \
+                  spellchecker; \
+                  building the spellchecker when optimizing the index now; \
+                  fixed detecting the content language |
+|  28 Sep 2011: | added multilanguage support per document; \
+                  fixed default values in %SOLRSIMILAR; \
+                  speeding up indexing by better caching ACLs; \
+                  implemented mapping facet values to any other label; \
+                  during query time; \
+                  added Language facet to default search interface |
 |  26 Sep 2011: | improved default boosting in dismax to prefer topic hits a lot stronger than attachments; \
                   improved default cache settings for better default performace; \
                   added support to distribute updates and search in a master-slave setup; \

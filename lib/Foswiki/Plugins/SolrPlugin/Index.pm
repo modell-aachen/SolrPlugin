@@ -341,9 +341,6 @@ sub indexTopic {
   my $url = Foswiki::Func::getViewUrl($web, $topic);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
-  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
-  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
 
   $doc->add_fields(
     # common fields
@@ -366,14 +363,13 @@ sub indexTopic {
   );
 
   # tag and analyze language
-  my $contentLanguage = $this->getContentLanguage();
+  my $contentLanguage = $this->getContentLanguage($web, $topic);
   if (defined $contentLanguage) {
     $doc->add_fields(
       language => $contentLanguage,
       'text_'.$contentLanguage => $text,
     );
   }
-
 
   # process form
   my $formName = $meta->getFormName();
@@ -554,14 +550,23 @@ sub indexTopic {
 ################################################################################
 # returns one of the SupportedLanguages or undef if not found
 sub getContentLanguage {
-  my $this = shift;
+  my ($this, $web, $topic) = @_;
 
-  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE');
+  my $donePush = 0;
+  if ($web ne $this->{session}{webName} || $topic ne $this->{session}{topicName}) {
+    Foswiki::Func::pushTopicContext($web, $topic);
+    $donePush = 1;
+  }
+
+  my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
   my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
   $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
 
   my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage || $siteLanguage};
-  #print STDERR "contentLanguage=$contentLanguage\n";
+
+  #$this->log("contentLanguage=$contentLanguage");
+
+  Foswiki::Func::popTopicContext() if $donePush;
 
   return $contentLanguage;
 }
@@ -701,7 +706,7 @@ sub indexAttachment {
 
   # tag and analyze language
   # SMELL: silently assumes all attachments to a topic are the same langauge
-  my $contentLanguage = $this->getContentLanguage();
+  my $contentLanguage = $this->getContentLanguage($web, $topic);
   if (defined $contentLanguage) {
     $doc->add_fields(
       language => $contentLanguage,

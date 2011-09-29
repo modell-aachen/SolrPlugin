@@ -980,6 +980,11 @@ sub doSearch {
 
   if ($theSpellcheck) {
     $solrParams->{"spellcheck"} = 'true';
+    $solrParams->{"spellcheck.maxCollationTries"} = 1;
+#    $solrParams->{"spellcheck.count"} = 1;
+#    $solrParams->{"spellcheck.maxCollations"} = 1;
+#    $solrParams->{"spellcheck.extendedResults"} = 'true';
+#    $solrParams->{"spellcheck.collate"} = 'true';
   }
 
   # get all facet params
