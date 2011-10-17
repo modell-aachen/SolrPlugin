@@ -273,6 +273,8 @@ sub indexTopic {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
   }
 
+  #$text = $this->entityDecode($text);
+
   # Eliminate Topic Makup Language elements and newlines.
   my $origText = $text;
   $text = $this->plainify($text, $web, $topic);
@@ -946,13 +948,13 @@ sub plainify {
   my $wtn = Foswiki::Func::getPreferencesValue('WIKITOOLNAME') || '';
 
   # from Foswiki:Extensions/GluePlugin
-  $text =~ s/^#~~(.*?)$//gom;  # #~~
-  $text =~ s/%~~\s+([A-Z]+[{%])/%$1/gos;  # %~~
-  $text =~ s/\s*[\n\r]+~~~\s+/ /gos;   # ~~~
-  $text =~ s/\s*[\n\r]+\*~~\s+//gos;   # *~~
+  $text =~ s/^#~~(.*?)$//gom;    # #~~
+  $text =~ s/%~~\s+([A-Z]+[{%])/%$1/gos;    # %~~
+  $text =~ s/\s*[\n\r]+~~~\s+/ /gos;        # ~~~
+  $text =~ s/\s*[\n\r]+\*~~\s+//gos;        # *~~
 
   # from Fosiki::Render
-  $text =~ s/\r//g;    # SMELL, what about OS10?
+  $text =~ s/\r//g;                         # SMELL, what about OS10?
   $text =~ s/%META:[A-Z].*?}%//g;
 
   $text =~ s/%WEB%/$web/g;
@@ -962,9 +964,10 @@ sub plainify {
 
   # Format e-mail to add spam padding (HTML tags removed later)
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
-  $text =~ s/<!--.*?-->//gs;       # remove all HTML comments
-  $text =~ s/<(?!nop)[^>]*>/ /g;   # remove all HTML tags except <nop>
-  $text =~ s/\&[a-z]+;/ /g;        # remove entities
+  $text =~ s/<!--.*?-->//gs;                                # remove all HTML comments
+  $text =~ s/<(?!nop)[^>]*>/ /g;                            # remove all HTML tags except <nop>
+  $text =~ s/&#\d+;/ /g;                                    # remove html entities
+  $text =~ s/&[a-z]+;/ /g;                                  # remove entities
 
   # keep only link text of legacy [[prot://uri.tld/ link text]]
   $text =~ s/
@@ -985,7 +988,7 @@ sub plainify {
   $text =~ s/[\+\-]+/ /g;               # remove special chars
   $text =~ s/^\s+//;                    # remove leading whitespace
   $text =~ s/\s+$//;                    # remove trailing whitespace
-  $text =~ s/!(\w+)/$1/gs;    # remove all nop exclamation marks before words
+  $text =~ s/!(\w+)/$1/gs;              # remove all nop exclamation marks before words
   $text =~ s/[\r\n]+/\n/s;
   $text =~ s/[ \t]+/ /s;
 
@@ -1000,8 +1003,8 @@ sub plainify {
   $text =~ s/^$//gs;
 
   # Foswiki:Task.Item10258: remove illegal characters
-#  $text =~ s/\p{C}/ /g;
-  
+  #  $text =~ s/\p{C}/ /g;
+
   return $text;
 }
 

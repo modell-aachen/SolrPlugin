@@ -292,6 +292,27 @@ sub toUtf8 {
   return $octets;
 }
 
+##############################################################################
+sub entityDecode {
+  my ($this, $text) = @_;
+
+  # SMELL: not utf8-safe
+  # a Encode::_utf8_on($text); does help but thats boo
+  $text =~ s/&#(\d+);/chr($1)/ge;
+
+  return $text;
+}
+
+##############################################################################
+sub urlDecode {
+  my ($this, $text) = @_;
+
+  # SMELL: not utf8-safe
+  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
+
+  return $text;
+}
+
 ###############################################################################
 sub normalizeWebTopicName {
   my ($this, $web, $topic) = @_;

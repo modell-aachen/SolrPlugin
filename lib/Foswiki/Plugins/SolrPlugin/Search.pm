@@ -60,7 +60,7 @@ sub handleSOLRSEARCH {
   return '' if defined $theId && defined $this->{cache}{$theId};
 
   my $theQuery = $params->{_DEFAULT} || $params->{search} || '';;
-  $theQuery = entityDecode($theQuery);
+  $theQuery = $this->entityDecode($theQuery);
   $params->{search} = $theQuery;
 
   $theQuery = $this->toUtf8($theQuery);
@@ -1496,7 +1496,7 @@ sub getScriptUrl {
   );
 
   # SMELL: duplicates parseFilter 
-  $theFilter = urlDecode(entityDecode($theFilter));
+  $theFilter = $this->urlDecode($this->entityDecode($theFilter));
   while ($theFilter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",]+|(?:"[^"]+?")),?/g) {
     my $field = $1;
     my $value = $2;
@@ -1530,7 +1530,7 @@ sub parseFilter {
 
   my @filter = ();
   $filter ||= '';
-  $filter = $this->toUtf8(urlDecode(entityDecode($filter)));
+  $filter = $this->toUtf8($this->urlDecode($this->entityDecode($filter)));
 
   #print STDERR "parseFilter($filter)\n";
 
@@ -1559,23 +1559,6 @@ sub parseFilter {
   }
 
   return @filter;
-}
-
-##############################################################################
-sub entityDecode {
-  my $text = shift;
-
-  $text =~ s/&#(\d+);/chr($1)/ge;
-  return $text;
-}
-
-##############################################################################
-sub urlDecode {
-  my $text = shift;
-
-  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
-
-  return $text;
 }
 
 ################################################################################
