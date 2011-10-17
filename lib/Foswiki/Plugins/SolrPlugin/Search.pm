@@ -464,6 +464,8 @@ HERE
   $result =~ s/\$n/\n/go;
   $result =~ s/\$dollar/\$/go;
 
+  #$this->log("result=$result");
+
   return $result;
 }
 
@@ -980,11 +982,11 @@ sub doSearch {
 
   if ($theSpellcheck) {
     $solrParams->{"spellcheck"} = 'true';
-    $solrParams->{"spellcheck.maxCollationTries"} = 1;
+#    $solrParams->{"spellcheck.maxCollationTries"} = 1;
 #    $solrParams->{"spellcheck.count"} = 1;
-#    $solrParams->{"spellcheck.maxCollations"} = 1;
+    $solrParams->{"spellcheck.maxCollations"} = 1;
 #    $solrParams->{"spellcheck.extendedResults"} = 'true';
-#    $solrParams->{"spellcheck.collate"} = 'true';
+    $solrParams->{"spellcheck.collate"} = 'true';
   }
 
   # get all facet params
@@ -1384,7 +1386,8 @@ sub getCorrection {
   my $correction = $struct->{collation};
   return '' unless $correction;
 
-  return $correction;
+  #return $correction;
+  return $this->fromUtf8($correction);
 }
 
 ##############################################################################

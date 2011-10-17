@@ -18,6 +18,13 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
 use WebService::Solr ();
 use Error qw( :try );
+use Encode ();
+
+BEGIN {
+  if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
+    $WebService::Solr::ENCODE = 0; # don't encode to utf8 in WebService::Solr
+  }
+}
 
 ##############################################################################
 sub new {
@@ -269,35 +276,8 @@ sub fromUtf8 {
   my ($this, $string) = @_;
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
-  return $string if $charset =~ /^utf-?8$/i;
 
-  if ($] < 5.008) {
-
-    # use Unicode::MapUTF8 for Perl older than 5.8
-    require Unicode::MapUTF8;
-    if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-      return Unicode::MapUTF8::from_utf8({ -string => $string, -charset => $charset });
-    } else {
-      $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-      return $string;
-    }
-  } else {
-
-    # good Perl version, just use Encode
-    require Encode;
-    import Encode;
-    my $encoding = Encode::resolve_alias($charset);
-    if (not $encoding) {
-      $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-      return $string;
-    } else {
-
-      # converts to $charset, generating HTML NCR's when needed
-      my $octets = $string;
-      $octets = Encode::decode('utf-8', $string) unless utf8::is_utf8($string);
-      return Encode::encode($encoding, $octets, 0);#&Encode::FB_HTMLCREF());
-    }
-  }
+  return Encode::encode($charset, $string);
 }
 
 ##############################################################################
@@ -307,31 +287,9 @@ sub toUtf8 {
   my $charset = $Foswiki::cfg{Site}{CharSet};
   return $string if $charset =~ /^utf-?8$/i;
 
-  if ($] < 5.008) {
-
-    # use Unicode::MapUTF8 for Perl older than 5.8
-    require Unicode::MapUTF8;
-    if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-      return Unicode::MapUTF8::to_utf8({ -string => $string, -charset => $charset });
-    } else {
-      $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-      return $string;
-    }
-  } else {
-
-    # good Perl version, just use Encode
-    require Encode;
-    import Encode;
-    my $encoding = Encode::resolve_alias($charset);
-    if (not $encoding) {
-      $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-      return undef;
-    } else {
-      my $octets = Encode::decode($encoding, $string, &Encode::FB_PERLQQ());
-      $octets = Encode::encode('utf-8', $octets) unless utf8::is_utf8($octets);
-      return $octets;
-    }
-  }
+  my $octets = Encode::decode($charset, $string);
+  $octets = Encode::encode('utf-8', $octets);
+  return $octets;
 }
 
 ###############################################################################

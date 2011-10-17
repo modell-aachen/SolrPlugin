@@ -311,10 +311,10 @@ for more robustness.
 | extrafilter | additional lucene filter query (see %SYSTEMWEB%.SolrSearchBaseTemplate for the difference in =filter= and =extrafilter= | |
 | reverse | on/off - reverts sorting if switched on; note: this overrides sorting order specified in =sort= | off |
 | sort | sorting expression; examples: =score desc=, =date desc=, =createdate=, =topic_sort= | |
-| *Dismax Parameter: |||
-| boostquery | a raw query string (in the solr query syntax) that will be included with the user's query to influence the score. example: =type:topic^1000= will boost results of type topic | see solrconfig.xml and %System.SolrSearchBaseTemplate |
-| queryfields | list of fields and their boosts giving each field a significance when a term was found in them. the format supported is fieldOne^2.3 fieldTwo fieldThree^0.4, which indicates that fieldOne has a boost of 2.3, fieldTwo has the default boost, and fieldThree has a boost of 0.4 ... this indicates that matches in fieldOne are much more significant than matches in fieldTwo, which are more significant than matches in fieldThree |  see solrconfig.xml and %System.SolrSearchBaseTemplate |
-| phrasefields | list of fields and their boosts similar to =queryfields=. this parameter may contain fields and boosts that _pharses_ (specified in quotes) are matched against. boosting those fields higher than their counterpart in =queryfields= allows you to prefer phrase matches over separate word matches | see solrconfig.xml and %System.SolrSearchBaseTemplate |
+| *Dismax Parameter:* |||
+| boostquery | a raw query string (in the solr query syntax) that will be included with the user's query to influence the score. example: =type:topic^1000= will boost results of type topic | see solrconfig.xml and %SYSTEMWEB%.SolrSearchBaseTemplate |
+| queryfields | list of fields and their boosts giving each field a significance when a term was found in them. the format supported is fieldOne^2.3 fieldTwo fieldThree^0.4, which indicates that fieldOne has a boost of 2.3, fieldTwo has the default boost, and fieldThree has a boost of 0.4 ... this indicates that matches in fieldOne are much more significant than matches in fieldTwo, which are more significant than matches in fieldThree | see solrconfig.xml and %SYSTEMWEB%.SolrSearchBaseTemplate |
+| phrasefields | list of fields and their boosts similar to =queryfields=. this parameter may contain fields and boosts that _pharses_ (specified in quotes) are matched against. boosting those fields higher than their counterpart in =queryfields= allows you to prefer phrase matches over separate word matches | see solrconfig.xml and %SYSTEMWEB%.SolrSearchBaseTemplate |
 | *Faceting:* |||
 | facets | list of facets to be rendered during search; each facet can be a =title=name= pair specifying the facet name and the title label used to display it in the result; example: %BR% =%MAKETEXT<nop>{"Webs"}%=web, %MAKETEXT<nop>{"Applications"}%=field_TopicType_lst= | |
 | facetquery | query to be used for a facet query | |
@@ -668,6 +668,9 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  17 Oct 2011: | fixed WebServices::Solr to only encode to utf8 if needed; \
+                  fixed handling character encoding on a pure utf8 foswiki; \
+                  fixed schema for spell correction |
 |  29 Sep 2011: | improved schema.xml: \
                   replaced !StandardTokenizer with !WhitespaceTokenizer, \
                   using new !ClassicTokenizer and !ClassicFilter to feed the spellchecker, \

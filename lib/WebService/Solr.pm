@@ -2,7 +2,7 @@ package WebService::Solr;
 
 use Moose;
 
-use Encode qw(encode);
+use Encode ();
 use URI;
 use LWP::UserAgent;
 use WebService::Solr::Response;
@@ -11,6 +11,8 @@ use HTTP::Headers;
 use XML::Easy::Element;
 use XML::Easy::Content;
 use XML::Easy::Text ();
+
+our $ENCODE = 1;
 
 has 'url' => (
     is      => 'ro',
@@ -170,11 +172,13 @@ sub _send_update {
     my ( $self, $xml, $params, $autocommit ) = @_;
     $autocommit = $self->autocommit unless defined $autocommit;
 
+    $xml= Encode::encode('utf-8', $xml) if $ENCODE;
+
     my $url = $self->_gen_url( 'update', $params );
     my $req = HTTP::Request->new(
         POST => $url,
         HTTP::Headers->new( Content_Type => 'text/xml; charset=utf-8' ),
-        '<?xml version="1.0" encoding="UTF-8"?>' . encode( 'utf8', "$xml" )
+        '<?xml version="1.0" encoding="UTF-8"?>' . $xml
     );
 
     my $http_response = $self->agent->request( $req );

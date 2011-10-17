@@ -30,7 +30,8 @@
 %TMPL:DEF{"solr::defaultinfinitescroll"}%on%TMPL:END%
 %TMPL:DEF{"solr::boostquery"}%type:topic^200%TMPL:END%
 %TMPL:DEF{"solr::queryfields"}%
-  webtopic_search^8.0 
+  web_search^8.0 
+  topic_search^4.0 
   title_search^3.0
   category_search
   tag_search
@@ -38,9 +39,11 @@
   substrings^0.5
 %TMPL:END%
 %TMPL:DEF{"solr::phrasefields"}%
-  webtopic_search^8.0 
+  web_search^8.0 
+  topic_search^4.0 
   title_search^3.0
   substrings^0.5
+  catchall
 %TMPL:END%
 %TMPL:DEF{"solr::defaultserialpageropts"}%prevText:'%MAKETEXT{"prev"}%', nextText:'%MAKETEXT{"next"}%'%TMPL:END%
 %TMPL:DEF{"solr::incontribs"}%%TMPL:P{"solr::input::checkboxes::inmycontribs"}%%TMPL:END%

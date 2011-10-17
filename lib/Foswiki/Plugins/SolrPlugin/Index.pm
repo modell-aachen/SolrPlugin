@@ -235,9 +235,6 @@ sub update {
 sub updateTopic {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  # SMELL: only in cmdline mode
-  #$topic = $this->fromUtf8($topic);
-
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
   return if $this->isSkippedWeb($web);
@@ -646,7 +643,6 @@ sub indexAttachment {
   if ($indexextensions->{$extension}) {
     $attText = $this->getStringifiedVersion($web, $topic, $name);
     $attText = $this->plainify($attText, $web, $topic);
-    $attText = $this->fromUtf8($attText); # SMELL
   } else {
     #$this->log("not reading attachment $web.$topic.$name");
   }
@@ -930,7 +926,6 @@ sub getStringifiedVersion {
     $attText = Foswiki::Func::readFile($cachedFilename);
   }
 
-  # keep it in utf8
   return $attText;
 }
 
