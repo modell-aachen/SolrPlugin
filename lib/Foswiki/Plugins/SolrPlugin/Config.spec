@@ -78,7 +78,7 @@ $Foswiki::cfg{SolrPlugin}{SolrHome} = '/home/www-data/foswiki/solr';
 # Default collection where to put foswiki content to (including topic text as well as all attachments)
 $Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
 
-# **STRING**
+# **PERL**
 # List of supported languages. These are the locale IDs as supported for by the schema.xml configuration
 # file for solr. For each language ID there's a text field named text_&lt;ID&gt; that will be filled
 # with content in the appropriate language. A wiki page can be flagged to be in a specific language by
