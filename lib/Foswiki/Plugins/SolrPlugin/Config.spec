@@ -67,12 +67,12 @@ $Foswiki::cfg{SolrPlugin}{AutoStartDaemon} = 0;
 # **COMMAND**
 # Command used to start the solr instance. Note that <code>solrstart</code> is a shell script wrapping
 # around the actual startup routine
-$Foswiki::cfg{SolrPlugin}{SolrStartCmd} = $Foswiki::cfg{ToolsDir}.'/solrstart %SOLRHOME|F%';
+$Foswiki::cfg{SolrPlugin}{SolrStartCmd} = '$Foswiki::cfg{ToolsDir}/solrstart %SOLRHOME|F%';
 
 # **PATH**
 # Path to the directory containing the <code>start.jar</code> file. That's where the jetty engine is 
 # located and where solr puts its data further down the directory structure
-$Foswiki::cfg{SolrPlugin}{SolrHome} = '/home/www-data/foswiki/solr';
+$Foswiki::cfg{SolrPlugin}{SolrHome} = '';
 
 # **STRING**
 # Default collection where to put foswiki content to (including topic text as well as all attachments)
