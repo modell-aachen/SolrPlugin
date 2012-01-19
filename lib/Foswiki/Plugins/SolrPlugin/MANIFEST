@@ -112,4 +112,4 @@ tools/solrstart 0755
 tools/virtualhosts-solrdelete 0755
 tools/virtualhosts-solrindex 0755
 tools/virtualhosts-solrsearch 0755
-WebService::Solr-0.14.patch 0644
+WebService-Solr-0.14.patch 0644
