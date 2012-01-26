@@ -1,0 +1,254 @@
+/* solr plugin css */
+.natSolrBody .natTopicActions {
+  display:none;
+}
+.solrSpellchecking,
+.solrSearchHits {
+  margin:1.3864em 0em; /* 18px 0px */
+}
+.solrSearchHitsList {
+  width:100%;
+  margin:1.3864em 0em;
+}
+.solrSearchHits h3 {
+  margin:0px;
+  font-size:100%;
+  line-height:1.3864em; 
+  background-repeat:no-repeat;
+  padding:0px 0px 0px 23px;
+}
+.solrSearchHits h3 a {
+  text-decoration:underline;
+}
+.solrSearchHits h3 a:hover {
+  text-decoration:inherit;
+}
+.solrSearchHits h3 span a {
+  text-decoration:none;
+}
+.solrSearchHits h3 span a:hover {
+  text-decoration:none;
+}
+.solrSearchHits h3 .foswikiGrayText {
+  font-size:90%;
+}
+.solrSearchHitsList .solrSearchHit {
+  margin:1.3864em 0em;
+}
+.solrSearchHitsGrid .solrSearchHit {
+  border:1px solid #ddd;
+  width:100px;
+  height:100px;
+  margin:0em 1em 1em 0px;
+  overflow:hidden;
+  float:left;
+  padding:0.5em;
+  /*
+  background-image:url(stripes-bg.png);
+  background-repeat:no-repeat;
+  background-position:0px -50px;
+  */
+}
+.solrSearchHitsGrid .solrImageHit {
+  text-align:center;
+}
+.solrSearchHitsGrid .solrImageHit .solrImageFrame {
+  overflow:hidden;
+  height:100px;
+}
+.solrImageHit .solrImageCaption {
+  position:relative;
+  top:-1em;
+  background:#fff;
+}
+.solrImageCaption a {
+  text-decoration:none;
+}
+
+.solrRevision,
+.solrRevision a {
+  text-decoration:none;
+}
+.solrRevision a {
+  color:#049804;
+}
+.solrSortion {
+  text-align:right;
+}
+.solrHilite em {
+  font-style:normal;
+  font-weight:bold;
+}
+
+.solrHeaderResults {
+  margin:0.3846em 0em;
+}
+
+.solrHeader .solrPager {
+  margin:1.3864em 0em; /* 18px 0px */
+  border-bottom:1px solid #ddd;
+}
+.solrHeader .foswikiRight th {
+  padding:0px 0px 0px 2.5em;
+}
+.solrHeader .foswikiRight td {
+  padding:0px 0px 0px 5px;
+}
+.solrHeader .foswikiFormSteps {
+  margin-top:0px;
+}
+.solrFooter .solrPager {
+  margin:2em 0em 0em;
+  border-top:1px solid #ddd;
+}
+.solrPagerPrev,
+.solrPagerNext,
+.solrPager a {
+  margin:0px 1px;
+  padding:2px 5px;
+  text-decoration:none;
+}
+.solrHover input,
+.solrHover label {
+  cursor:pointer;
+}
+.solrPager a.current:visited,
+.solrPager a:hover,
+.solrPager a.current {
+  color:#fff;
+  background:#bb2222;
+}
+.solrPagerEllipsis {
+  margin:0px 5px;
+}
+.solrPagerPrev,
+.solrPagerNext {
+  font-weight:bold;
+}
+.solrPager .solrPagerPrev {
+  margin-right:0.5em;
+}
+.solrPager .solrPagerNext {
+  margin-left:0.5em;
+}
+
+.solrSpellchecking {
+  color:red;
+}
+.solrCorrection {
+  font-style:italic;
+  font-weight:bold;
+}
+
+.solrHierarchy .clsBrowser {
+  border:0px;
+  padding:0px;
+  margin:0px;
+}
+
+.solrHierarchy a.current,
+.solrTagCloud a.current {
+  background:#06c !important;
+  color:white !important;
+}
+
+.solrTagCloud .tagCloud,
+.solrSettings {
+  margin:10px 20px 0px 20px;
+}
+.solrTagCloud strong {
+  font-size:110%;
+  margin:0em 0.5em;
+}
+
+.solrClearAll,
+.solrClear {
+  display:none;
+}
+
+.solrClearAll,
+.solrClearAll:hover,
+.solrClear,
+.solrClear:hover {
+  background-image:url(../FamFamFamSilkIcons/delete.png);
+  background-repeat:no-repeat;
+  background-position:0% 50%;
+  padding-left:25px;
+  float:left;
+}
+.solrHierarchy {
+  margin:10px 0px 0px 20px;
+}
+.natSideBar .solrHierarchy {
+  margin:0px;
+}
+.natSideBar .solrHierarchy ul {
+}
+.natSideBar .solrHierarchy ul ul {
+  margin:6px 0px 0px 25px;
+  padding:0px;
+  border:0px;
+}
+.natSideBar .solrHierarchy ul li li {
+  border:0px;
+  margin:0px -1em 5px;
+  padding:0px 1em;
+}
+.solrHierarchy .fltMakeIndexWrapper,
+.solrHierarchy .fltLayoutTable {
+  margin:0px;
+}
+.solrHierarchy .fltMakeIndexWrapper ul {
+  margin:0px 0px 10px 0px;
+}
+.solrCategory {
+  background-repeat:no-repeat;
+  padding:0px 0px 2px 20px;
+}
+.natSideBar .solrCategory {
+  padding:0px;
+}
+
+/* facet pager */
+.solrFacetPager {
+  overflow:hidden;
+  padding:0em;
+  display:none; /* switched on by javascript */
+}
+.solrFacetPager .panel {
+  width:39000px;
+}
+.solrFacetPager .items {
+  margin:0em;
+  padding:0em;
+  float:left;
+  width:200px;
+  overflow:hidden;
+}
+.solrFacetPagerButtons {
+  padding:5px 0em 6px;
+}
+.solrFacetPagerCounter {
+  text-align:center;
+}
+a.solrFacetPagerPrev,
+a.solrFacetPagerPrev:hover {
+  float:left;
+  background-image:url('../FamFamFamSilkIcons/control_rewind.png');
+  background-repeat:no-repeat;
+  padding-left:25px;
+  background-position:0% 50%;
+}
+a.solrFacetPagerNext,
+a.solrFacetPagerNext:hover {
+  float:right;
+  background-image:url('../FamFamFamSilkIcons/control_fastforward.png');
+  background-repeat:no-repeat;
+  background-position:100% 50%;
+  padding-right:25px;
+}
+
+.solrCheckboxContainer p {
+  float:left;
+}
+

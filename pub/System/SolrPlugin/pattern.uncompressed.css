@@ -1,0 +1,67 @@
+/* fixes for pattern skin */
+.patternTop {
+  height:27px;
+}
+#patternTopBarContents {
+  padding-left:1.5em;
+}
+#patternSideBarContents {
+  padding-left:1.5em;
+  padding-right:0;
+}
+.patternMetaMenu,
+.patternRevInfo {
+  display:none; 
+}
+.foswikiFormSteps {
+  border-top:1px solid #ddd;
+}
+.patternBorder .foswikiFormSteps {
+  border:0px;
+}
+.foswikiFormSteps hr { 
+  display:none; 
+}
+.foswikiLayoutTable {
+  boder-collapse:collapse;
+  border-spacing:0;
+}
+.foswikiLayoutTable td {
+  padding:0px 5px 0px 0px;
+}
+#patternSideBarContents input[type=radio],
+#patternSideBarContents input[type=checkbox],
+#patternSideBarContents .foswikiCheckbox {
+  margin:0px 3px 0px 1px;
+}
+#patternSideBarContents h2 {
+  margin-top:0.5em;
+  margin-bottom:3px;
+  padding-bottom:2px;
+  border-bottom:1px solid #ddd;
+  font-size:120%;
+}
+#patternSideBarContents a:link,
+#patternSideBarContents a:visited {
+  color:#0066cc;
+}
+#patternSideBarContents h2 a:link,
+#patternSideBarContents h2 a:visited {
+  color:#339900;
+}
+#patternSideBarContents h3 {
+  margin-bottom:3px;
+  font-size:100%;
+  color:#000;
+}
+#patternSideBarContents .solrClear, 
+#patternSideBarContents .solrClearAll {
+  margin:5px 0px;
+}
+#patternSideBarContents .solrFacetContainer {
+  margin-top:1.5em;
+}
+.solrPager a:link:hover,
+.solrPager a:visited:hover {
+  text-decoration:none;
+}
