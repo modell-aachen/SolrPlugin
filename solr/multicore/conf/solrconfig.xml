@@ -738,6 +738,7 @@
         tag_search^2.0 
         catchall
         substrings^0.5
+        charnorm^0.5
         <!-- enable this if you like to add sound-like search hits 
              phonetic^0.0001 
         -->
@@ -754,6 +755,7 @@
         title_search^3.0 
         category_search^2.0 
         substrings^0.5
+        charnorm^0.5
         <!-- enable this if you like to add sound-like search hits 
              phonetic^0.0001 
         -->
@@ -789,6 +791,7 @@
         tag_search^2.0 
         catchall
         substrings^0.5
+        charnorm^0.5
         phonetic^0.0001 
       </str>
       <!-- boost more recent documents -->
@@ -805,6 +808,7 @@
         tag_search^2.0
         catchall
         substrings^0.5
+        charnorm^0.5
         phonetic^0.0001 
       </str>
       <int name="ps">1</int>
@@ -1491,6 +1495,7 @@
         <str>spell</str>
         <str>phonetic</str>
         <str>substrings</str>
+        <str>charnorm</str>
       </lst>      
     </processor>
     <processor class="solr.LogUpdateProcessorFactory" />

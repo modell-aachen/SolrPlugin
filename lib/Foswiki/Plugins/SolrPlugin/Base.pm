@@ -272,34 +272,6 @@ sub inlineError {
 }
 
 ##############################################################################
-sub fromUtf8 {
-  my ($this, $string) = @_;
-
-  return Encode::decode_utf8($string);
-}
-
-##############################################################################
-sub toUtf8 {
-  my ($this, $string) = @_;
-
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  return $string if $charset =~ /^utf-?8$/i;
-
-
-  my $octets = Encode::decode($charset, $string);
-  $octets = Encode::encode('utf-8', $octets);
-  return $octets;
-}
-
-##############################################################################
-sub toSiteCharSet {
-  my ($this, $string) = @_;
-
-  return Encode::encode($Foswiki::cfg{Site}{CharSet}, $string);
-}
-
-
-##############################################################################
 sub entityDecode {
   my ($this, $text) = @_;
 

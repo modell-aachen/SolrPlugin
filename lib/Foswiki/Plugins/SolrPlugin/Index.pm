@@ -194,7 +194,7 @@ sub update {
       foreach my $topic (Foswiki::Func::getTopicList($web)) {
         next if $this->isSkippedTopic($web, $topic);
         $this->indexTopic($web, $topic);
-        my $found = 1;
+        $found = 1;
       }
     } else { 
       # delta
@@ -1006,7 +1006,11 @@ sub plainify {
   # remove/escape special chars
   $text =~ s/\\//g;
   $text =~ s/"//g;
+  $text =~ s/%{//g;
+  $text =~ s/}%//g;
   $text =~ s/%//g;
+  $text =~ s/{\s*}//g;
+  $text =~ s/#+//g;
   $text =~ s/\$perce?nt//g;
   $text =~ s/\$dollar//g;
   $text =~ s/\n/ /g;

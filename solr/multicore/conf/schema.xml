@@ -16,35 +16,6 @@
  limitations under the License.
 -->
 
-<!--  
- This is the Solr schema file. This file should be named "schema.xml" and
- should be in the conf directory under the solr home
- (i.e. ./solr/conf/schema.xml by default) 
- or located where the classloader for the Solr webapp can find it.
-
- This example schema is the recommended starting point for users.
- It should be kept correct and concise, usable out-of-the-box.
-
- For more information, on how to customize this file, please see
- http://wiki.apache.org/solr/SchemaXml
-
- PERFORMANCE NOTE: this schema includes many optional features and should not
- be used for benchmarking.  To improve performance one could
-  - set stored="false" for all fields possible (esp large fields) when you
-    only need to search on the field but don't need to return the original
-    value.
-  - set indexed="false" if you don't need to search on the field, but only
-    return the field as a result of searching on other indexed fields.
-  - remove all unneeded copyField statements
-  - for best index size and searching performance, set "index" to false
-    for all general text fields, use copyField to copy them to the
-    catchall "text" field, and use that for searching.
-  - For maximum indexing performance, use the StreamingUpdateSolrServer
-    java client.
-  - Remember to run the JVM in server mode, and use a higher logging level
-    that avoids logging every request
--->
-
 <schema name="foswiki" version="1.4">
   <!-- attribute "name" is the name of this schema and is only used for display purposes.
        Applications should change this to reflect the nature of the search collection.
@@ -361,23 +332,49 @@
       </analyzer>
     </fieldType>
 
-    <!-- charFilter + WhitespaceTokenizer  -->
-    <!--
-    <fieldType name="text_charnorm" class="solr.TextField" positionIncrementGap="100" >
-      <analyzer>
-        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
-        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+    <!-- same as text_generic but normalizing some character encodings  -->
+    <fieldType name="text_charnorm" class="solr.TextField" stored="false" positionIncrementGap="100" >
+      <analyzer type="index">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
+        <tokenizer class="solr.ClassicTokenizerFactory"/>
+        <filter class="solr.ClassicFilterFactory" /> 
+        <filter class="solr.WordDelimiterFilterFactory" 
+          splitOnCaseChange="1" 
+          generateWordParts="1" 
+          generateNumberParts="1" 
+          catenateWords="1" 
+          catenateNumbers="1" 
+          catenateAll="0" 
+          preserveOriginal="1" 
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
+        <tokenizer class="solr.ClassicTokenizerFactory"/>
+        <filter class="solr.ClassicFilterFactory" /> 
+        <filter class="solr.WordDelimiterFilterFactory" 
+          splitOnCaseChange="1" 
+          generateWordParts="1" 
+          generateNumberParts="1" 
+          catenateWords="0" 
+          catenateNumbers="0" 
+          catenateAll="0" 
+          preserveOriginal="1" 
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
     </fieldType>
-    -->
 
-    <!-- This is an example of using the KeywordTokenizer along
-         With various TokenFilterFactories to produce a sortable field
-         that does not include some properties of the source text
-      -->
+    <!-- processing text usable for sorting -->
     <fieldType name="text_sort" class="solr.TextField" sortMissingLast="true" omitNorms="true">
       <analyzer>
-        <!-- charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/ -->
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
         <!-- KeywordTokenizer does no actual tokenizing, so the entire
              input string is preserved as a single token
           -->
@@ -1141,6 +1138,7 @@
    <field name="catchall" type="text_generic" multiValued="true" />
    <field name="substrings" type="text_substring" multiValued="true" />
    <field name="phonetic" type="phonetic" multiValued="true" />
+   <field name="charnorm" type="text_charnorm" multiValued="true" />
 
    <!-- state: used by comments or any other application that tracks specific states of a topic;
         example values are: new, unapproved, approved, draft, unpublished, published, ...
@@ -1167,11 +1165,11 @@
    
    <!-- category: this field catches all formfield values of type cat; will be propagated from topics to attachments -->
    <field name="category" type="string" multiValued="true" termVectors="true" />
-   <field name="category_search" type="text_generic" multiValued="true" stored="true" termVectors="true" omitNorms="true" />
+   <field name="category_search" type="text_generic" multiValued="true" stored="false" termVectors="true" omitNorms="true" />
 
    <!-- tag: this field catches all formfield values of type tag; will be propagated from topics to attachments -->
    <field name="tag" type="string" multiValued="true" termVectors="true" />
-   <field name="tag_search" type="text_generic" multiValued="true" stored="true" termVectors="true" omitNorms="true" />
+   <field name="tag_search" type="text_generic" multiValued="true" stored="false" termVectors="true" omitNorms="true" />
 
    <!-- ATTACHMENTS: -->
    <field name="name" type="string" />
@@ -1227,7 +1225,7 @@
    <dynamicField name="*_tdt" type="tdate"/>
 
    <!-- search & sort fields  -->
-   <dynamicField name="*_search" type="text_generic" stored="true" termVectors="true" />
+   <dynamicField name="*_search" type="text_generic" stored="false" termVectors="true" />
    <dynamicField name="*_sort" type="text_sort" stored="false" />
 
    <!-- uncomment the following to ignore any fields that don't already match an existing 
@@ -1287,6 +1285,26 @@
    <copyField source="contributor" dest="catchall"/>
 -->
 
+   <copyField source="attachment" dest="charnorm"/>
+   <copyField source="category" dest="charnorm"/>
+   <copyField source="comment" dest="charnorm"/>
+   <copyField source="contributor" dest="charnorm"/>
+   <copyField source="field_*" dest="charnorm"/>
+   <copyField source="form" dest="charnorm"/>
+   <copyField source="name" dest="charnorm"/>
+   <copyField source="tag" dest="charnorm"/>
+   <copyField source="text" dest="charnorm"/>
+   <copyField source="title" dest="charnorm"/>
+   <copyField source="topic" dest="charnorm"/>
+   <copyField source="type" dest="charnorm"/>
+   <copyField source="concept" dest="charnorm"/>
+   <copyField source="sentence" dest="charnorm"/>
+<!--
+   <copyField source="preference_*" dest="charnorm"/>
+   <copyField source="parent" dest="charnorm"/>
+   <copyField source="web" dest="charnorm"/>
+-->
+
    <copyField source="attachment" dest="substrings"/>
    <copyField source="category" dest="substrings"/>
    <copyField source="comment" dest="substrings"/>
@@ -1338,5 +1356,6 @@
    <copyField source="web" dest="spell"/>
    <copyField source="concept" dest="spell"/>
    <copyField source="sentence" dest="spell"/>
+
 
 </schema>

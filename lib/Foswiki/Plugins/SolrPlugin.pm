@@ -101,13 +101,11 @@ sub SOLRSCRIPTURL {
   return getSearcher($session)->handleSOLRSCRIPTURL($params, $theWeb, $theTopic);
 }
 
-
 sub restOPTIMIZE {
   my $session = shift;
 
   getIndexer($session)->optimize();
 }
-
 
 sub restSOLRSEARCH {
   my $session = shift;
