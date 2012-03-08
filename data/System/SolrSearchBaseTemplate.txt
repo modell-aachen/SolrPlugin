@@ -102,7 +102,10 @@
 %TMPL:DEF{"solr::facet::include::web"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::exclude::web"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::include::field_TopicType_lst"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::exclude::field_TopicType_lst"}%ApplicationLicense|TopicStub|TopicType|ClassifiedTopic|TaggedTopic|CategorizedTopic|DataForm|WikiTopic|WebTool|ApplicationTopic|DocuTopic|TopicView|TopicTemplate|TopicFunction|WikiApplication%TMPL:END%
+%TMPL:DEF{"solr::facet::exclude::field_TopicType_lst"}%%IF{
+  "not $USERNAME ingroup 'AdminGroup'"
+  then="ApplicationLicense|TopicStub|TopicType|ClassifiedTopic|TaggedTopic|CategorizedTopic|DataForm|WikiTopic|WebTool|ApplicationTopic|DocuTopic|TopicView|TopicTemplate|TopicFunction|WikiApplication"
+}%%TMPL:END%
 %TMPL:DEF{"solr::facet::include::contributor"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::exclude::contributor"}%UnknownUser|WikiGuest|(TWiki|Project)Contributor|AdminGroup|RegistrationAgent|AdminUser|TestUser%TMPL:END%
 %TMPL:DEF{"solr::facet::include::type"}%%TMPL:END%

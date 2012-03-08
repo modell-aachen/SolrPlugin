@@ -918,23 +918,20 @@ sub doSearch {
 
   my $theStart = $params->{start} || 0;
 
-  my $theReverse = $params->{reverse};
+  my $theReverse = Foswiki::Func::isTrue($params->{reverse});
   my $theSort = $params->{sort};
   $theSort = Foswiki::Func::expandTemplate("solr::defaultsort") unless defined $theSort;
   $theSort = "score desc" unless $theSort;
 
-  if ($theSort =~ /^(.*) (.*)$/) {
-    $theSort = $1;
-    $theReverse = ($2 eq 'desc'?'on':'off');
-  }
-  unless (defined $theReverse) {
-    if ($theSort eq 'score') {
-      $theReverse = 'on'; # score desc is default
+  my @sort = ();
+  foreach my $sort (split(/\s*,\s*/, $theSort)) {
+    if ($sort =~ /^(.+) (desc|asc)$/) {
+      push @sort, $1.' '.$2;
     } else {
-      $theReverse = 'off';
+      push @sort, $sort.' '.($theReverse?'desc':'asc');
     }
   }
-  $theSort .= " ".($theReverse eq 'on'?'desc':'asc');
+  $theSort = join(", ", @sort);
 
   $theRows =~ s/[^\d]//g if defined $theRows;
   $theRows = Foswiki::Func::expandTemplate('solr::defaultrows') if !defined($theRows) || $theRows eq '';

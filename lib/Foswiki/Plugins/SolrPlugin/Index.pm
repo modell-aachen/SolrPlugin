@@ -338,7 +338,7 @@ sub indexTopic {
     $summary = $field->{value} if $field && $field->{value};
   }
   $summary = $this->plainify($summary, $web, $topic);
-  $summary = substr($text, 0, 300) unless $summary;
+  $summary = unicode_substr($text, 0, 300) unless $summary;
 
   # url to topic
   my $url = Foswiki::Func::getViewUrl($web, $topic);
@@ -669,7 +669,7 @@ sub indexAttachment {
   my $author = getWikiName($attachment->{user});
 
   # get summary
-  my $summary = substr($attText, 0, 300);
+  my $summary = unicode_substr($attText, 0, 300);
 
 #  my $author = $attachment->{'user'} || $attachment->{'author'} || '';
 #  $author = Foswiki::Func::getWikiName($author) || 'UnknownUser';
@@ -1223,6 +1223,19 @@ sub setTimestamp {
   Foswiki::Func::saveFile($timestampFile, $time);
 
   return $time;
+}
+
+################################################################################
+sub unicode_substr {
+  my ($string, $offset, $length) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+
+  $string = Encode::encode($charset, $string);
+  $string = substr($string, $offset, $length);
+  $string = Encode::decode($charset, $string);
+
+  return $string;
 }
 
 ################################################################################
