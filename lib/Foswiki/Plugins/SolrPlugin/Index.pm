@@ -571,7 +571,7 @@ sub getContentLanguage {
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
   my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
 
-  $this->log("contentLanguage=$contentLanguage");
+  $this->log("contentLanguage=$contentLanguage") if DEBUG;
 
   Foswiki::Func::popTopicContext() if $donePush;
 

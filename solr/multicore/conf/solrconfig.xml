@@ -1604,12 +1604,15 @@
   </updateRequestProcessorChain>
   -->
   <updateRequestProcessorChain name="foswiki_chain">
-    <!-- processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory" -->
-    <processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory">
+    <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
+    <!-- processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory"-->
        <lst name="defaults">
 	 <str name="langid.fl">title,summary,text</str>
 	 <str name="langid.langField">language</str>
+         <!-- languages we've got a tokenizer for - minus da as it brings down accuracies for the other languages (wtf) -->
+         <str name="langid.whitelist">de, en, es, fi, fr, it, nl, pt, ru, sv, tr</str> 
 	 <str name="langid.overwrite">false</str>
+	 <str name="langid.threshold">0.7</str>
 	 <str name="langid.fallback">en</str>
          <bool name="langid.map">true</bool>
          <bool name="langid.map.keepOrig">true</bool>

@@ -484,7 +484,7 @@
          text_nl: Dutch
          text_pt: Portuguese
          text_ru: Russian
-         text_se: Swedish
+         text_sv: Swedish
          text_tr: Turkish
 
          missing:
@@ -963,7 +963,7 @@
       </analyzer>
     </fieldType>
 
-    <fieldType class="solr.TextField" name="text_se" positionIncrementGap="100">
+    <fieldType class="solr.TextField" name="text_sv" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.ClassicTokenizerFactory"/>
         <filter class="solr.ClassicFilterFactory" /> 
@@ -1220,7 +1220,7 @@
    <dynamicField name="*_nl" type="text_nl" stored="false" />
    <dynamicField name="*_pt" type="text_pt" stored="false" />
    <dynamicField name="*_ru" type="text_ru" stored="false" />
-   <dynamicField name="*_se" type="text_se" stored="false" />
+   <dynamicField name="*_sv" type="text_sv" stored="false" />
    <dynamicField name="*_tr" type="text_tr" stored="false" />
 
    <!-- ignore all fields with prefix ignore_; that's used when uploading documents via tika --> 
