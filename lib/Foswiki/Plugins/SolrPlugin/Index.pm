@@ -13,6 +13,7 @@
 
 package Foswiki::Plugins::SolrPlugin::Index;
 use strict;
+use warnings;
 
 use Foswiki::Plugins::SolrPlugin::Base ();
 our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );
@@ -368,7 +369,7 @@ sub indexTopic {
 
   # tag and analyze language
   my $contentLanguage = $this->getContentLanguage($web, $topic);
-  if (defined $contentLanguage) {
+  if (defined $contentLanguage && $contentLanguage ne 'detect') {
     $doc->add_fields(
       language => $contentLanguage,
       'text_'.$contentLanguage => $text,
@@ -568,12 +569,9 @@ sub getContentLanguage {
   }
 
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
-  my $siteLanguage = $Foswiki::cfg{Site}{Locale} || 'en';
-  $siteLanguage =~ s/_.*$//; # the prefix: e.g. de, en
+  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
 
-  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage || $siteLanguage};
-
-  #$this->log("contentLanguage=$contentLanguage");
+  $this->log("contentLanguage=$contentLanguage");
 
   Foswiki::Func::popTopicContext() if $donePush;
 
@@ -716,7 +714,7 @@ sub indexAttachment {
   # tag and analyze language
   # SMELL: silently assumes all attachments to a topic are the same langauge
   my $contentLanguage = $this->getContentLanguage($web, $topic);
-  if (defined $contentLanguage) {
+  if (defined $contentLanguage && $contentLanguage ne 'detect') {
     $doc->add_fields(
       language => $contentLanguage,
       'text_'.$contentLanguage => $attText,
@@ -1134,6 +1132,7 @@ sub getGrantedUsers {
   # set {knownUsers} and {nrKnownUsers}
   $this->getListOfUsers();
 
+  $text = $meta->text() unless defined $text;
   $text ||= '';
 
   my @grantedUsers = ();
@@ -1186,14 +1185,12 @@ sub getGrantedUsers {
 
 ################################################################################
 sub getAclFields {
-  my ($this, $web, $topic, $meta, $text) = @_;
-
-  $text = $meta->text() unless defined $text;
+  my $this = shift;
 
   my @aclFields = ();
 
   # permissions
-  my @grantedUsers = $this->getGrantedUsers($web, $topic, $meta, $text);
+  my @grantedUsers = $this->getGrantedUsers(@_);
   foreach my $wikiName (@grantedUsers) {
     push @aclFields, 'access_granted' => $wikiName;
   }

@@ -249,7 +249,7 @@
     </fieldType>
 
     <!-- same as text_generic but with substring match -->
-    <fieldType name="text_substring" class="solr.TextField" stored="false" indexed="true" positionIncrementGap="100">
+    <fieldType name="text_substring" class="solr.TextField" indexed="true" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.ClassicTokenizerFactory"/>
         <filter class="solr.ClassicFilterFactory" /> 
@@ -333,7 +333,7 @@
     </fieldType>
 
     <!-- same as text_generic but normalizing some character encodings  -->
-    <fieldType name="text_charnorm" class="solr.TextField" stored="false" positionIncrementGap="100" >
+    <fieldType name="text_charnorm" class="solr.TextField" positionIncrementGap="100" >
       <analyzer type="index">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
         <tokenizer class="solr.ClassicTokenizerFactory"/>
@@ -466,14 +466,9 @@
     
     
     <fieldtype name="type" class="solr.TextField">
-      <analyzer type="index">
-          <tokenizer class="solr.KeywordTokenizerFactory"/>
-          <filter class="solr.LowerCaseFilterFactory" />
+      <analyzer>
+          <tokenizer class="solr.WhitespaceTokenizerFactory"/>
           <filter class="solr.SynonymFilterFactory" synonyms="typemap.txt" ignoreCase="true" expand="false"/>
-      </analyzer>
-      <analyzer type="query">
-          <tokenizer class="solr.KeywordTokenizerFactory"/>
-          <filter class="solr.LowerCaseFilterFactory" />
       </analyzer>
     </fieldtype>
 
@@ -1131,14 +1126,14 @@
    <field name="author" type="string" />
    <field name="contributor" type="string" multiValued="true" />
    <field name="version" type="float" indexed="false" />
-   <field name="text" type="text_generic" stored="false"  />
+   <field name="text" type="text_generic" />
    <field name="date" type="tdate" />
    <field name="createauthor" type="string" />
    <field name="createdate" type="tdate" />
-   <field name="catchall" type="text_generic" multiValued="true" />
-   <field name="substrings" type="text_substring" multiValued="true" />
+   <field name="catchall" type="text_generic" multiValued="true" stored="false" />
+   <field name="substrings" type="text_substring" multiValued="true" stored="false" />
    <field name="phonetic" type="phonetic" multiValued="true" />
-   <field name="charnorm" type="text_charnorm" multiValued="true" />
+   <field name="charnorm" type="text_charnorm" multiValued="true" stored="false" />
 
    <!-- state: used by comments or any other application that tracks specific states of a topic;
         example values are: new, unapproved, approved, draft, unpublished, published, ...
@@ -1175,21 +1170,6 @@
    <field name="name" type="string" />
    <field name="comment" type="text_generic" />
    <field name="size" type="tint" />
-
-   <!-- language specific fields -->
-   <field name="text_en" type="text_en" stored="false"  />
-   <field name="text_cjk" type="text_cjk" stored="false"  />
-   <field name="text_da" type="text_da" stored="false"  />
-   <field name="text_de" type="text_de" stored="false"  />
-   <field name="text_es" type="text_es" stored="false"  />
-   <field name="text_fi" type="text_fi" stored="false"  />
-   <field name="text_fr" type="text_fr" stored="false"  />
-   <field name="text_it" type="text_it" stored="false"  />
-   <field name="text_nl" type="text_nl" stored="false"  />
-   <field name="text_pt" type="text_pt" stored="false"  />
-   <field name="text_ru" type="text_ru" stored="false"  />
-   <field name="text_se" type="text_se" stored="false"  />
-   <field name="text_tr" type="text_tr" stored="false"  />
 
    <!-- dynamicFields: these are used to cover formfield definitions
         a formfield is named using a field_ prefix to prevent a name
@@ -1228,11 +1208,23 @@
    <dynamicField name="*_search" type="text_generic" stored="false" termVectors="true" />
    <dynamicField name="*_sort" type="text_sort" stored="false" />
 
-   <!-- uncomment the following to ignore any fields that don't already match an existing 
-        field name or dynamic field, rather than reporting them as an error. 
-        alternately, change the type="ignored" to some other type e.g. "text" if you want 
-        unknown fields indexed and/or stored by default --> 
-   <!--dynamicField name="*" type="ignored" multiValued="true" /-->
+   <!-- language specific fields -->
+   <dynamicField name="*_en" type="text_en" stored="false" />
+   <dynamicField name="*_cjk" type="text_cjk" stored="false" />
+   <dynamicField name="*_da" type="text_da" stored="false" />
+   <dynamicField name="*_de" type="text_de" stored="false" />
+   <dynamicField name="*_es" type="text_es" stored="false" />
+   <dynamicField name="*_fi" type="text_fi" stored="false" />
+   <dynamicField name="*_fr" type="text_fr" stored="false" />
+   <dynamicField name="*_it" type="text_it" stored="false" />
+   <dynamicField name="*_nl" type="text_nl" stored="false" />
+   <dynamicField name="*_pt" type="text_pt" stored="false" />
+   <dynamicField name="*_ru" type="text_ru" stored="false" />
+   <dynamicField name="*_se" type="text_se" stored="false" />
+   <dynamicField name="*_tr" type="text_tr" stored="false" />
+
+   <!-- ignore all fields with prefix ignore_; that's used when uploading documents via tika --> 
+   <dynamicField name="ignored_*" type="ignored" multiValued="true" />
 
  </fields>
 
@@ -1274,21 +1266,12 @@
    <copyField source="title" dest="catchall"/>
    <copyField source="topic" dest="catchall"/>
    <copyField source="type" dest="catchall"/>
-   <copyField source="state" dest="catchall"/>
    <copyField source="concept" dest="catchall"/>
    <copyField source="sentence" dest="catchall"/>
-<!--
-   <copyField source="preference_*" dest="catchall"/>
-   <copyField source="parent" dest="catchall"/>
-   <copyField source="web" dest="catchall"/>
-   <copyField source="webtopic" dest="catchall"/>
-   <copyField source="contributor" dest="catchall"/>
--->
 
    <copyField source="attachment" dest="charnorm"/>
    <copyField source="category" dest="charnorm"/>
    <copyField source="comment" dest="charnorm"/>
-   <copyField source="contributor" dest="charnorm"/>
    <copyField source="field_*" dest="charnorm"/>
    <copyField source="form" dest="charnorm"/>
    <copyField source="name" dest="charnorm"/>
@@ -1299,16 +1282,10 @@
    <copyField source="type" dest="charnorm"/>
    <copyField source="concept" dest="charnorm"/>
    <copyField source="sentence" dest="charnorm"/>
-<!--
-   <copyField source="preference_*" dest="charnorm"/>
-   <copyField source="parent" dest="charnorm"/>
-   <copyField source="web" dest="charnorm"/>
--->
 
    <copyField source="attachment" dest="substrings"/>
    <copyField source="category" dest="substrings"/>
    <copyField source="comment" dest="substrings"/>
-   <copyField source="contributor" dest="substrings"/>
    <copyField source="field_*" dest="substrings"/>
    <copyField source="form" dest="substrings"/>
    <copyField source="name" dest="substrings"/>
@@ -1319,16 +1296,10 @@
    <copyField source="type" dest="substrings"/>
    <copyField source="concept" dest="substrings"/>
    <copyField source="sentence" dest="substrings"/>
-<!--
-   <copyField source="preference_*" dest="substrings"/>
-   <copyField source="parent" dest="substrings"/>
-   <copyField source="web" dest="substrings"/>
--->
 
    <copyField source="attachment" dest="phonetic"/>
    <copyField source="category" dest="phonetic"/>
    <copyField source="comment" dest="phonetic"/>
-   <copyField source="contributor" dest="phonetic"/>
    <copyField source="field_*" dest="phonetic"/>
    <copyField source="form" dest="phonetic"/>
    <copyField source="name" dest="phonetic"/>
@@ -1339,11 +1310,6 @@
    <copyField source="type" dest="phonetic"/>
    <copyField source="concept" dest="phonetic"/>
    <copyField source="sentence" dest="phonetic"/>
-<!--
-   <copyField source="preference_*" dest="phonetic"/>
-   <copyField source="parent" dest="phonetic"/>
-   <copyField source="web" dest="phonetic"/>
--->
 
    <copyField source="attachment" dest="spell"/>
    <copyField source="comment" dest="spell"/>
@@ -1354,8 +1320,8 @@
    <copyField source="title" dest="spell"/>
    <copyField source="topic" dest="spell"/>
    <copyField source="web" dest="spell"/>
+   <copyField source="type" dest="phonetic"/>
    <copyField source="concept" dest="spell"/>
    <copyField source="sentence" dest="spell"/>
-
 
 </schema>

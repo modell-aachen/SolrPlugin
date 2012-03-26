@@ -635,7 +635,7 @@ sub restSOLRAUTOCOMPLETE {
     $theQuery = '*:*';
   }
 
-  my $field = $query->param('field') || 'catchall';
+  my $field = $query->param('field') || 'text';
 
   my $solrParams = {
     "facet.prefix" => $thePrefix,
@@ -901,7 +901,6 @@ sub doSearch {
   my $theSpellcheck = Foswiki::Func::isTrue($params->{spellcheck});
   my $theMoreLikeThis = Foswiki::Func::isTrue($params->{morelikethis});
   my $theWeb = $params->{web};
-  my $theContributor = $params->{contributor};
   my $theFilter = $params->{filter} || '';
   my $theExtraFilter = $params->{extrafilter};
   my $theDisjunktiveFacets = $params->{disjunctivefacets} || '';
@@ -964,7 +963,7 @@ sub doSearch {
 
   if ($theHighlight && $theRows > 0) {
     $solrParams->{"hl"} = 'true';
-    $solrParams->{"hl.fl"} = 'catchall';
+    $solrParams->{"hl.fl"} = 'text'; # TODO: make the highlight field configurable
     $solrParams->{"hl.snippets"} = '2';
     $solrParams->{"hl.fragsize"} = '300';
     $solrParams->{"hl.mergeContignuous"} = 'true';
@@ -1066,9 +1065,6 @@ sub doSearch {
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser); # add ACLs
 
-  # SMELL: do we really need these special filters
-  push(@filter, "contributor:".$theContributor) if $theContributor; # add contributor
-
   $solrParams->{"fq"} = \@filter if @filter;
 
   if (DEBUG) {
@@ -1138,7 +1134,6 @@ sub getFacetParams {
   my $theFacetOffset = $params->{facetoffset};
   my $theFacetMinCount = $params->{facetmincount};
   my $theFacetPrefix = $params->{facetprefix};
-  my $theContributor = $params->{contributor};
 
   $theFacetLimit = '' unless defined $theFacetLimit;
 
@@ -1205,7 +1200,6 @@ sub getFacetParams {
   foreach my $facetSpec (split(/\s*,\s*/, $theFacets)) {
     my ($facetLabel, $facetID) = parseFacetSpec($facetSpec);
     #next if $facetID eq 'web' && $params->{web} && $params->{web} ne 'all';
-    next if $facetID eq 'contributor' && $theContributor;
     next if $facetID eq 'facetquery';
     if ($facetID =~ /^(tag|category)$/) {
       push(@$fieldFacets, "{!key=$facetLabel}$facetID");
@@ -1355,7 +1349,7 @@ sub getHighlights {
 
   if ($struct) {
     foreach my $id (keys %$struct) {
-      my $hilite = $struct->{$id}{catchall};
+      my $hilite = $struct->{$id}{text}; # TODO: use the actual highlight field
       next unless $hilite;
       $hilite = join(" ... ", @{$hilite});
 

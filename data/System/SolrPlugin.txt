@@ -505,7 +505,7 @@ useful for spacial search.
 | spell | text_spell | multivalued | | used for spellchecking |
 | id | string | | stored | unique identifier for each document; this is the _external_ id usable in applications; there's an internal solr document id not related to this field |
 | collection | string | | stored | identifies a set of documents comming from the same content collection; by default all content stored in Foswiki (topics and attachments) is gathered in the =wiki= collection set in =Foswiki::cfg{SolrPlugin}{DefaultCollection}= |
-| language | string | | stored | language of the current document; this is derived from  =Foswiki::cfg{Site}{Locale}= but may be overwritten using the =CONTENT_LANGUAGE= preference |
+| language | string | | stored | language of the current document; this may be specified explicitly using the =CONTENT_LANGUAGE= preference, or set to "detect" to let the solr update chain detect the language automatically |
 | url | string | | stored | url used to  access the document being indexed |
 | type | type | | stored | holds the type facet of the document; this is "image" for all kinds of images, "video" for all kinds of videos, "topic" for Foswiki topics and the verbatim file extension for everything else; note: plugins like Foswiki:Extensions/MetaCommentPlugin might use specific types as well (like "comment" in this case) |
 | web | string | | stored | name of the web this document is located in |
