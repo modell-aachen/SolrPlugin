@@ -5,5 +5,5 @@ use Foswiki::Contrib::Build;
 # Create the build object
 $build = new Foswiki::Contrib::Build('SolrPlugin');
 
-$build->build($build->{target});
+$build->build( $build->{target} );
 
