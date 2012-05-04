@@ -14,7 +14,7 @@ sub new {
     my $self = {
         name  => $name,
         value => $value,
-        %{ $opts },
+        %{$opts},
     };
 
     return bless $self, $class;
@@ -22,20 +22,20 @@ sub new {
 
 sub name {
     my $self = shift;
-    $self->{ name } = $_[ 0 ] if @_;
-    return $self->{ name };
+    $self->{name} = $_[0] if @_;
+    return $self->{name};
 }
 
 sub value {
     my $self = shift;
-    $self->{ value } = $_[ 0 ] if @_;
-    return $self->{ value };
+    $self->{value} = $_[0] if @_;
+    return $self->{value};
 }
 
 sub boost {
     my $self = shift;
-    $self->{ boost } = $_[ 0 ] if @_;
-    return $self->{ boost };
+    $self->{boost} = $_[0] if @_;
+    return $self->{boost};
 }
 
 sub to_element {

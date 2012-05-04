@@ -17,11 +17,11 @@ our $ENCODE = 1;
 has 'url' => (
     is      => 'ro',
     isa     => 'URI',
-    default => sub { URI->new( 'http://localhost:8983/solr' ) }
+    default => sub { URI->new('http://localhost:8983/solr') }
 );
 
 has 'agent' =>
-    ( is => 'ro', isa => 'Object', default => sub { LWP::UserAgent->new } );
+  ( is => 'ro', isa => 'Object', default => sub { LWP::UserAgent->new } );
 
 has 'autocommit' => ( is => 'ro', isa => 'Bool', default => 1 );
 
@@ -38,13 +38,13 @@ sub BUILDARGS {
     my ( $self, $url, $options ) = @_;
     $options ||= {};
 
-    if ( $url ) {
-        $options->{ url } = ref $url ? $url : URI->new( $url );
+    if ($url) {
+        $options->{url} = ref $url ? $url : URI->new($url);
     }
 
-    if ( exists $options->{ default_params } ) {
-        $options->{ default_params }
-            = { %{ $options->{ default_params } }, wt => 'json', };
+    if ( exists $options->{default_params} ) {
+        $options->{default_params} =
+          { %{ $options->{default_params} }, wt => 'json', };
     }
 
     return $options;
@@ -52,44 +52,44 @@ sub BUILDARGS {
 
 sub add {
     my ( $self, $doc, $params ) = @_;
-    my @docs = ref $doc eq 'ARRAY' ? @$doc : ( $doc );
+    my @docs = ref $doc eq 'ARRAY' ? @$doc : ($doc);
 
     my @elements = map {
-        (   '',
+        (
+            '',
             blessed $_
             ? $_->to_element
-            : WebService::Solr::Document->new(
-                ref $_ eq 'HASH' ? %$_ : @$_
-                )->to_element
-            )
+            : WebService::Solr::Document->new( ref $_ eq 'HASH' ? %$_ : @$_ )
+              ->to_element
+          )
     } @docs;
 
     $params ||= {};
-    my $e
-        = XML::Easy::Element->new( 'add', $params,
+    my $e =
+      XML::Easy::Element->new( 'add', $params,
         XML::Easy::Content->new( [ @elements, '' ] ),
-        );
-    my $xml = XML::Easy::Text::xml10_write_element( $e );
+      );
+    my $xml = XML::Easy::Text::xml10_write_element($e);
 
-    my $response = $self->_send_update( $xml );
+    my $response = $self->_send_update($xml);
     return $response->ok;
 }
 
 sub update {
-    return shift->add( @_ );
+    return shift->add(@_);
 }
 
 sub commit {
     my ( $self, $params ) = @_;
     $params ||= {};
-    my $e        = XML::Easy::Element->new( 'commit', $params, [ '' ] );
-    my $xml      = XML::Easy::Text::xml10_write_element( $e );
+    my $e        = XML::Easy::Element->new( 'commit', $params, [''] );
+    my $xml      = XML::Easy::Text::xml10_write_element($e);
     my $response = $self->_send_update( $xml, {}, 0 );
     return $response->ok;
 }
 
 sub rollback {
-    my ( $self ) = @_;
+    my ($self) = @_;
     my $response = $self->_send_update( '<rollback/>', {}, 0 );
     return $response->ok;
 }
@@ -97,8 +97,8 @@ sub rollback {
 sub optimize {
     my ( $self, $params ) = @_;
     $params ||= {};
-    my $e        = XML::Easy::Element->new( 'optimize', $params, [ '' ] );
-    my $xml      = XML::Easy::Text::xml10_write_element( $e );
+    my $e        = XML::Easy::Element->new( 'optimize', $params, [''] );
+    my $xml      = XML::Easy::Text::xml10_write_element($e);
     my $response = $self->_send_update( $xml, {}, 0 );
     return $response->ok;
 }
@@ -108,17 +108,17 @@ sub delete {
 
     my $xml = '';
     for my $k ( keys %$options ) {
-        my $v = $options->{ $k };
+        my $v = $options->{$k};
         $xml .= join(
             '',
             map {
                 XML::Easy::Text::xml10_write_element(
-                    XML::Easy::Element->new( $k, {}, [ $_ ] ) )
-                } ref $v ? @$v : $v
+                    XML::Easy::Element->new( $k, {}, [$_] ) )
+              } ref $v ? @$v : $v
         );
     }
 
-    my $response = $self->_send_update( "<delete>${xml}</delete>" );
+    my $response = $self->_send_update("<delete>${xml}</delete>");
     return $response->ok;
 }
 
@@ -133,16 +133,16 @@ sub delete_by_query {
 }
 
 sub ping {
-    my ( $self ) = @_;
+    my ($self) = @_;
     my $response = WebService::Solr::Response->new(
-        $self->agent->get( $self->_gen_url( 'admin/ping' ) ) );
+        $self->agent->get( $self->_gen_url('admin/ping') ) );
     return $response->is_success;
 }
 
 sub search {
     my ( $self, $query, $params ) = @_;
     $params ||= {};
-    $params->{ 'q' } = $query if $query;
+    $params->{'q'} = $query if $query;
     return $self->generic_solr_request( 'select', $params );
 }
 
@@ -172,7 +172,7 @@ sub _send_update {
     my ( $self, $xml, $params, $autocommit ) = @_;
     $autocommit = $self->autocommit unless defined $autocommit;
 
-    $xml= Encode::encode('utf-8', $xml) if $ENCODE;
+    $xml = Encode::encode( 'utf-8', $xml ) if $ENCODE;
 
     my $url = $self->_gen_url( 'update', $params );
     my $req = HTTP::Request->new(
@@ -181,12 +181,12 @@ sub _send_update {
         '<?xml version="1.0" encoding="UTF-8"?>' . $xml
     );
 
-    my $http_response = $self->agent->request( $req );
+    my $http_response = $self->agent->request($req);
     if ( $http_response->is_error ) {
         confess $http_response->status_line . ': ' . $http_response->content;
     }
 
-    my $res = WebService::Solr::Response->new( $http_response );
+    my $res = WebService::Solr::Response->new($http_response);
 
     $self->commit if $autocommit;
 

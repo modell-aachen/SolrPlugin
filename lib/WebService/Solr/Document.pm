@@ -9,28 +9,26 @@ use Scalar::Util 'blessed';
 sub new {
     my ( $class, @fields ) = @_;
 
-    my $self = {
-        fields => [ _parse_fields( @fields ) ]
-    };
+    my $self = { fields => [ _parse_fields(@fields) ] };
 
     return bless $self, $class;
 }
 
 sub boost {
     my $self = shift;
-    $self->{ boost } = $_[ 0 ] if @_;
-    return $self->{ boost };
+    $self->{boost} = $_[0] if @_;
+    return $self->{boost};
 }
 
 sub fields {
     my $self = shift;
-    $self->{ fields } = $_[ 0 ] if @_;
-    return wantarray ? @{ $self->{ fields } } : $self->{ fields };
+    $self->{fields} = $_[0] if @_;
+    return wantarray ? @{ $self->{fields} } : $self->{fields};
 }
 
 sub add_fields {
     my ( $self, @fields ) = @_;
-    $self->fields( [ $self->fields, _parse_fields( @fields ) ] );
+    $self->fields( [ $self->fields, _parse_fields(@fields) ] );
 }
 
 sub _parse_fields {
@@ -44,28 +42,28 @@ sub _parse_fields {
             next;
         }
         elsif ( ref $f ) {
-            push @new_fields, WebService::Solr::Field->new( @$f );
+            push @new_fields, WebService::Solr::Field->new(@$f);
             next;
         }
 
         my $v = shift @fields;
         my @values = ( ref $v and !blessed $v ) ? @$v : $v;
         push @new_fields,
-            map { WebService::Solr::Field->new( $f => "$_" ) } @values;
+          map { WebService::Solr::Field->new( $f => "$_" ) } @values;
     }
 
     return @new_fields;
 }
 
 sub field_names {
-    my ( $self ) = @_;
+    my ($self) = @_;
     my %names = map { $_->name => 1 } $self->fields;
     return keys %names;
 }
 
 sub value_for {
-    my @values = shift->values_for( shift );
-    return $values[ 0 ];
+    my @values = shift->values_for(shift);
+    return $values[0];
 }
 
 sub values_for {
