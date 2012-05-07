@@ -4,7 +4,7 @@ use Moose;
 
 use overload q("") => 'stringify';
 
-my $escape_chars = quotemeta('+-&|!(){}[]^"~*?:\\');
+my $escape_chars = quotemeta( '+-&|!(){}[]^"~*?:\\' );
 
 has 'query' => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
 
@@ -14,8 +14,8 @@ use Data::Dumper;
 sub BUILDARGS {
     my $class = shift;
 
-    if ( @_ == 1 && ref $_[0] && ref $_[0] eq 'ARRAY' ) {
-        return { query => $_[0] };
+    if ( @_ == 1 && ref $_[ 0 ] && ref $_[ 0 ] eq 'ARRAY' ) {
+        return { query => $_[ 0 ] };
     }
 
     return { query => \@_ };
@@ -34,9 +34,9 @@ sub _dispatch_struct {
 
     D && $self->___log( "Dispatching to ->$method " . Dumper $struct );
 
-    my $rv = $self->$method($struct);
+    my $rv = $self->$method( $struct );
 
-    D && $self->___log("Returned: $rv");
+    D && $self->___log( "Returned: $rv" );
 
     return $rv;
 }
@@ -47,27 +47,27 @@ sub _struct_HASH {
     my @clauses;
 
     for my $k ( keys %$struct ) {
-        my $v = $struct->{$k};
+        my $v = $struct->{ $k };
 
-        D && $self->___log( "Key => $k, value => " . Dumper($v) );
+        D && $self->___log( "Key => $k, value => " . Dumper( $v ) );
 
         if ( $k =~ m{^-(.+)} ) {
             my $method = "_op_$1";
 
-            D && $self->___log( "Dispatch ->$method " . Dumper($v) );
-            push @clauses, $self->$method($v);
+            D && $self->___log( "Dispatch ->$method " . Dumper( $v ) );
+            push @clauses, $self->$method( $v );
         }
         else {
             D
-              && $self->___log(
-                "Dispatch ->_dispatch_value $k, " . Dumper($v) );
+                && $self->___log(
+                "Dispatch ->_dispatch_value $k, " . Dumper( $v ) );
             push @clauses, $self->_dispatch_value( $k, $v );
         }
     }
 
     my $rv = join( ' AND ', @clauses );
 
-    D && $self->___log("Returning: $rv");
+    D && $self->___log( "Returning: $rv" );
 
     return $rv;
 }
@@ -75,10 +75,12 @@ sub _struct_HASH {
 sub _struct_ARRAY {
     my ( $self, $struct ) = @_;
 
-    my $rv =
-      '(' . join( " OR ", map { $self->_dispatch_struct($_) } @$struct ) . ')';
+    my $rv
+        = '('
+        . join( " OR ", map { $self->_dispatch_struct( $_ ) } @$struct )
+        . ')';
 
-    D && $self->___log("Returning: $rv");
+    D && $self->___log( "Returning: $rv" );
 
     return $rv;
 }
@@ -95,8 +97,8 @@ sub _dispatch_value {
     # ];
     if (    ref $v
         and UNIVERSAL::isa( $v, 'ARRAY' )
-        and defined $v->[0]
-        and $v->[0] =~ /^ - ( AND|OR ) $/ix )
+        and defined $v->[ 0 ]
+        and $v->[ 0 ] =~ /^ - ( AND|OR ) $/ix )
     {
         ### XXX we're assuming that all the next statements MUST
         ### be hashrefs. is this correct?
@@ -104,19 +106,21 @@ sub _dispatch_value {
         my $op = uc $1;
 
         D
-          && $self->___log( "Special operator detected: $op " . Dumper($v) );
+            && $self->___log(
+            "Special operator detected: $op " . Dumper( $v ) );
 
         my @clauses;
-        for my $href (@$v) {
+        for my $href ( @$v ) {
             D
-              && $self->___log(
-                "Dispatch ->_dispatch_struct({ $k, " . Dumper($href) . '})' );
+                && $self->___log( "Dispatch ->_dispatch_struct({ $k, "
+                    . Dumper( $href )
+                    . '})' );
 
             ### the individual directive ($href) pertains to the key,
             ### so we should send that along.
             my $part = $self->_dispatch_struct( { $k => $href } );
 
-            D && $self->___log("Returned $part");
+            D && $self->___log( "Returned $part" );
 
             push @clauses, '(' . $part . ')';
         }
@@ -128,12 +132,12 @@ sub _dispatch_value {
     else {
         my $method = '_value_' . ( ref $v || 'SCALAR' );
 
-        D && $self->___log( "Dispatch ->$method $k, " . Dumper($v) );
+        D && $self->___log( "Dispatch ->$method $k, " . Dumper( $v ) );
 
         $rv = $self->$method( $k, $v );
     }
 
-    D && $self->___log("Returning: $rv");
+    D && $self->___log( "Returning: $rv" );
 
     return $rv;
 }
@@ -145,13 +149,13 @@ sub _value_SCALAR {
         $v = $$v;
     }
     else {
-        $v = '"' . $self->escape($v) . '"';
+        $v = '"' . $self->escape( $v ) . '"';
     }
 
     my $r = qq($k:$v);
     $r =~ s{^:}{};
 
-    D && $self->___log("Returning: $r");
+    D && $self->___log( "Returning: $r" );
 
     return $r;
 }
@@ -162,17 +166,17 @@ sub _value_HASH {
     my @clauses;
 
     for my $op ( keys %$v ) {
-        my $struct = $v->{$op};
+        my $struct = $v->{ $op };
         $op =~ s{^-(.+)}{_op_$1};
 
-        D && $self->___log( "Dispatch ->$op $k, " . Dumper($v) );
+        D && $self->___log( "Dispatch ->$op $k, " . Dumper( $v ) );
 
         push @clauses, $self->$op( $k, $struct );
     }
 
     my $rv = join( ' AND ', @clauses );
 
-    D && $self->___log("Returning: $rv");
+    D && $self->___log( "Returning: $rv" );
 
     return $rv;
 }
@@ -180,10 +184,10 @@ sub _value_HASH {
 sub _value_ARRAY {
     my ( $self, $k, $v ) = @_;
 
-    my $rv =
-      '(' . join( ' OR ', map { $self->_value_SCALAR( $k, $_ ) } @$v ) . ')';
+    my $rv = '('
+        . join( ' OR ', map { $self->_value_SCALAR( $k, $_ ) } @$v ) . ')';
 
-    D && $self->___log("Returning: $rv");
+    D && $self->___log( "Returning: $rv" );
 
     return $rv;
 }
@@ -210,33 +214,33 @@ sub _op_range_exc {
 sub _op_boost {
     my ( $self, $k ) = ( shift, shift );
     my ( $v, $boost ) = @{ shift() };
-    $v = $self->escape($v);
+    $v = $self->escape( $v );
     return qq($k:"$v"^$boost);
 }
 
 sub _op_fuzzy {
     my ( $self, $k ) = ( shift, shift );
     my ( $v, $distance ) = @{ shift() };
-    $v = $self->escape($v);
+    $v = $self->escape( $v );
     return qq($k:$v~$distance);
 }
 
 sub _op_proximity {
     my ( $self, $k ) = ( shift, shift );
     my ( $v, $distance ) = @{ shift() };
-    $v = $self->escape($v);
+    $v = $self->escape( $v );
     return qq($k:"$v"~$distance);
 }
 
 sub _op_require {
     my ( $self, $k, $v ) = @_;
-    $v = $self->escape($v);
+    $v = $self->escape( $v );
     return qq(+$k:"$v");
 }
 
 sub _op_prohibit {
     my ( $self, $k, $v ) = @_;
-    $v = $self->escape($v);
+    $v = $self->escape( $v );
     return qq(-$k:"$v");
 }
 
@@ -258,7 +262,7 @@ sub ___log {
 
     ### subroutine the log call came from, and line number the log
     ### call came from. that's 2 different caller frames :(
-    my $who = join ':', [ caller(1) ]->[3], [ caller(0) ]->[2];
+    my $who = join ':', [ caller( 1 ) ]->[ 3 ], [ caller( 0 ) ]->[ 2 ];
 
     ### make sure we prefix every line with a #
     $msg =~ s/\n/\n#/g;

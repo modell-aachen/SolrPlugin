@@ -22,7 +22,7 @@ has 'raw_response' => (
 has 'content' => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
 
 has 'docs' =>
-  ( is => 'rw', isa => 'ArrayRef', auto_deref => 1, lazy_build => 1 );
+    ( is => 'rw', isa => 'ArrayRef', auto_deref => 1, lazy_build => 1 );
 
 #has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
 
@@ -40,7 +40,7 @@ sub _build_content {
     my $self    = shift;
     my $content = $self->raw_response->content;
     return {} unless $content;
-    my $rv = eval { JSON::XS::decode_json($content) };
+    my $rv = eval { JSON::XS::decode_json( $content ) };
 
     ### JSON::XS throw an exception, but kills most of the content
     ### in the diagnostic, making it hard to track down the problem
@@ -53,28 +53,28 @@ sub _build_docs {
     my $self   = shift;
     my $struct = $self->content;
 
-    return unless exists $struct->{response}->{docs};
+    return unless exists $struct->{ response }->{ docs };
 
-    return [ map { WebService::Solr::Document->new(%$_) }
-          @{ $struct->{response}->{docs} } ];
+    return [ map { WebService::Solr::Document->new( %$_ ) }
+            @{ $struct->{ response }->{ docs } } ];
 }
 
 sub _build_pager {
     my $self   = shift;
     my $struct = $self->content;
 
-    return unless exists $struct->{response}->{numFound};
+    return unless exists $struct->{ response }->{ numFound };
 
-    my $rows = $struct->{responseHeader}->{params}->{rows};
+    my $rows = $struct->{ responseHeader }->{ params }->{ rows };
     $rows = 10 unless defined $rows;
 
     # do not generate a pager for queries explicitly requesting no rows
     return if $rows == 0;
 
     my $pager = Data::Page->new;
-    $pager->total_entries( $struct->{response}->{numFound} );
-    $pager->entries_per_page($rows);
-    $pager->current_page( $struct->{response}->{start} / $rows + 1 );
+    $pager->total_entries( $struct->{ response }->{ numFound } );
+    $pager->entries_per_page( $rows );
+    $pager->current_page( $struct->{ response }->{ start } / $rows + 1 );
     return $pager;
 }
 
@@ -82,36 +82,35 @@ sub pageset {
     my $self = shift;
     my %args = @_;
 
-    my $mode = $args{'mode'} || 'fixed';
+    my $mode = $args{ 'mode' } || 'fixed';
     my $meth = "_pageset_" . $mode;
     my $pred = "_has" . $meth;
 
     ### use a cached version if possible
     return $self->$meth if $self->$pred;
 
-    my $pager = $self->_build_pageset(@_);
+    my $pager = $self->_build_pageset( @_ );
 
     ### store the result
-    return $self->$meth($pager);
+    return $self->$meth( $pager );
 }
 
 sub _build_pageset {
     my $self   = shift;
     my $struct = $self->content;
 
-    return unless exists $struct->{response}->{numFound};
+    return unless exists $struct->{ response }->{ numFound };
 
-    my $rows = $struct->{responseHeader}->{params}->{rows};
+    my $rows = $struct->{ responseHeader }->{ params }->{ rows };
     $rows = 10 unless defined $rows;
 
     # do not generate a pager for queries explicitly requesting no rows
     return if $rows == 0;
 
     my $pager = Data::Pageset->new(
-        {
-            total_entries    => $struct->{response}->{numFound},
+        {   total_entries    => $struct->{ response }->{ numFound },
             entries_per_page => $rows,
-            current_page     => $struct->{response}->{start} / $rows + 1,
+            current_page     => $struct->{ response }->{ start } / $rows + 1,
             pages_per_set    => 10,
             mode => 'fixed',    # default, or 'slide'
             @_,
@@ -122,15 +121,15 @@ sub _build_pageset {
 }
 
 sub facet_counts {
-    return shift->content->{facet_counts};
+    return shift->content->{ facet_counts };
 }
 
 sub spellcheck {
-    return shift->content->{spellcheck};
+    return shift->content->{ spellcheck };
 }
 
 sub solr_status {
-    return shift->content->{responseHeader}->{status};
+    return shift->content->{ responseHeader }->{ status };
 }
 
 sub ok {
