@@ -1,6 +1,7 @@
 bin/solrsearch 0755
 data/System/NatSkinWebChangesViewTemplate.txt 0644
 data/System/PatternSkinSolrSearchViewTemplate.txt 0644
+data/System/PatternSkinWebChangesViewTemplate.txt 0644
 data/System/SiteChangesViewTemplate.txt 0644
 data/System/SolrPlugin.txt 0644
 data/System/SolrSearchBaseTemplate.txt 0644
@@ -18,11 +19,19 @@ lib/WebService/Solr/Field.pm 0644
 lib/WebService/Solr.pm 0644
 lib/WebService/Solr/Query.pm 0644
 lib/WebService/Solr/Response.pm 0644
+locale/SolrPlugin/Foswiki.pot
+locale/SolrPlugin/de.po
 pub/System/SolrPlugin/Makefile 0644
+pub/System/SolrPlugin/igp_16_16_toggle-collapse.png 0644
+pub/System/SolrPlugin/igp_16_16_toggle-small-collapse.png 0644
+pub/System/SolrPlugin/igp_16_16_toggle-small.png 0644
+pub/System/SolrPlugin/igp_16_16_toggle.png 0644
+pub/System/SolrPlugin/igp_17_50_stripes-bg.png 0644
+pub/System/SolrPlugin/igp_27_50_SolrPluginSnap1.png 0644
+pub/System/SolrPlugin/igp_41_50_SolrPluginSnap2.png 0644
 pub/System/SolrPlugin/pattern.css 0644
 pub/System/SolrPlugin/pattern.css.gz 0644
 pub/System/SolrPlugin/pattern.uncompressed.css 0644
-pub/System/SolrPlugin/SolrPlugin-bin.tar.gz 0644
 pub/System/SolrPlugin/solrplugin.css 0644
 pub/System/SolrPlugin/solrplugin.css.gz 0644
 pub/System/SolrPlugin/solrplugin.js 0644
@@ -61,4 +70,8 @@ solr/solr-context.xml 0644
 tools/etc-defaults-jetty 0755
 tools/solrdelete 0755
 tools/solrindex 0755
+tools/solrjob 0755
 tools/solrstart 0755
+tools/virtualhosts-solrdelete 0755
+tools/virtualhosts-solrindex 0755
+tools/virtualhosts-solrsearch 0755

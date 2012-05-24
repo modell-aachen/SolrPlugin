@@ -29,17 +29,44 @@ BEGIN {
 
 use Foswiki ();
 use Foswiki::Plugins::SolrPlugin ();
+use Foswiki::Contrib::VirtualHostingContrib::VirtualHost ();
 
-my $foswiki = new Foswiki();
-my $indexer = Foswiki::Plugins::SolrPlugin::getIndexer($foswiki);
+my $verbose = 1;
+my $hostname = '';
+my $query;
 
-my $query = $ARGV[0]||'';
-if ($query) {
-  $indexer->deleteByQuery($query);
-  #$indexer->optimize();
+foreach my $arg (@ARGV) {
+  if ($arg =~ /^(.*)=(.*)$/) {
+    if ($1 eq 'verbose') {
+      $verbose = ($2 eq 'on')?1:0;
+    } elsif ($1 eq 'host') {
+      $hostname = $2;
+    }
+  } else {
+    $query = $arg unless defined $query;
+  }
 }
-$indexer->commit(1);
 
-Foswiki::Plugins::SolrPlugin::finishPlugin();
+if ($hostname) {
+  Foswiki::Contrib::VirtualHostingContrib::VirtualHost->run_on($hostname, \&doit);
+} else {
+  Foswiki::Contrib::VirtualHostingContrib::VirtualHost->run_on_each(\&doit);
+}
+
+
+sub doit {
+  printf("=> Processing %s\n", $Foswiki::Contrib::VirtualHostingContrib::VirtualHost::CURRENT) if $verbose;
+
+  my $foswiki = new Foswiki();
+  my $indexer = Foswiki::Plugins::SolrPlugin::getIndexer($foswiki);
+
+  if ($query) {
+    $indexer->deleteByQuery($query);
+    #$indexer->optimize();
+  }
+  $indexer->commit(1);
+
+  Foswiki::Plugins::SolrPlugin::finishPlugin();
+}
 
 1;

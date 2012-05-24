@@ -23,7 +23,7 @@
   display:none; 
 }
 .foswikiLayoutTable {
-  boder-collapse:collapse;
+  border-collapse:collapse;
   border-spacing:0;
 }
 .foswikiLayoutTable td {
@@ -64,4 +64,10 @@
 .solrPager a:link:hover,
 .solrPager a:visited:hover {
   text-decoration:none;
+}
+.solrFacetContainer label {
+  padding:0;
+}
+.solrFacetContainer ul {
+  list-style-image:none;
 }

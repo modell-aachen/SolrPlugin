@@ -13,7 +13,7 @@ $Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTo
 
 # **STRING**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
-$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf';
+$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
 # **STRING**
 # List of attachments to skip                                                                                         
@@ -47,6 +47,19 @@ $Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexC
 # Url where to find the solr server
 $Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr';
 
+# **STRING** 
+# Url of the server to send updates to. Note, you will only need this setting
+# in a solr setup with master-slave replication where all updates are sent to
+# a single master which in turn replicates them to the clients. This setting
+# will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{UpdateUrl} = '';
+
+# **STRING** 
+# Url of a slave server to get search results from.  Note, you will only
+# need this server in a solr setup with master-slave replication.  This
+# setting will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{SearchUrl} = '';
+
 # **BOOLEAN**
 # Enable this flag to automatically start a solr instance coming with this plugin
 $Foswiki::cfg{SolrPlugin}{AutoStartDaemon} = 0;
@@ -54,11 +67,38 @@ $Foswiki::cfg{SolrPlugin}{AutoStartDaemon} = 0;
 # **COMMAND**
 # Command used to start the solr instance. Note that <code>solrstart</code> is a shell script wrapping
 # around the actual startup routine
-$Foswiki::cfg{SolrPlugin}{SolrStartCmd} = $Foswiki::cfg{ToolsDir}.'/solrstart %SOLRHOME|F%';
+$Foswiki::cfg{SolrPlugin}{SolrStartCmd} = '$Foswiki::cfg{ToolsDir}/solrstart %SOLRHOME|F%';
 
 # **PATH**
 # Path to the directory containing the <code>start.jar</code> file. That's where the jetty engine is 
 # located and where solr puts its data further down the directory structure
-$Foswiki::cfg{SolrPlugin}{SolrHome} = '/home/www-data/foswiki/solr';
+$Foswiki::cfg{SolrPlugin}{SolrHome} = '';
+
+# **STRING**
+# Default collection where to put foswiki content to (including topic text as well as all attachments)
+$Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
+
+# **PERL**
+# List of supported languages. These are the locale IDs as supported for by the schema.xml configuration
+# file for solr. For each language ID there's a text field named text_&lt;ID&gt; that will be filled
+# with content in the appropriate language. A wiki page can be flagged to be in a specific language by
+# setting the CONTENT_LANGUAGE preference variable. Default is the site's language as configured in {Site}{Locale}.
+# Entries in the list below are key =&gt; value pairs mapping a cleartext language label to the used locale ID
+# used in the schema.
+$Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
+  'en' => 'en', 'english' => 'en',
+  'cjk' => 'cjk', 'chinese' => 'cjk', 'japanese' => 'cjk', 'korean' => 'cjk', 
+  'da' => 'da', 'danish' => 'da', 
+  'de' => 'de', 'german' => 'de', 
+  'es' => 'es', 'spanish' => 'es', 
+  'fi' => 'fi', 'finish' => 'fi', 
+  'fr' => 'fr', 'french' => 'fr', 
+  'it' => 'it', 'italian' => 'it', 
+  'nl' => 'nl', 'dutch' => 'nl', 
+  'pt' => 'pt', 'portuguese' => 'pt', 
+  'ru' => 'ru', 'russian' => 'ru', 
+  'se' => 'se', 'swedish' => 'se', 
+  'tr' => 'tr', 'turkish' => 'tr'
+};
 
 1;

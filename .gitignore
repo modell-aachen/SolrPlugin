@@ -1,0 +1,5 @@
+*.gz
+*,v
+/pub/System/SolrPlugin/pattern.css
+/pub/System/SolrPlugin/solrplugin.css
+/pub/System/SolrPlugin/solrplugin.js

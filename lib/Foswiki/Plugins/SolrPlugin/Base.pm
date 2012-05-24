@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,9 +17,16 @@ use strict;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use WebService::Solr ();
-use Unicode::MapUTF8 ();
 use Error qw( :try );
+use Encode ();
 
+BEGIN {
+  if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
+    $WebService::Solr::ENCODE = 0; # don't encode to utf8 in WebService::Solr
+  }
+}
+
+##############################################################################
 sub new {
   my $class = shift;
   my $session = shift;
@@ -28,23 +35,15 @@ sub new {
 
   my $this = {
     session => $session,
-    url => $Foswiki::cfg{SolrPlugin}{Url} || 'http://localhost:8983',
+    url => $Foswiki::cfg{SolrPlugin}{Url}, # || 'http://localhost:8983',
     @_
   };
   bless($this, $class);
 
-  if (!$this->connect() && $Foswiki::cfg{SolrPlugin}{AutoStartDaemon}) {
-    $this->startDaemon();
-    $this->connect();
-  }
-
-  unless ($this->{solr}) {
-    $this->log("ERROR: can't conect solr daemon");
-  }
-
   return $this;
 }
 
+##############################################################################
 sub startDaemon {
   my ($this) = @_;
 
@@ -80,6 +79,7 @@ sub startDaemon {
   }
 }
 
+##############################################################################
 sub connect {
   my ($this) = @_;
 
@@ -114,6 +114,7 @@ sub connect {
   return $this->{solr};
 }
 
+##############################################################################
 sub log {
   my ($this, $logString, $noNewLine) = @_;
 
@@ -121,6 +122,14 @@ sub log {
   #Foswiki::Func::writeDebug($logString);
 }
 
+##############################################################################
+sub isDateField {
+  my ($this, $name) = @_;
+
+  return ($name =~ /^((.*_dt)|createdate|date|timestamp)$/)?1:0;
+}
+
+##############################################################################
 sub isSkippedWeb {
   my ($this, $web) = @_;
 
@@ -135,6 +144,7 @@ sub isSkippedWeb {
   return 0;
 }
 
+##############################################################################
 sub isSkippedTopic {
   my ($this, $web, $topic) = @_;
 
@@ -144,6 +154,7 @@ sub isSkippedTopic {
   return 0;
 }
 
+##############################################################################
 sub isSkippedAttachment {
   my ($this, $web, $topic, $attachment) = @_;
  
@@ -159,6 +170,24 @@ sub isSkippedAttachment {
   return 0;
 }
 
+##############################################################################
+sub isSkippedExtension {
+  my ($this, $fileName) = @_;
+ 
+  my $indexExtensions = $this->indexExtensions;
+
+  my $extension = '';
+  if ($fileName =~ /^(.+)\.(\w+?)$/) {
+    $extension = lc($2);
+  }
+  $extension = 'jpg' if $extension =~ /jpe?g/i;
+
+  return 0 if $indexExtensions->{$extension};
+  return 1;
+}
+
+
+##############################################################################
 # List of webs that shall not be indexed
 sub skipWebs {
   my $this = shift;
@@ -177,6 +206,7 @@ sub skipWebs {
   return $skipwebs;
 }
 
+##############################################################################
 # List of attachments to be skipped.
 sub skipAttachments {
   my $this = shift;
@@ -195,6 +225,7 @@ sub skipAttachments {
   return $skipattachments;
 }
 
+##############################################################################
 # List of topics to be skipped.
 sub skipTopics {
   my $this = shift;
@@ -213,6 +244,7 @@ sub skipTopics {
   return $skiptopics;
 }
 
+##############################################################################
 # List of file extensions to be stringified
 sub indexExtensions {
   my $this = shift;
@@ -222,7 +254,7 @@ sub indexExtensions {
   unless (defined $indexextensions) {
     $indexextensions = {};
     my $extensions = $Foswiki::cfg{SolrPlugin}{IndexExtensions} || 
-      "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf";
+      "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt";
     foreach my $tmpextension (split(/\s*,\s*/, $extensions)) {
       $indexextensions->{$tmpextension} = 1;
     }
@@ -233,93 +265,94 @@ sub indexExtensions {
   return $indexextensions;
 }
 
+##############################################################################
 sub inlineError {
   my ($this, $text) = @_;
   return "<span class='foswikiAlert'>$text</span>";
 }
 
-sub toUtf8 {
-  my ($this, $text) = @_;
-
-  $text = Unicode::MapUTF8::to_utf8(-string=>$text, -charset=>$Foswiki::cfg{Site}{CharSet})
-    if $Foswiki::cfg{Site}{CharSet} !~ /^utf-?8$/i;
-
-  return $text;
-}
-
+##############################################################################
 sub fromUtf8 {
+  my ($this, $string) = @_;
+
+  return Encode::decode_utf8($string);
+}
+
+##############################################################################
+sub toUtf8 {
+  my ($this, $string) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  return $string if $charset =~ /^utf-?8$/i;
+
+
+  my $octets = Encode::decode($charset, $string);
+  $octets = Encode::encode('utf-8', $octets);
+  return $octets;
+}
+
+##############################################################################
+sub toSiteCharSet {
+  my ($this, $string) = @_;
+
+  return Encode::encode($Foswiki::cfg{Site}{CharSet}, $string);
+}
+
+
+##############################################################################
+sub entityDecode {
   my ($this, $text) = @_;
 
-  $text = Unicode::MapUTF8::from_utf8(-string=>$text, -charset=>$Foswiki::cfg{Site}{CharSet})
-    if $Foswiki::cfg{Site}{CharSet} !~ /^utf-?8$/i;
+  # SMELL: not utf8-safe
+  # a Encode::_utf8_on($text); does help but thats boo
+  $text =~ s/&#(\d+);/chr($1)/ge;
 
   return $text;
 }
 
-# sub fromUtf8 {
-#   my ($this, $utf8string) = @_;
-#
-#   my $charset = $Foswiki::cfg{Site}{CharSet};
-#   return $utf8string if $charset =~ /^utf-?8$/i;
-#
-#   if ($] < 5.008) {
-#
-#     # use Unicode::MapUTF8 for Perl older than 5.8
-#     require Unicode::MapUTF8;
-#     if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-#       return Unicode::MapUTF8::from_utf8({ -string => $utf8string, -charset => $charset });
-#     } else {
-#       $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-#       return $utf8string;
-#     }
-#   } else {
-#
-#     # good Perl version, just use Encode
-#     require Encode;
-#     import Encode;
-#     my $encoding = Encode::resolve_alias($charset);
-#     if (not $encoding) {
-#       $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-#       return $utf8string;
-#     } else {
-#
-#       # converts to $charset, generating HTML NCR's when needed
-#       my $octets = Encode::decode('utf-8', $utf8string);
-#       return Encode::encode($encoding, $octets, &Encode::FB_HTMLCREF());
-#     }
-#   }
-# }
-#
-# sub toUtf8 {
-#   my ($this, $string) = @_;
-#
-#   my $charset = $Foswiki::cfg{Site}{CharSet};
-#   return $string if $charset =~ /^utf-?8$/i;
-#
-#   if ($] < 5.008) {
-#
-#     # use Unicode::MapUTF8 for Perl older than 5.8
-#     require Unicode::MapUTF8;
-#     if (Unicode::MapUTF8::utf8_supported_charset($charset)) {
-#       return Unicode::MapUTF8::to_utf8({ -string => $string, -charset => $charset });
-#     } else {
-#       $this->log('Warning: Conversion from $encoding no supported, ' . 'or name not recognised - check perldoc Unicode::MapUTF8');
-#       return $string;
-#     }
-#   } else {
-#
-#     # good Perl version, just use Encode
-#     require Encode;
-#     import Encode;
-#     my $encoding = Encode::resolve_alias($charset);
-#     if (not $encoding) {
-#       $this->log('Warning: Conversion to "' . $charset . '" not supported, or name not recognised - check ' . '"perldoc Encode::Supported"');
-#       return undef;
-#     } else {
-#       my $octets = Encode::decode($encoding, $string, &Encode::FB_PERLQQ());
-#       return Encode::encode('utf-8', $octets);
-#     }
-#   }
-# }
+##############################################################################
+sub urlDecode {
+  my ($this, $text) = @_;
+
+  # SMELL: not utf8-safe
+  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
+
+  return $text;
+}
+
+###############################################################################
+sub normalizeWebTopicName {
+  my ($this, $web, $topic) = @_;
+
+  # better defaults
+  $web ||= $this->{session}->{webName};
+  $topic ||= $this->{session}->{topicName};
+
+  ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
+
+  $web =~ s/\//\./g; # normalize web using dots all the way
+
+  return ($web, $topic);
+}
+
+###############################################################################
+# compatibility wrapper 
+sub takeOutBlocks {
+  my $this = shift;
+
+  return Foswiki::takeOutBlocks(@_) if defined &Foswiki::takeOutBlocks;
+  return $this->{session}->renderer->takeOutBlocks(@_);
+}
+
+###############################################################################
+# compatibility wrapper 
+sub putBackBlocks {
+  my $this = shift;
+
+  return Foswiki::putBackBlocks(@_) if defined &Foswiki::putBackBlocks;
+  return $this->{session}->renderer->putBackBlocks(@_);
+}
+
+
 
 1;
