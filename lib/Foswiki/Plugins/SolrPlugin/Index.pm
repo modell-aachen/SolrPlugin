@@ -1240,9 +1240,9 @@ sub unicode_substr {
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
 
-  $string = Encode::encode($charset, $string);
-  $string = substr($string, $offset, $length);
   $string = Encode::decode($charset, $string);
+  $string = substr($string, $offset, $length);
+  $string = Encode::encode($charset, $string);
 
   return $string;
 }
