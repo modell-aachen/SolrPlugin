@@ -87,7 +87,7 @@ msgstr "Deutsch"
 
 #: data/System/SolrSearchBaseTemplate.txt:705
 msgid "In all webs"
-msgstr "In allen Webs"
+msgstr "In allen Bereichen"
 
 #: data/System/SolrSearchBaseTemplate.txt:696
 msgid "In current web"
@@ -196,6 +196,9 @@ msgid "Web"
 msgstr "Web"
 
 #: data/System/SolrSearchBaseTemplate.txt:619
+msgid "Webs"
+msgstr "Bereiche"
+
 msgid "Your selection"
 msgstr "Ihre Auswahl"
 
@@ -238,7 +241,7 @@ msgstr "Keine Treffer"
 
 #: data/System/SolrSearchBaseTemplate.txt:457
 msgid "older"
-msgstr "älter"
+msgstr "&&auml;lter"
 
 #: data/System/SolrSearchBaseTemplate.txt:245
 msgid "prev"
