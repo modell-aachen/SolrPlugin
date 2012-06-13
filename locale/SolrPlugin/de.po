@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: SolrPlugin $Id\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-12-20 12:56+0000\n"
-"PO-Revision-Date: 2010-09-14 12:56+0000\n"
+"PO-Revision-Date: 2012-06-13 12:42+0200\n"
 "Last-Translator: Michael Daum <daum@michaeldaumconsulting.com>\n"
 "Language-Team: Foswiki German Translation Team <none>\n"
 "MIME-Version: 1.0\n"
@@ -123,7 +123,7 @@ msgstr "Deutsch"
 
 #: data/System/SolrSearchBaseTemplate.txt:896
 msgid "In all webs"
-msgstr "In allen Webs"
+msgstr "In allen Bereichen"
 
 #: data/System/SolrSearchBaseTemplate.txt:886
 msgid "In current web"
@@ -229,7 +229,7 @@ msgstr "Türkisch"
 #: data/System/SolrSearchBaseTemplate.txt:199
 #: data/System/SolrSearchBaseTemplate.txt:219
 msgid "Webs"
-msgstr "Webs"
+msgstr "Bereiche"
 
 #: data/System/SolrSearchBaseTemplate.txt:324
 msgid "Your selection"
@@ -265,7 +265,7 @@ msgstr "Keine Treffer"
 
 #: data/System/SolrSearchBaseTemplate.txt:95
 msgid "older"
-msgstr "älter"
+msgstr "&&auml;lter"
 
 #: data/System/SolrSearchBaseTemplate.txt:48
 msgid "prev"
