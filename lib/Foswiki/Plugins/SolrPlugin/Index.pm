@@ -20,8 +20,10 @@ our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );
 our $STARTWW = qr/^|(?<=[\s\(])/m;
 our $ENDWW = qr/$|(?=[\s,.;:!?)])/m;
 
+use Encode;
 use Error qw( :try );
 use Fcntl qw( :flock );
+use HTML::Entities;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Foswiki::Plugins::SolrPlugin ();
@@ -977,8 +979,11 @@ sub plainify {
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
   $text =~ s/<!--.*?-->//gs;                                # remove all HTML comments
   $text =~ s/<(?!nop)[^>]*>/ /g;                            # remove all HTML tags except <nop>
-  $text =~ s/&#\d+;/ /g;                                    # remove html entities
-  $text =~ s/&[a-z]+;/ /g;                                  # remove entities
+
+  # decode entities
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  $text = Encode::decode($charset, $text);
+  $text = Encode::encode($Foswiki::cfg{Site}{CharSet}, decode_entities($text));
 
   # keep only link text of legacy [[prot://uri.tld/ link text]]
   $text =~ s/
