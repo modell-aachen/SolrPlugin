@@ -1049,7 +1049,7 @@ sub getStringifiedVersion {
     }
   }
 
-  $attText = Encode::decode('Windows-1252', $attText, 1);
+  $attText = Encode::decode('Windows-1252', $attText);
   $attText = Encode::encode($Foswiki::cfg{Site}{CharSet}, $attText);
   return $attText;
 }
