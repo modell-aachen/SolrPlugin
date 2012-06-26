@@ -413,6 +413,10 @@ sub indexTopic {
       # Form definition not found, ignore
       my $e = shift;
       $this->log("ERROR: can't read form definition for $formName");
+    } catch Foswiki::AccessControlException with {
+      # Form definition not accessible, ignore
+      my $e = shift;
+      $this->log("ERROR: can't access form definition for $formName");
     };
 
     $formName =~ s/\//\./g;
