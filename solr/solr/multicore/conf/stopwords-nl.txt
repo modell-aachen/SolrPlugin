@@ -1,0 +1,219 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/dutch/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+
+# A Dutch stop word list. Comments begin with #. Each stop
+# word is at the start of a line.
+
+# This is a ranked list (commonest to rarest) of stopwords derived from
+# a large sample of Dutch text.
+
+# Dutch stop words frequently exhibit homonym clashes. These are indicated
+# clearly below.
+
+#  the
+de
+#  and
+en
+#  of, from
+van
+#  I, the ego
+ik
+#  (1) chez, at etc, (2) to, (3) too
+te
+#  that, which
+dat
+#  that, those, who, which
+die
+#  in, inside
+in
+#  a, an, one
+een
+#  he
+hij
+#  the, it
+het
+#  not, nothing, naught
+niet
+#  (1) to be, being, (2) his, one's, its
+zijn
+#  is
+is
+#  (1) was, past tense of all persons sing. of 'zijn' (to be) (2) wax, (3) the washing, (4) rise of river
+was
+#  on, upon, at, in, up, used up
+op
+#  on, upon, to (as dative)
+aan
+#  with, by
+met
+#  like, such as, when
+als
+#  (1) before, in front of, (2) furrow
+voor
+#  had, past tense all persons sing. of 'hebben' (have)
+had
+#  there
+er
+#  but, only
+maar
+#  round, about, for etc
+om
+#  him
+hem
+#  then
+dan
+#  should/would, past tense all persons sing. of 'zullen'
+zou
+#  or, whether, if
+of
+#  what, something, anything
+wat
+#  possessive and noun 'mine'
+mijn
+#  people, 'one'
+men
+#  this
+dit
+#  so, thus, in this way
+zo
+#  through by
+door
+#  over, across
+over
+#  she, her, they, them
+ze
+#  oneself
+zich
+#  (1) a bee, (2) by, near, at
+bij
+#  also, too
+ook
+#  till, until
+tot
+#  you
+je
+#  me
+mij
+#  out of, from
+uit
+#  Old Dutch form of 'van der' still found in surnames
+der
+#  (1) there, (2) because
+daar
+#  (1) her, their, them, (2) hair
+haar
+#  (1) unpleasant, unwell etc, (2) towards, (3) as
+naar
+#  present first person sing. of 'to have'
+heb
+#  how, why 
+hoe
+#  present third person sing. of 'to have'
+heeft
+#  'to have' and various parts thereof
+hebben
+#  this
+deze
+#  you
+u
+#  (1) for, (2) mitten, (3) rigging
+want
+#  yet, still
+nog
+#  'shall', first and third person sing. of verb 'zullen' (will)
+zal
+#  me
+me
+#  she, they
+zij
+#  now
+nu
+#  'thou', still used in Belgium and south Netherlands
+ge
+#  none
+geen
+#  because
+omdat
+#  something, somewhat
+iets
+#  to become, grow, get
+worden
+#  yet, still
+toch
+#  all, every, each
+al
+#  (1) 'were' (2) to wander, (3) wares, (3)
+waren
+#  much, many
+veel
+#  (1) more, (2) lake
+meer
+#  to do, to make
+doen
+#  then, when
+toen
+#  noun 'spot/mote' and present form of 'to must'
+moet
+#  (1) am, (2) 'are' in interrogative second person singular of 'to be'
+ben
+#  without
+zonder
+#  noun 'can' and present form of 'to be able'
+kan
+#  their, them
+hun
+#  so, consequently
+dus
+#  all, everything, anything
+alles
+#  under, beneath
+onder
+#  yes, of course
+ja
+#  once, one day
+eens
+#  here
+hier
+#  who
+wie
+#  imperfect third person sing. of 'become'
+werd
+#  always
+altijd
+#  yet, but etc
+doch
+#  present third person sing. of 'become'
+wordt
+#  (1) to be, (2) 'been' as in 'been fishing', (3) orphans
+wezen
+#  to be able
+kunnen
+#  us/our
+ons
+#  self
+zelf
+#  against, towards, at
+tegen
+#  after, near
+na
+#  already
+reeds
+#  (1) present tense of 'want', (2) 'will', noun, (3) fender
+wil
+#  could; past tense of 'to be able'
+kon
+#  nothing
+niets
+#  your
+uw
+#  somebody
+iemand
+#  been; past participle of 'be'
+geweest
+#  other
+andere

@@ -1,0 +1,203 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/danish/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+
+# A Danish stop word list. Comments begin with '#'. Each stop
+# word is at the start of a line.
+
+# This is a ranked list (commonest to rarest) of stopwords derived from
+# a large text sample.
+
+
+# and
+og
+# in
+i
+# I
+jeg
+# that (dem. pronoun)/it (pers. pronoun)
+det
+# that (in front of a sentence)/to (with infinitive)
+at
+# a/an
+en
+# it (pers. pronoun)/that (dem. pronoun)
+den
+# to/at/for/until/against/by/of/into, more
+til
+# present tense of "to be"
+er
+# who, as
+som
+# on/upon/in/on/at/to/after/of/with/for, on
+på
+# they
+de
+# with/by/in, along
+med
+# he
+han
+# of/by/from/off/for/in/with/on, off
+af
+# at/for/to/from/by/of/ago, in front/before, because
+for
+# not
+ikke
+# who/which, there/those
+der
+# past tense of "to be"
+var
+# me/myself
+mig
+# oneself/himself/herself/itself/themselves
+sig
+# but
+men
+# a/an/one, one (number), someone/somebody/one
+et
+# present tense of "to have"
+har
+# round/about/for/in/a, about/around/down, if
+om
+# we
+vi
+# my
+min
+# past tense of "to have"
+havde
+# him
+ham
+# she
+hun
+# now
+nu
+# over/above/across/by/beyond/past/on/about, over/past
+over
+# then, when/as/since
+da
+# from/off/since, off, since
+fra
+# you
+du
+# out
+ud
+# his/her/its/one's
+sin
+# them
+dem
+# us/ourselves
+os
+# up
+op
+# you/one
+man
+# his
+hans
+# where
+hvor
+# or
+eller
+# what
+hvad
+# must/shall etc.
+skal
+# myself/youself/herself/ourselves etc., even
+selv
+# here
+her
+# all/everyone/everybody etc.
+alle
+# will (verb)
+vil
+# past tense of "to stay/to remain/to get/to become"
+blev
+# could
+kunne
+# in
+ind
+# when
+når
+# present tense of "to be"
+være
+# however/yet/after all
+dog
+# something
+noget
+# would
+ville
+# you know/you see (adv), yes
+jo
+# their/theirs
+deres
+# after/behind/according to/for/by/from, later/afterwards
+efter
+# down
+ned
+# should
+skulle
+# this
+denne
+# than
+end
+# this
+dette
+# my/mine
+mit
+# also
+også
+# under/beneath/below/during, below/underneath
+under
+# have
+have
+# you
+dig
+# other
+anden
+# her
+hende
+# my
+mine
+# everything
+alt
+# much/very, plenty of
+meget
+# his, her, its, one's
+sit
+# his, her, its, one's
+sine
+# our
+vor
+# against
+mod
+# these
+disse
+# if
+hvis
+# your/yours
+din
+# some
+nogle
+# by/at
+hos
+# be/become
+blive
+# many
+mange
+# by/through
+ad
+# present tense of "to be/to become"
+bliver
+# her/hers
+hendes
+# be
+været
+# for (conj)
+thi
+# you
+jer
+# such, like this/like that
+sådan

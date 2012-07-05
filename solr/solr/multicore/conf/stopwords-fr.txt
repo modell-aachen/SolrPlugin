@@ -1,0 +1,247 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/french/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+#  - contractions were removed from the single letter forms section: 
+#    Instead we handle these with an elision filter
+
+# A French stop word list. Comments begin with #. Each stop
+# word is at the start of a line.
+
+#  a + le
+au
+#  a + les
+aux
+#  with
+avec
+#  this
+ce
+#  these
+ces
+#  with
+dans
+#  of
+de
+#  de + les
+des
+#  de + le
+du
+#  she
+elle
+#  `of them' etc
+en
+#  and
+et
+#  them
+eux
+#  he
+il
+#  I
+je
+#  the
+la
+#  the
+le
+#  their
+leur
+#  him
+lui
+#  my (fem)
+ma
+#  but
+mais
+#  me
+me
+#  same; as in moi-même (myself) etc
+même
+#  me (pl)
+mes
+#  me
+moi
+#  my (masc)
+mon
+#  not
+ne
+#  our (pl)
+nos
+#  our
+notre
+#  we
+nous
+#  one
+on
+#  where
+ou
+#  by
+par
+#  not
+pas
+#  for
+pour
+#  que before vowel
+qu
+#  that
+que
+#  who
+qui
+#  his, her (fem)
+sa
+#  oneself
+se
+#  his (pl)
+ses
+#  his, her (masc)
+son
+#  on
+sur
+#  thy (fem)
+ta
+#  thee
+te
+#  thy (pl)
+tes
+#  thee
+toi
+#  thy (masc)
+ton
+#  thou
+tu
+#  a
+un
+#  a
+une
+#  your (pl)
+vos
+#  your
+votre
+#  you
+vous
+
+#  single letter forms
+
+#  to, at
+à
+#  there
+y
+
+# forms of être (not including the infinitive):
+été
+étée
+étées
+étés
+étant
+suis
+es
+est
+sommes
+êtes
+sont
+serai
+seras
+sera
+serons
+serez
+seront
+serais
+serait
+serions
+seriez
+seraient
+étais
+était
+étions
+étiez
+étaient
+fus
+fut
+fûmes
+fûtes
+furent
+sois
+soit
+soyons
+soyez
+soient
+fusse
+fusses
+fût
+fussions
+fussiez
+fussent
+
+# forms of avoir (not including the infinitive):
+ayant
+eu
+eue
+eues
+eus
+ai
+as
+avons
+avez
+ont
+aurai
+auras
+aura
+aurons
+aurez
+auront
+aurais
+aurait
+aurions
+auriez
+auraient
+avais
+avait
+avions
+aviez
+avaient
+eut
+eûmes
+eûtes
+eurent
+aie
+aies
+ait
+ayons
+ayez
+aient
+eusse
+eusses
+eût
+eussions
+eussiez
+eussent
+
+# Later additions (from Jean-Christophe Deschamps)
+#  this
+ceci
+#  that
+celà
+#  this
+cet
+#  this
+cette
+#  here
+ici
+#  they
+ils
+#  the (pl)
+les
+#  their (pl)
+leurs
+#  which
+quel
+#  which
+quels
+#  which
+quelle
+#  which
+quelles
+#  without
+sans
+#  oneself
+soi
