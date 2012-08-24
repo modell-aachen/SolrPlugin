@@ -480,6 +480,8 @@ sub renderPager {
   my $lastPage = $this->lastPage($response);
   return '' unless $lastPage > 0;
 
+  #print STDERR "lastPage=$lastPage\n";
+
   my $currentPage = $this->currentPage($response);
   my $result = '';
   if ($currentPage > 0) {
@@ -544,6 +546,47 @@ sub renderPager {
 
   return $result;
 }
+##############################################################################
+sub restSOLRPROXY {
+  my ($this, $theWeb, $theTopic) = @_;
+
+  return '' unless defined $this->{solr};
+  my $query = Foswiki::Func::getCgiQuery();
+
+  $theWeb ||= $this->{session}->{webName};
+  $theTopic ||= $this->{session}->{topicName};
+  my $theQuery = $query->param('q') || "*:*";
+
+  my %params = map {$_ => [$query->param($_)]} grep {!/^_$/} $query->param();
+
+  my $wikiUser = Foswiki::Func::getWikiName();
+  
+  unless (Foswiki::Func::isAnAdmin($wikiUser)) { # add ACLs
+    push @{$params{fq}}, " (access_granted:$wikiUser OR access_granted:all)"
+  }
+
+  #print STDERR "fq=$params{fq}\n";
+  #print STDERR "params=".join(', ', keys %params)."\n";
+
+  my $response = $this->solrSearch($theQuery, \%params);
+
+  my $result = '';
+  my $status = 200;
+  my $contentType = "application/json";
+
+  try {
+    $result = $response->raw_response->content();
+  } catch Error::Simple with {
+    $result = "Error parsing response";
+    $status = 500;
+    $contentType = "text/plain";
+  };
+
+  $this->{session}->{response}->status($status);
+  $this->{session}->{response}->header(-type=>$contentType);
+
+  return $result;
+}
 
 ##############################################################################
 sub restSOLRSEARCH {
@@ -556,7 +599,14 @@ sub restSOLRSEARCH {
   $theTopic ||= $this->{session}->{topicName};
 
   my $theQuery = $query->param('q') || $query->param('search');
-  my %params = map {$_ => $query->param($_)} $query->param();
+  my %params = map {$_ => join(" " , @{[$query->param($_)]})} $query->param();
+
+  # SMELL: why doesn't this work out directly?
+  my $jsonWrf = $params{"json.wrf"};
+  delete $params{"json.wrf"};
+
+  #print STDERR "params=".join(', ', keys %params)."\n";
+
   my $response = $this->doSearch($theQuery, \%params);
 
   # I feel lucky: redirect to first result
@@ -571,13 +621,26 @@ sub restSOLRSEARCH {
   }
 
   my $result = '';
+  my $status = 200;
+  my $contentType = "application/json";
+
   try {
     $result = $response->raw_response->content();
   } catch Error::Simple with {
     $result = "Error parsing response";
+    $status = 500;
+    $contentType = "text/plain";
   };
 
-  return $result."\n\n";
+  if ($jsonWrf) {
+    $result = $jsonWrf."(".$result.")";
+    $contentType = "text/javascript";
+  }
+
+  $this->{session}->{response}->status($status);
+  $this->{session}->{response}->header(type => $contentType);
+
+  return $result;
 }
 
 ##############################################################################
@@ -702,7 +765,7 @@ sub restSOLRSIMILAR {
   my $query = Foswiki::Func::getCgiQuery();
   my $theQuery = $query->param('q');
   $theQuery =  "id:$theWeb.$theTopic" unless defined $theQuery;
-  my %params = map {$_ => $query->param($_)} $query->param();
+  my %params = map {$_ => join(" " , @{[$query->param($_)]})} $query->param();
   delete $params{'q'};
 
   my $response = $this->doSimilar($theQuery, \%params);
@@ -912,9 +975,6 @@ sub doSearch {
   my %disjunctiveFacets = map {$_ => 1} split(/\s*,\s*/, $theDisjunktiveFacets);
   my %combinedFacets = map {$_ => 1} split(/\s*,\s*/, $theCombinedFacets);
 
-  $theQueryType = Foswiki::Func::expandTemplate("solr::defaultquerytype") unless $theQueryType =~ /^(standard|dismax)$/;
-  $theQueryType = 'standard' unless defined $theQueryType;
-
   my $theStart = $params->{start} || 0;
 
   my $theReverse = Foswiki::Func::isTrue($params->{reverse});
@@ -963,18 +1023,15 @@ sub doSearch {
 
   if ($theHighlight && $theRows > 0) {
     $solrParams->{"hl"} = 'true';
-    $solrParams->{"hl.fl"} = 'text'; # TODO: make the highlight field configurable
+    $solrParams->{"hl.fl"} = 'text';
     $solrParams->{"hl.snippets"} = '2';
     $solrParams->{"hl.fragsize"} = '300';
     $solrParams->{"hl.mergeContignuous"} = 'true';
     $solrParams->{"hl.usePhraseHighlighter"} = 'true';
     $solrParams->{"hl.highlightMultiTerm"} = 'true';
-    $solrParams->{"hl.alternateField"} = 'summary';
+    $solrParams->{"hl.alternateField"} = 'text';
     $solrParams->{"hl.maxAlternateFieldLength"} = '300';
     $solrParams->{"hl.useFastVectorHighlighter"} = 'true';
-#    $solrParams->{"hl.requireFieldMatch"} = 'true';
-#    $solrParams->{"hl.fragmenter"} = 'gap';
-#    $solrParams->{"hl.fragmentsBuilder"} = 'colored';
   }
 
   if ($theMoreLikeThis) {
@@ -1229,32 +1286,6 @@ sub getFacetParams {
 
 
 ##############################################################################
-sub mapToIconFileName {
-  my ($this, $type) = @_;
-
-  my $pubUrlPath = $Foswiki::cfg{PubUrlPath}.'/'.$Foswiki::cfg{SystemWebName}.'/FamFamFamSilkIcons/';
-
-  # some specific icons
-  return $pubUrlPath.'page_white_edit.png' if $type =~ /topic/i;
-  return $pubUrlPath.'comment.png' if $type =~ /comment/i;
-
-  if (Foswiki::Func::getContext()->{MimeIconPluginEnabled}) {
-    require Foswiki::Plugins::MimeIconPlugin;
-    return Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", 16);
-  } 
-
-  return $pubUrlPath.'picture.png' if $type =~ /(jpe?g)|gif|png/i;
-  return $pubUrlPath.'compress.png' if $type =~ /zip|tar|tar|rar/i;
-  return $pubUrlPath.'page_white_acrobat.png' if $type =~ /pdf/i;
-  return $pubUrlPath.'page_excel.png' if $type =~ /xlsx?/i;
-  return $pubUrlPath.'page_word.png' if $type =~ /docx?/i;
-  return $pubUrlPath.'page_white_powerpoint.png' if $type =~ /pptx?/i;
-  return $pubUrlPath.'page_white_flash.png' if $type =~ /flv|swf/i;
-
-  return $pubUrlPath.'page_white.png';
-}
-
-##############################################################################
 # replaces buggy Data::Page interface
 sub currentPage {
   my ($this, $response) = @_;
@@ -1459,18 +1490,69 @@ sub handleSOLRSCRIPTURL {
 
   return '' unless defined $this->{solr};
 
+  my $cacheEntry;
   my $theId = $params->{_DEFAULT} || $params->{id};
-  return $this->inlineError("unknown query id") unless defined $theId;
 
-  my $cacheEntry = $this->{cache}{$theId};
-  return $this->inlineError("unknown query '$theId'") unless defined $cacheEntry;
+  $cacheEntry = $this->{cache}{$theId} if defined $theId;
+  $params = {%{$cacheEntry->{params}}, %$params} if defined $cacheEntry;
 
-  $params = {%{$cacheEntry->{params}}, %$params};
+  my $theAjax = Foswiki::Func::isTrue(delete $params->{ajax}, 1);
+ 
+  if ($theAjax) {
+    my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $params->{topic} || $theTopic);
+    return $this->getAjaxScriptUrl($web, $topic, $params);
+  } else {
+    my ($web, $topic) = $this->normalizeWebTopicName($params->{web} || $theWeb, $params->{topic} || $theTopic);
+    return $this->getScriptUrl($web, $topic, $params, $cacheEntry->{response});
+  }
+}
 
-  my $web = $params->{web} || $theWeb;
-  my $topic = $params->{topic} || $theTopic;
+##############################################################################
+sub getAjaxScriptUrl {
+  my ($this, $web, $topic, $params) = @_;
 
-  return $this->getScriptUrl($web, $topic, $params, $cacheEntry->{response});
+  my @anchors = ();
+
+  # TODO: add multivalue and union params
+  my %isUnion = map {$_=>1} split(/\s*,\s*/, $params->{union} || '');
+  my %isMultiValue = map {$_=>1} split(/\s*,\s*/, $params->{multivalue} || '');
+
+  foreach my $key (sort keys %$params) {
+    next if $key =~ /^(date|start|sort|_RAW|union|multivalue|separator|topic)$/;
+
+    my $val  = $params->{$key};
+
+    next if !defined($val) || $val eq '';
+
+    my @locals = ();
+    my $locals = '';
+    push @locals, "tag=".$key if $isUnion{$key} || $isMultiValue{$key};
+    push @locals, "q.op=OR" if $isUnion{$key};
+    $locals = '{!'.join(' ', @locals).'}' if @locals;;
+
+    #$val = '('.$val.')' unless $val =~ /^\[.*\]$/;
+    push @anchors, 'fq='.$locals.$key.':'.($isUnion{$key}?"($val)":$val);
+  }
+
+  my $theStart = $params->{start};
+  push @anchors, 'start='.$theStart if $theStart;
+
+  my $theSort = $params->{sort};
+  push @anchors, 'sort='.$theSort if $theSort;
+
+  my @urlParams = ();
+
+  my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{websearch} || 'WebSearch');;
+
+  my $url = Foswiki::Func::getScriptUrl($webSearchWeb, $webSearchTopic, 'view');
+  # not using getScriptUrl() for anchors due to encoding problems
+
+  my $theSep = $params->{separator};
+  $theSep = '&' unless defined $theSep;
+
+  $url .= '#'.join($theSep, @anchors) if @anchors;
+
+  return $url;
 }
 
 ##############################################################################
@@ -1478,12 +1560,6 @@ sub getScriptUrl {
   my ($this, $web, $topic, $params, $response, $start) = @_;
 
   my $theRows = $params->{rows};
-  my $theFilter = $params->{filter} || '';
-  
-  my $theQueryType = $params->{type} || 'standard';
-  $theQueryType = Foswiki::Func::expandTemplate("solr::defaultquerytype") unless $theQueryType =~ /^(standard|dismax)$/;
-  $theQueryType = 'standard' unless defined $theQueryType;
-
   $theRows = Foswiki::Func::expandTemplate('solr::defaultrows') unless defined $theRows;
   $theRows = 10 if !defined($theRows) || $theRows eq '';
 
@@ -1505,11 +1581,11 @@ sub getScriptUrl {
     display=>$params->{display}, # list, grid
     type=>$params->{type}, # standard, dismax
     web=>$params->{web},
-    origtopic=>$params->{origtopic},
     autosubmit=>$params->{autosubmit},
   );
 
   # SMELL: duplicates parseFilter 
+  my $theFilter = $params->{filter} || '';
   $theFilter = $this->urlDecode($this->entityDecode($theFilter));
   while ($theFilter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",]+|(?:"[^"]+?")),?/g) {
     my $field = $1;
@@ -1577,15 +1653,16 @@ sub parseFilter {
 
 ################################################################################
 sub getListOfWebs {
-  my $this = shift;
+  my ($this, $limit) = @_;
 
   my @webs = ();
+  $limit ||= 100;
 
   my $homeTopic = $Foswiki::cfg{HomeTopicName} || 'WebHome';
   my $response = $this->doSearch("*", {
     fields => "none",
     facets => "web",
-    facetlimit => "web=100",
+    facetlimit => "web=$limit",
   });
 
   my $facets = $this->getFacets($response);

@@ -274,7 +274,7 @@ sub indexTopic {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
   }
 
-  #$text = $this->entityDecode($text);
+  $text = $this->entityDecode($text);
 
   # Eliminate Topic Makup Language elements and newlines.
   my $origText = $text;
@@ -314,37 +314,18 @@ sub indexTopic {
   my $createAuthor = $contributors[scalar(@contributors)-1];
 
   # get TopicTitle
-  my $topicTitle;
-  my $field = $meta->get('FIELD', 'TopicTitle');
-  $topicTitle = $field->{value} if $field && $field->{value};
-  unless ($topicTitle) {
-    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
-    $topicTitle = $field->{value} if $field && $field->{value};
-  }
-  $topicTitle ||= $topic;
-
-  # bit of cleanup
-  $topicTitle =~ s/<!--.*?-->//g;
+  my $topicTitle = $this->getTopicTitle($web, $topic, $meta);
 
   # get summary
-  my $summary;
-  $field = $meta->get('FIELD', 'Summary');
-  $summary = $field->{value} if $field && $field->{value};
-  unless ($summary) {
-    $field = $meta->get('FIELD', 'Teaser');
-    $summary = $field->{value} if $field && $field->{value};
-  }
-  unless ($summary) {
-    $field = $meta->get('PREFERENCE', 'SUMMARY');
-    $summary = $field->{value} if $field && $field->{value};
-  }
-  $summary = $this->plainify($summary, $web, $topic);
-  $summary = unicode_substr($text, 0, 300) unless $summary;
+  my $summary = $this->getTopicSummary($web, $topic, $meta, $text);
 
   # url to topic
   my $url = Foswiki::Func::getViewUrl($web, $topic);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
+
+  my $containerTitle = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
+  $containerTitle = $web if $containerTitle eq $Foswiki::cfg{HomeTopicName};
 
   $doc->add_fields(
     # common fields
@@ -362,6 +343,10 @@ sub indexTopic {
     createauthor => $createAuthor,
     createdate => $createDate,
     type => 'topic',
+    container_id => $web,
+    container_url => Foswiki::Func::getViewUrl($web, $Foswiki::cfg{HomeTopicName}),
+    container_title => $containerTitle,
+    icon => $this->mapToIconFileName('topic'),
     # topic specific
   );
 
@@ -449,14 +434,22 @@ sub indexTopic {
             if ($fieldName =~ /(_(?:i|s|l|t|b|f|dt|lst))$/) {
               $fieldType = $1;
             }
-            $doc->add_fields(
-              $fieldName.$fieldType => $value,
-            );
 	    if ($fieldType eq '_s') {
-	      $doc->add_fields(
-		$fieldName.'_search' => $value,
-	      );
-	    }
+              # applying a full plainify might alter the content too much in some cases. so
+              # we try to remove only those characters that break the json parser
+              #$value = $this->plainify($value, $web, $topic);
+              $value =~ s/<!--.*?-->//gs;    # remove all HTML comments
+              $value =~ s/<[^>]*>/ /g;    # remove all HTML tags 
+
+              $doc->add_fields(
+                $fieldName.'_s' => $value,
+                $fieldName.'_search' => $value,
+              );
+            } else {
+              $doc->add_fields(
+                $fieldName.$fieldType => $value,
+              );
+            }
           }
         }
       }
@@ -511,7 +504,10 @@ sub indexTopic {
   # attachments
   my @attachments = $meta->find('FILEATTACHMENT');
   if (@attachments) {
-    foreach my $attachment (@attachments) {
+    my $thumbnail;
+    my $firstImage;
+    my %sorting = map {$_ => lc($_->{comment}||$_->{name})} @attachments;
+    foreach my $attachment (sort {$sorting{$a} cmp $sorting{$b}} @attachments) {
 
       # is the attachment is the skip list?
       my $name = $attachment->{'name'} || '';
@@ -523,9 +519,21 @@ sub indexTopic {
       # add attachment names to the topic doc
       $doc->add_fields('attachment' => $name);
 
+      # decide on thumbnail
+      if (!defined $thumbnail && $attachment->{isthumbnail}) {
+        $thumbnail = $name;
+      }
+      if (!defined $firstImage && $name =~ /(png|jpe?g|gif|bmp$)/i) {
+        $firstImage = $name;
+      }
+
       # then index each of them
       $this->indexAttachment($web, $topic, $attachment, \@aclFields);
     }
+
+    # take the first image attachment when no thumbnail was specified explicitly
+    $thumbnail = $firstImage if !defined($thumbnail) && defined($firstImage);
+    $doc->add_fields('thumbnail' => $thumbnail) if defined $thumbnail;
   }
 
   if (PROFILE) {
@@ -667,7 +675,7 @@ sub indexAttachment {
   my $author = getWikiName($attachment->{user});
 
   # get summary
-  my $summary = unicode_substr($attText, 0, 300);
+  my $summary = Foswiki::Plugins::SolrPlugin::Base::unicode_substr($attText, 0, 300);
 
 #  my $author = $attachment->{'user'} || $attachment->{'author'} || '';
 #  $author = Foswiki::Func::getWikiName($author) || 'UnknownUser';
@@ -689,6 +697,7 @@ sub indexAttachment {
     filename=>$name);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
+  my $icon = $this->mapToIconFileName($extension);
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
@@ -709,6 +718,11 @@ sub indexAttachment {
       name => $name,
       comment => $comment,
       size => $size,
+      icon => $icon,
+      container_id => $web.'.'.$topic,
+      container_url => Foswiki::Func::getViewUrl($web, $topic),
+      container_title => $this->getTopicTitle($web, $topic),
+      # TODO: thumbnails
   );
 
   # tag and analyze language
@@ -975,6 +989,8 @@ sub plainify {
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
   $text =~ s/<!--.*?-->//gs;                                # remove all HTML comments
   $text =~ s/<(?!nop)[^>]*>/ /g;                            # remove all HTML tags except <nop>
+
+  # SMELL: these should have been processed by entityDecode() before
   $text =~ s/&#\d+;/ /g;                                    # remove html entities
   $text =~ s/&[a-z]+;/ /g;                                  # remove entities
 
@@ -1220,19 +1236,6 @@ sub setTimestamp {
   Foswiki::Func::saveFile($timestampFile, $time);
 
   return $time;
-}
-
-################################################################################
-sub unicode_substr {
-  my ($string, $offset, $length) = @_;
-
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-
-  $string = Encode::encode($charset, $string);
-  $string = substr($string, $offset, $length);
-  $string = Encode::decode($charset, $string);
-
-  return $string;
 }
 
 ################################################################################

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2012 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -70,6 +70,14 @@ sub initPlugin {
     return getSearcher($session)->restSOLRSEARCH($web, $topic);
   });
 
+  Foswiki::Func::registerRESTHandler('proxy', sub {
+    my $session = shift;
+
+    my $web = $session->{webName};
+    my $topic = $session->{topicName};
+    return getSearcher($session)->restSOLRPROXY($web, $topic);
+  });
+
 
   Foswiki::Func::registerRESTHandler('terms', sub {
     my $session = shift;
@@ -112,6 +120,10 @@ sub initPlugin {
 
     return getCrawler($session, $name)->crawl($path, $depth);
   });
+
+  Foswiki::Func::addToZone("script", "SOLRPLUGIN::SEARCHBOX", <<'HERE', "JQUERYPLUGIN");
+<script src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solr-searchbox.js'></script> 
+HERE
 
   return 1;
 }

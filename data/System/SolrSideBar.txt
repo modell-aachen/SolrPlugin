@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1330537641" format="1.1" reprev="4" version="7"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1334087425" format="1.1" reprev="9" version="9"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -19,10 +19,7 @@ Note: all components make use of Foswiki:Extensions/DBCachePlugin for greater fl
 Default sidebar implementation that includes all of the components listed below.
 
 <verbatim class="tml">
-%STARTINCLUDE%<!-- -->
-%INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%
-%INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%
-<!-- -->%STOPINCLUDE%
+%STARTINCLUDE%%INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%%INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%%STOPINCLUDE%
 </verbatim>
 
 ---++ Component: "solrsimilar"
@@ -49,8 +46,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
        </a>
      </li>"
    separator="$n"
-}%<!-- -->
-</noautolink>%ENDSECTION{"solrsimilar"}%
+}%</noautolink>%ENDSECTION{"solrsimilar"}%
 </verbatim>
 
 ---++ Component: "recentchanges"

@@ -155,7 +155,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     var self = this;
     self.log("showSelection called");
 
-    $(".solrYourSelection > ul > li:not(.solrNoSelection)").remove()
+    $("#solrCurrentSelection > ul > li:not(.solrNoSelection)").remove()
     if (self.selection.length) {
       var template = "<li>"+
         "<table class='foswikiLayoutTable' width='100%'>"+
@@ -168,7 +168,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
       
       self.debugSelection();
 
-      var list = $(".solrYourSelection > ul");
+      var list = $("#solrCurrentSelection > ul");
       for (var i = 0; i < self.selection.length; i++) {
         var fv = self.selection[i];
         var valueTitle = fv.valueTitle;
@@ -598,11 +598,11 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
 
     /* switch on */
     self.showSelection();
-    $(".solrYourSelection label").css('visibility', 'hidden');
+    $("#solrCurrentSelection label").css('visibility', 'hidden');
     $(".solrFacetPager").show();
 
     window.setTimeout(function() {
-      $(".solrYourSelection label").css('visibility', 'visible');
+      $("#solrCurrentSelection label").css('visibility', 'visible');
     }, 100);
   };
 

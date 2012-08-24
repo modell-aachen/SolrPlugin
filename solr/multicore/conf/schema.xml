@@ -1115,6 +1115,20 @@
    <field name="topic" type="string" />
    <field name="webtopic" type="string" /> <!-- useful for autocompletion in a jump box -->
 
+   <!-- renditions -->
+   <field name="icon" type="string" indexed="false" /> <!-- url -->
+   <field name="thumbnail" type="string" indexed="false" /> <!-- url -->
+
+   <!-- 
+    information about the document this one is contained in or part of.
+       * for attachments and comments, this is the topic
+       * for topics, this is the web
+       * for webs, this is is the parent web
+    -->
+   <field name="container_id" type="string" /> <!-- id -->
+   <field name="container_url" type="string" /> <!-- url -->
+   <field name="container_title" type="string" /> <!-- display title -->
+
    <!-- this field stores the ACLs of a topic or attachment -->
    <field name="access_granted" type="string" stored="false" multiValued="true" />
 

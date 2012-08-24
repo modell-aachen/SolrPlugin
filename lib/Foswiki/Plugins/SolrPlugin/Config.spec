@@ -13,7 +13,7 @@ $Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTo
 
 # **STRING**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
-$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
+$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
 # **STRING**
 # List of attachments to skip                                                                                         
@@ -32,8 +32,9 @@ $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates} = 0;
 $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
 
 # **BOOLEAN**
-# Update the index whenever a topic is renamed.
-# If this flag is disabled, you will have to install a cronjob to update the index regularly.
+# Update the index whenever a topic is renamed or deleted.
+# Warning: this flag should be enabled by default. If you disable it, foswiki might still list some
+# topics as a search result even though they have been removed physically.
 $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 
 # **PERL H**

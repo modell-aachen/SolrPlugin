@@ -5,7 +5,6 @@
    template inheritance and general presets 
 }%
 %TMPL:INCLUDE{"view"}%
-%TMPL:DEF{"form"}%%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -27,7 +26,7 @@
 %TMPL:DEF{"solr::defaultsort"}%score desc%TMPL:END%
 %TMPL:DEF{"solr::defaultdisplay"}%list%TMPL:END%
 %TMPL:DEF{"solr::defaultautosubmit"}%on%TMPL:END%
-%TMPL:DEF{"solr::defaultinfinitescroll"}%on%TMPL:END%
+%TMPL:DEF{"solr::defaultinfinitescroll"}%off%TMPL:END%
 %TMPL:DEF{"solr::boostquery"}%type:topic^200%TMPL:END%
 %TMPL:DEF{"solr::queryfields"}%
   web_search^8.0 
@@ -98,7 +97,7 @@
   %MAKETEXT{"older"}%=date:[* TO NOW/YEAR]
 %TMPL:END%
 %TMPL:DEF{"solr::hidesinglefacets"}%web, type, collection, language, author, field_TopicType_lst, facetquery%TMPL:END%
-%TMPL:DEF{"solr::disjunctivefacets"}%%TMPL:END%
+%TMPL:DEF{"solr::disjunctivefacets"}%web%TMPL:END%
 %TMPL:DEF{"solr::combinedfacets"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::include::web"}%%TMPL:END%
 %TMPL:DEF{"solr::facet::exclude::web"}%%TMPL:END%
@@ -131,10 +130,18 @@
 }%
 %TMPL:DEF{"content"}%<div class='solrSearch'><noautolink>
 %TMPL:P{"solr::title"}%<!-- -->
-%TMPL:P{"solr::header"}%
-%TMPL:P{"solr::hits"}%
-%TMPL:P{"solr::footer"}%
-%TMPL:P{"solr::css"}%<!-- -->
+%TMPL:P{"solr::header"}%<!-- -->
+%TMPL:P{"solr::hits"}%<!-- -->
+%TMPL:P{"solr::footer"}%<!-- -->
+%TMPL:P{"solr::assets"}%<!-- -->
+</noautolink></div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::assets - css and js to be added to the html head
+}%
+%TMPL:DEF{"solr::assets"}%<!-- -->
 %JQREQUIRE{"focus, serialpager"}%<!-- -->
 %IF{"context PrettyPhotoEnabled"
   then="$percntJQREQUIRE{\"prettyphoto\"}$percnt"
@@ -142,7 +149,7 @@
 %IF{"'%TMPL:P{"solr::defaultinfinitescroll"}%'='on' and context InfiniteScrollEnabled"
   then="$percntTMPL:P{\"solr::infinitescroll\"}$percnt"
 }%<!-- -->
-</noautolink></div>%TMPL:END%
+<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -195,7 +202,6 @@ jQuery(function($) {
   jump="%URLPARAM{"jump"}%"
   lucky="%URLPARAM{"lucky"}%"
   display="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%"
-  origtopic="%URLPARAM{"origtopic" default="%BASEWEB%.%BASETOPIC%"}%"
   type="%URLPARAM{"type" default="%TMPL:P{"solr::defaultquerytype"}%"}%"
   boostquery="%TMPL:P{"solr::boostquery"}%"
   queryfields="%TMPL:P{"solr::queryfields"}%"
@@ -327,7 +333,7 @@ jQuery(function($) {
 }%
 %TMPL:DEF{"solr::selection"}%<!-- -->
 <h2>%MAKETEXT{"Filter results"}%</h2>
-<div class='solrYourSelection'>
+<div id='solrCurrentSelection'>
   <h3>%MAKETEXT{"Your selection"}%:</h3>
   <ul><li class='solrNoSelection'>%MAKETEXT{"(none)"}%</li></ul>
   <a href='#' class="solrClear solrClearAll {selector:'.solrFacetValue, .solrDeleteFacetValue'}">%MAKETEXT{"Clear"}%</a>
@@ -518,7 +524,7 @@ jQuery(function($) {
 %TMPL:DEF{"solr::header::results::infinitescroll"}%<!-- -->
 <div class='solrHeaderResults'>
       %SOLRFORMAT{"solr1" 
-        header="<div class='solrNumResults'>
+        header="<div id='solrNumResults'>
                   $percntIF{\"$count>0\" 
                     then=\"$percntMAKETEXT{\"Found <strong>[_1]</strong> results\" args=\"$count\"}$percnt\"
                     else=\"<span class='foswikiAlert'>%MAKETEXT{"nothing found"}%</span>\"
@@ -683,7 +689,7 @@ jQuery(function($) {
     }$percnt</h3>
     $percntTWISTYTOGGLE{id=\"solrtags\" mode=\"div\"}$percnt
     <div class='tagCloud' style='text-align:center'>"
-  format="<span style='font-size:$weightpx;line-height:110%'><a href='#' style='color:$fadeRGB(104,144,184,0,102,255);' class='solrFacetValue tag_$term' value='tag:$term' name='tag_$term'>$term</a></span>"
+  format="<span style='font-size:$weightpx'><a href='#' style='color:$fadeRGB(104,144,184,0,102,255);' class='solrFacetValue tag_$term' value='tag:$term' name='tag_$term'>$term</a></span>"
   footer="</div>$percntENDTWISTYTOGGLE$percnt</div></div>"
   group="<strong>$group</strong>&nbsp;"
   split="\s*,\s*"
