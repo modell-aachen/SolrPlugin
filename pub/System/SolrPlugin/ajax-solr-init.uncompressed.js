@@ -5,7 +5,6 @@
       "id",
       "web",
       "topic",
-      "text",
       "type",
       "date",
       "container_title",

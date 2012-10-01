@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1334087425" format="1.1" reprev="9" version="9"}%
+%META:TOPICINFO{author="micha" comment="save topic" date="1348686382" format="1.1" reprev="2" version="2"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -31,9 +31,9 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
 <verbatim class="tml">
 %STARTSECTION{"solrsimilar"}%<noautolink>
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%" 
-   filter="web:%BASEWEB% type:topic"
+   filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
    %IF{"defined SOLRSIMILAR_LIKE" then="like=\"%SOLRSIMILAR_LIKE%\""}%
-   fields="web,topic,title,score,field_Summary_s"
+   fields="web,topic,title,score,summary"
    rows="5"
    header="<h2 >%MAKETEXT{"Similar topics"}%</h2>$n<ul>" 
    footer="</ul>"
@@ -41,7 +41,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
        <a href='%SCRIPTURLPATH{"view"}%/$web/$topic' title='%MAKETEXT{"score: [_1]" args="$score"}%'>
          $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" TYPE=\"plain\"}$percnt <!-- -->
          <!-- -->$title<br />
-         <span class='foswikiGrayText'>$field_Summary_s</span>
+         <span class='foswikiGrayText'>$summary</span>
          %CLEAR%
        </a>
      </li>"
@@ -55,22 +55,19 @@ Renders a list of the five most recent changes in the current web.
 
 <verbatim class="tml">
 %STARTSECTION{"recentchanges"}%<noautolink>
-%DBQUERY{
-  "topic!='%BASETOPIC%'"
-  web="%BASEWEB%" 
-  order="modified" 
-  limit="5" 
-  reverse="on"
+%SOLRSEARCH{
+  "web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
+  sort="date desc" 
+  limit="5"
+  fields="web,topic,title,summary"
   exclude="WebHome|WebLinks|WebSideBar|WebPreferences|WebStatistics|WebTopicList|WebSearch|WebIndex|WebAdvancedSearch"
   header="<h2 >%MAKETEXT{"Recent Changes"}%</h2>$n<ul>"
   footer="</ul>"
   format="<li>
       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic'>
         $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" TYPE=\"plain\"}$percnt<!-- -->
-        $expand(topictitle)<br />
-        <span class='foswikiGrayText'>
-          $formfield(Summary)<!-- -->
-        </span>
+        $title<br />
+        <span class='foswikiGrayText'>$summary</span>
         %CLEAR%
       </a>
     </li>"

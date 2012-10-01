@@ -54,7 +54,7 @@
 .solrSearchHitsGrid .solrHilite,
 .solrSearchHitsGrid .solrImageHit h3 > a,
 .solrSearchHitsGrid .solrImageHit .solrSearchHitSummary,
-.solrSearchHitsGrid .solrImageHit .solrRevision {
+.solrSearchHitsGrid .solrRevision {
   display:none;
 }
 .solrSearchHitsGrid h3 {
@@ -89,13 +89,6 @@
 .solrSearchHitsGrid .solrAttachmentHit {
   border-color:#eee;
   padding:0.5em;
-}
-.solrSearchHitsGrid .solrRevision {
-  position:absolute;
-  padding:0.5em;
-  bottom:0;
-  left:0;
-  background-color:#fff;
 }
 .solrSearchHitsGrid .solrImageFrame {
   background-color:#fff;
@@ -170,6 +163,7 @@
 .solrHeader .foswikiRight th {
   padding:0px;
 }
+.solrHeader .solrRows td,
 .solrHeader .foswikiRight td {
   padding:0px 0px 0px 5px;
 }

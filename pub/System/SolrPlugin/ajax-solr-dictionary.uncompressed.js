@@ -1,19 +1,67 @@
-var _;
+var _ = function(key, id) {
+  id = id || 'default' 
+  return AjaxSolr.Dicts[id].get(key);
+};
 
 (function($) {
-  AjaxSolr.Dictionary = {
-    data: {},
-    init: function(elem) {
-      AjaxSolr.Dictionary.data = $.parseJSON($(elem).text());
-    },
-    _: function(key) {
-      key = key.replace(/^\s*(.*?)\s*$/, "$1");
-      return AjaxSolr.Dictionary.data[key]?AjaxSolr.Dictionary.data[key]:key;
+  AjaxSolr.Dictionary = function(elem, opts) {
+    var self = this, 
+        $elem = $(elem),
+        thisOpts = $.extend({}, $elem.data(), opts);
+
+    self.id = $elem.attr('id') || thisOpts.id || 'default';
+    self.data = {};
+    self.container = $elem;
+    self.opts = thisOpts;
+    self.init();
+  };
+
+  AjaxSolr.Dictionary.prototype.init = function() {
+    var self = this;
+    self.text = self.container.text();
+    self.data = $.parseJSON(self.text);
+  };
+
+  AjaxSolr.Dictionary.prototype.get = function(key) {
+    var self = this, val, subDict;
+
+    key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    val = self.data[key];
+
+    if (typeof(val) !== 'undefined') {
+      return val;
     }
+
+    if (typeof(self.opts.subDictionary) === 'undefined') {
+      return key;
+    }
+
+    subDict = AjaxSolr.Dicts[self.opts.subDictionary];
+    if (typeof(subDict) !== 'undefined') {
+      return subDict.get(key);
+    }
+
+    return key;
+  };
+
+  AjaxSolr.Dictionary.prototype.set = function(key, val) {
+    var self = this;
+    key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    self.data[key] = val;
   };
 
   $(function() {
-    AjaxSolr.Dictionary.init(".solrDictionary");
-    _ = AjaxSolr.Dictionary._;
+    var first;
+
+    AjaxSolr.Dicts = {};
+
+    $(".solrDictionary").each(function() {
+      var dict = new AjaxSolr.Dictionary(this);
+      if(!first) first = dict;
+      AjaxSolr.Dicts[dict.id] = dict;
+    });
+
+    AjaxSolr.Dicts['default'] = AjaxSolr.Dicts['default'] || first;
+
   });
 })(jQuery);

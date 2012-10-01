@@ -23,6 +23,10 @@ use Error qw( :try );
 use Encode ();
 use HTML::Entities ();
 
+our $STARTWW = qr/^|(?<=[\s\(])/m;
+our $ENDWW = qr/$|(?=[\s,.;:!?)])/m;
+
+
 BEGIN {
   if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
     $WebService::Solr::ENCODE = 0;    # don't encode to utf8 in WebService::Solr
@@ -279,12 +283,12 @@ sub inlineError {
 
 ##############################################################################
 sub entityDecode {
-  my ($this, $text) = @_;
+  my ($this, $text, $skipDecode) = @_;
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
-  $text = Encode::decode($charset, $text);
+  $text = Encode::decode($charset, $text) unless $skipDecode;
   $text = HTML::Entities::decode_entities($text);
-  $text = Encode::encode($charset, $text);
+  $text = Encode::encode($charset, $text) unless $skipDecode;
 
   return $text;
 }
@@ -408,24 +412,115 @@ sub getTopicSummary {
     $summary = $field->{value} if $field && $field->{value};
   }
 
-  $summary = $this->plainify($summary, $web, $topic);
-  $summary = unicode_substr($text, 0, 300) unless $summary;
+  return '' unless defined $summary;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  $summary = Encode::decode($charset, $summary);
+  $summary = $this->plainify($summary, $web, $topic, 1);
+  $summary = Encode::encode($charset, $summary);
 
   return $summary;
 }
 
 ################################################################################
-sub unicode_substr {
-  my ($string, $offset, $length) = @_;
+sub plainify {
+  my ($this, $text, $web, $topic, $skipDecode) = @_;
+
+  return '' unless defined $text;
+
+  my $wtn = Foswiki::Func::getPreferencesValue('WIKITOOLNAME') || '';
+
+  # from Foswiki:Extensions/GluePlugin
+  $text =~ s/^#~~(.*?)$//gom;    # #~~
+  $text =~ s/%~~\s+([A-Z]+[{%])/%$1/gos;    # %~~
+  $text =~ s/\s*[\n\r]+~~~\s+/ /gos;        # ~~~
+  $text =~ s/\s*[\n\r]+\*~~\s+//gos;        # *~~
+
+  # from Fosiki::Render
+  $text =~ s/\r//g;                         # SMELL, what about OS10?
+  $text =~ s/%META:[A-Z].*?}%//g;
+
+  $text =~ s/%WEB%/$web/g;
+  $text =~ s/%TOPIC%/$topic/g;
+  $text =~ s/%WIKITOOLNAME%/$wtn/g;
+  $text =~ s/%$Foswiki::regex{tagNameRegex}({.*?})?%//g;    # remove
+
+  # Format e-mail to add spam padding (HTML tags removed later)
+  $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
+  $text =~ s/<!--.*?-->//gs;                                # remove all HTML comments
+  $text =~ s/<(?!nop)[^>]*>/ /g;                            # remove all HTML tags except <nop>
+
+  # SMELL: these should have been processed by entityDecode() before
+  $text =~ s/&#\d+;/ /g;                                    # remove html entities
+  $text =~ s/&[a-z]+;/ /g;                                  # remove entities
+
+  # keep only link text of legacy [[prot://uri.tld/ link text]]
+  $text =~ s/
+          \[
+              \[$Foswiki::regex{linkProtocolPattern}\:
+                  ([^\s<>"\]]+[^\s*.,!?;:)<|\]])
+                      \s+([^\[\]]*?)
+              \]
+          \]/$3/gx;
+
+  # remove brackets from [[][]] links
+  $text =~ s/\[\[([^\]]*\]\[)(.*?)\]\]/$1 $2/g;
+
+  # remove "Web." prefix from "Web.TopicName" link
+  $text =~ s/$STARTWW(($Foswiki::regex{webNameRegex})\.($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex}))/$3/g;
+  $text =~ s/[\[\]\*\|=_\&\<\>]/ /g;    # remove Wiki formatting chars
+  $text =~ s/^\-\-\-+\+*\s*\!*/ /gm;    # remove heading formatting and hbar
+  $text =~ s/[\+\-]+/ /g;               # remove special chars
+  $text =~ s/^\s+//;                    # remove leading whitespace
+  $text =~ s/\s+$//;                    # remove trailing whitespace
+  $text =~ s/!(\w+)/$1/gs;              # remove all nop exclamation marks before words
+  $text =~ s/[\r\n]+/\n/s;
+  $text =~ s/[ \t]+/ /s;
+
+  # remove/escape special chars
+  $text =~ s/\\//g;
+  $text =~ s/"//g;
+  $text =~ s/%{//g;
+  $text =~ s/}%//g;
+  $text =~ s/%//g;
+  $text =~ s/{\s*}//g;
+  $text =~ s/#+//g;
+  $text =~ s/\$perce?nt//g;
+  $text =~ s/\$dollar//g;
+  $text =~ s/\n/ /g;
+  $text =~ s/~~~/ /g;
+  $text =~ s/^$//gs;
+
+  return $this->discardIllegalChars($text, $skipDecode);
+}
+
+
+################################################################################
+sub substr {
+  my ($this, $string, $offset, $length, $skipDecode) = @_;
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
 
-  $string = Encode::decode($charset, $string);
+  $string = Encode::decode($charset, $string) unless $skipDecode;
   $string = substr($string, $offset, $length);
-  $string = Encode::encode($charset, $string);
+  $string = Encode::encode($charset, $string) unless $skipDecode;
 
   return $string;
 }
 
+################################################################################
+sub discardIllegalChars {
+  my ($this, $string, $skipDecode) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  $string = Encode::decode($charset, $string) unless $skipDecode;
+
+  # remove illegal characters
+  $string =~ s/\p{C}/ /g;
+
+  $string = Encode::encode($charset, $string) unless $skipDecode;
+
+  return $string;
+}
 
 1;

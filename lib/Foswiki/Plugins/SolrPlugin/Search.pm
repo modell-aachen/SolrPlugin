@@ -212,10 +212,10 @@ HERE
       my $web;
       my $summary = '';
 
-      foreach my $field ($doc->fields) {
-        my $name = $field->{name};
-
-        my $value = $field->{value};
+      my $theValueSep = $params->{valueseparator} || ', ';
+      foreach my $name ($doc->field_names) {
+        my @values = $doc->values_for($name);
+        my $value = join($theValueSep, @values);
 
         $web = fromUtf8($value) if $name eq 'web';
         $topic = fromUtf8($value) if $name eq 'topic';
@@ -546,6 +546,7 @@ sub renderPager {
 
   return $result;
 }
+
 ##############################################################################
 sub restSOLRPROXY {
   my ($this, $theWeb, $theTopic) = @_;
@@ -1499,7 +1500,7 @@ sub handleSOLRSCRIPTURL {
   my $theAjax = Foswiki::Func::isTrue(delete $params->{ajax}, 1);
  
   if ($theAjax) {
-    my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $params->{topic} || $theTopic);
+    my ($web, $topic) = $this->normalizeWebTopicName($params->{web} || $theWeb, $params->{topic} || $theTopic);
     return $this->getAjaxScriptUrl($web, $topic, $params);
   } else {
     my ($web, $topic) = $this->normalizeWebTopicName($params->{web} || $theWeb, $params->{topic} || $theTopic);
@@ -1550,9 +1551,21 @@ sub getAjaxScriptUrl {
   my $theSep = $params->{separator};
   $theSep = '&' unless defined $theSep;
 
-  $url .= '#'.join($theSep, @anchors) if @anchors;
+  $url .= '#'.join($theSep, map {urlEncode($_)} @anchors) if @anchors;
 
   return $url;
+}
+
+##############################################################################
+sub urlEncode {
+  my $text = shift;
+
+  #$text =~ s/([^0-9a-zA-Z-_.:~!*'\/])/'%'.sprintf('%02x',ord($1))/ge;
+
+  # the small version
+  $text =~ s/ /%20/g;
+
+  return $text;
 }
 
 ##############################################################################

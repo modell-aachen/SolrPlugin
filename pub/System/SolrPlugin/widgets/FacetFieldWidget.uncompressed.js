@@ -82,7 +82,7 @@
         if (self.facetType == 'facet_ranges') {
           value = value+' TO '+value+self["facet.range.gap"];
           if (title) {
-            AjaxSolr.Dictionary.data[value] = title;
+            AjaxSolr.Dict['default'].set(value, title);
           }
           value = '['+value+']';
         }

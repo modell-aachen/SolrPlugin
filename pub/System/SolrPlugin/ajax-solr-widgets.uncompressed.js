@@ -247,7 +247,7 @@
         if (self.facetType == 'facet_ranges') {
           value = value+' TO '+value+self["facet.range.gap"];
           if (title) {
-            AjaxSolr.Dictionary.data[value] = title;
+            AjaxSolr.Dict['default'].set(value, title);
           }
           value = '['+value+']';
         }
@@ -563,7 +563,8 @@
       defaultDisplay: 'list',
       smallSize: 64,
       largeSize: 150,
-      dateFormat: 'dddd, Do MMMM YYYY, LT'
+      dateFormat: 'dddd, Do MMMM YYYY, LT',
+      dictionary: 'default'
     },
 
     beforeRequest: function () {
@@ -572,9 +573,9 @@
           systemWeb = foswiki.getPreference('SYSTEMWEB');
 
       if (self._isFirst) {
-        $.blockUI({message:'<h1>'+_(self.options.firstLoadingMessage)+'</h1>'});
+        $.blockUI({message:'<h1>'+_(self.options.firstLoadingMessage, self.options.dictionary)+'</h1>'});
       } else {
-        $(self.options.blockUi).block({message:'<h1>'+_(self.options.loadingMessage)+'</h1>'});
+        $(self.options.blockUi).block({message:'<h1>'+_(self.options.loadingMessage, self.options.dictionary)+'</h1>'});
       }
     },
 
@@ -634,7 +635,7 @@
             if (list && list.length) {
               lines = [];
               $.each(list.sort().slice(0, limit), function(i, v) {
-                lines.push(_(v));
+                lines.push(_(v, self.options.dictionary));
               });
               result += lines.join(separator);
               if (list.length > limit) {
@@ -650,10 +651,10 @@
                 lines, result = '';
 
             if (cats && cats.length) {
-              result += _('Filed in')+" ";
+              result += _('Filed in', self.options.dictionary)+" ";
               lines = [];
               $.each(cats.sort().slice(0, 10), function(i, v) {
-                lines.push(_(v));
+                lines.push(_(v, self.options.dictionary));
               });
               result += lines.join(", ");
               if (cats.length > 10) {
@@ -662,9 +663,9 @@
             } 
             if (tags && tags.length) {
               if (cats && cats.length) {
-                result += ", "+_("tagged")+" ";
+                result += ", "+_("tagged", self.options.dictionary)+" ";
               } else {
-                result += _("Tagged")+" ";
+                result += _("Tagged", self.options.dictionary)+" ";
               }
               result += tags.sort().slice(0, 10).join(", ");
               if (tags.length > 10) {
@@ -1121,7 +1122,6 @@
       self.$container = self.$target.find(self.options.container);
       self.template = $(self.options.templateName).template();
       self.multivalue = true;
-      self.union = true;
     }
   });
 

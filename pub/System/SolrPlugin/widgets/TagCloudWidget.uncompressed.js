@@ -113,7 +113,6 @@
       self.$container = self.$target.find(self.options.container);
       self.template = $(self.options.templateName).template();
       self.multivalue = true;
-      self.union = true;
     }
   });
 
