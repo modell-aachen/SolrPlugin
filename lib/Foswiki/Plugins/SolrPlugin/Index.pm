@@ -1041,7 +1041,7 @@ sub getListOfUsers {
     my $it = Foswiki::Func::eachUser();
     while ($it->hasNext()) {
       my $user = $it->next();
-      $this->{knownUsers}{$user} = 1 if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
+      $this->{knownUsers}{$user} = 1 if $Foswiki::cfg{SolrPlugin}{IndexAllUsers} || Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
     }
 
     #$this->log("known users=".join(", ", sort keys %{$this->{knownUsers}})) if DEBUG;

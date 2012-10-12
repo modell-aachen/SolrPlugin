@@ -15,6 +15,13 @@ $Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTo
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
 $Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
+# **BOOLEAN**
+# Normally, only users that already have a user topic will be included in Solr's access check.
+# This means that restricted webs/topics will not appear to other users (e.g. from LDAP).
+# If you activate this option, all users will get added to Solr's access rules, even if they
+# don't have a user topic (yet).
+$Foswiki::cfg{SolrPlugin}{IndexAllUsers} = 1;
+
 # **STRING**
 # List of attachments to skip                                                                                         
 # For example: Web.SomeTopic.AnAttachment.txt, Web.OtherTopic.OtherAttachment.pdf 
