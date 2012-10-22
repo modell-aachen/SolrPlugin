@@ -1487,12 +1487,14 @@ sub parseFacetSpec {
 
 ##############################################################################
 sub handleSOLRSCRIPTURL {
-  my ($this, $params, $theWeb, $theTopic) = @_;
+  my ($this, $params, $web, $topic) = @_;
 
   return '' unless defined $this->{solr};
 
   my $cacheEntry;
   my $theId = $params->{_DEFAULT} || $params->{id};
+  my $theWeb = $params->{web} || $this->{session}->{webName};
+  my $theTopic = $params->{topic} || $this->{session}->{topicName};
 
   $cacheEntry = $this->{cache}{$theId} if defined $theId;
   $params = {%{$cacheEntry->{params}}, %$params} if defined $cacheEntry;
@@ -1500,10 +1502,10 @@ sub handleSOLRSCRIPTURL {
   my $theAjax = Foswiki::Func::isTrue(delete $params->{ajax}, 1);
  
   if ($theAjax) {
-    my ($web, $topic) = $this->normalizeWebTopicName($params->{web} || $theWeb, $params->{topic} || $theTopic);
+    my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $theTopic);
     return $this->getAjaxScriptUrl($web, $topic, $params);
   } else {
-    my ($web, $topic) = $this->normalizeWebTopicName($params->{web} || $theWeb, $params->{topic} || $theTopic);
+    my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $theTopic);
     return $this->getScriptUrl($web, $topic, $params, $cacheEntry->{response});
   }
 }

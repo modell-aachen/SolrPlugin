@@ -190,7 +190,7 @@ msgstr "Sprache"
 #: data/System/SolrAjaxSearchBaseTemplate.txt:502
 #: data/System/SolrSearchBaseTemplate.txt:857
 msgid "Last changed"
-msgstr "Letzte Änderung"
+msgstr "Letzte &&Auml;nderung"
 
 #: data/System/SolrAjaxSearchBaseTemplate.txt:429
 #: data/System/SolrSearchBaseTemplate.txt:61
@@ -221,17 +221,17 @@ msgstr ""
 
 #: data/System/SolrSideBar.txt:69
 msgid "Recent Changes"
-msgstr "Letzte Änderungen"
+msgstr "Letzte &&Auml;nderungen"
 
 #: data/System/SolrAjaxSearchBaseTemplate.txt:448
 #: data/System/SolrSearchBaseTemplate.txt:60
 #: data/System/WebChangesViewTemplate.txt:21
 msgid "Recent changes"
-msgstr "Letzte Änderungen"
+msgstr "Letzte &&Auml;nderungen"
 
 #: data/System/WebChangesViewTemplate.txt:22
 msgid "Recent changes in %1"
-msgstr "Letze Änderungen in %1"
+msgstr "Letze &&Auml;nderungen in %1"
 
 #: data/System/SolrAjaxSearchBaseTemplate.txt:501
 #: data/System/SolrSearchBaseTemplate.txt:856
@@ -263,7 +263,7 @@ msgstr "Suchen"
 
 #: data/System/SolrSideBar.txt:41
 msgid "Similar topics"
-msgstr "Ähnliche Topics"
+msgstr "&&Auml;hnliche Topics"
 
 #: data/System/SolrAjaxSearchBaseTemplate.txt:498
 #: data/System/SolrSearchBaseTemplate.txt:853

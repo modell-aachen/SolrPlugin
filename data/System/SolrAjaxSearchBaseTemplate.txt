@@ -1,0 +1,730 @@
+%META:TOPICINFO{author="ProjectContributor" comment="save topic"date="1346678572"format="1.1" version="3"}%
+%META:TOPICPARENT{name="SolrPlugin"}%
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   template inheritance and general presets 
+}%
+%TMPL:INCLUDE{"view"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   customization section
+}%
+%TMPL:DEF{"solr::defaultweb"}%all%TMPL:END%
+%TMPL:DEF{"solr::instantsearch"}%false%TMPL:END%
+%TMPL:DEF{"solr::defaultrows"}%10%TMPL:END%
+%TMPL:DEF{"solr::defaultquerytype"}%edismax%TMPL:END%
+%TMPL:DEF{"solr::defaultsort"}%score desc%TMPL:END%
+%TMPL:DEF{"solr::dateformat"}%dddd, Do MMMM YYYY, LT%TMPL:END%
+%TMPL:DEF{"solr::fields"}%%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%%IF{
+  "defined 'SOLR_EXTRAFILTER'" 
+  then="%SOLR_EXTRAFILTER%" 
+}%%IF{
+  "not $USERNAME ingroup 'AdminGroup'"
+  then="-web_search:Applications"
+}%%TMPL:END%
+%TMPL:DEF{"solr::facet::include::web"}%%TMPL:END%
+%TMPL:DEF{"solr::facet::exclude::web"}%%IF{
+  "not $USERNAME ingroup 'AdminGroup'"
+  then="^Application"
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   content: main definition that puts together all pieces
+}%
+%TMPL:DEF{"content"}%<noautolink>
+<div id='solrSearch' style='display:none' data-more-fields='%TMPL:P{"solr::fields"}%' data-solr-url='%SCRIPTURL{"rest"}%/SolrPlugin/proxy' data-solr-params='{"qt":"%TMPL:P{"solr::defaultquerytype"}%", "rows": %TMPL:P{"solr::defaultrows"}%}' data-extra-filter='%TMPL:P{"solr::extrafilter"}%%IF{"'%TMPL:P{"solr::defaultweb"}%'!='all'" then=" web:%TMPL:P{"solr::defaultweb"}%"}%'>
+%TMPL:P{"solr::title"}%<!-- -->
+%TMPL:P{"solr::header"}%<!-- -->
+%TMPL:P{"solr::hits"}%<!-- -->
+%TMPL:P{"solr::footer"}%<!-- -->
+%TMPL:P{"solr::assets"}%<!-- -->
+</div>
+%TMPL:P{"solr::templates"}%<!-- -->
+%TMPL:P{"solr::dictionary"}%<!-- -->
+</noautolink>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::assets - css and js to be added to the html head
+}%
+%TMPL:DEF{"solr::assets"}%<!-- -->
+%JQREQUIRE{"livequery,focus, serialpager, scrollto, prettyphoto, tmpl, jqtwisty, moment, blockui"}%<!-- -->
+%ADDTOZONE{"script"
+  id="SOLRPLUGIN::AJAX"
+  requires="JQUERYPLUGIN::LIVEQUERY, JQUERYPLUGIN::BLOCKUI, JQUERYPLUGIN::MOMENT"
+  text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr.js'></script>
+<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr-widgets.js'></script>
+<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr-init.js'></script>"
+}%<!-- -->
+%ADDTOZONE{"head"
+  id="SOLRPLUGIN"
+  text="<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.css' type='text/css' media='all' />"
+}%<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::dictionary - defines a set of keys to be displayed using a different lable
+}%
+%TMPL:DEF{"solr::dictionary"}%<literal>
+<div class="solrDictionary solrJsonData" data-id="default">
+{
+  %FLEXWEBLIST{
+    webs="public"
+    exclude="Trash.*"
+    format="\"$web\": \"$percntWEBLINK{\"$web\" format=\"$title\"}$percnt\""
+    subheader=",$n"
+    separator=",$n"
+  }%,
+  "Filed in": "%MAKETEXT{"Filed in [_1]"}%",
+  "Tagged": "%MAKETEXT{"Tagged [_1]"}%",
+  "tagged": "%MAKETEXT{"tagged [_1]"}%",
+  "field_TopicType_lst": "%MAKETEXT{"topic type"}%",
+  "type": "%MAKETEXT{"media"}%",
+  "date": "%MAKETEXT{"recently"}%",
+  "en": "%MAKETEXT{"English"}%",
+  "de": "%MAKETEXT{"German"}%",
+  "language": "%MAKETEXT{"language"}%",
+  "keyword": "%MAKETEXT{"keyword"}%",
+  "tag": "%MAKETEXT{"tag"}%"
+}
+</div>
+</literal>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::templates - defines all jquery.tmpl templates required
+}%
+%TMPL:DEF{"solr::templates"}%<!-- -->
+%TMPL:P{"solr::templates::hits"}%
+%TMPL:P{"solr::templates::facetfield"}%
+%TMPL:P{"solr::templates::currentselection"}%
+%TMPL:P{"solr::templates::togglefacet"}%
+%TMPL:P{"solr::templates::tagcloud"}%
+%TMPL:P{"solr::templates::resultsperpage"}%
+%TMPL:P{"solr::templates::spellcorrection"}%
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::templates::hits - defines all jquery.tmpl templates to render search hits
+   of different types. each type has got a ...::<name-of-type> sup-template that
+   is customized to that type.
+}%
+%TMPL:DEF{"solr::templates::hits"}%<!-- -->
+%TMPL:P{"solr::templates::hits::topic"}%<!-- -->
+%TMPL:P{"solr::templates::hits::image"}%<!-- -->
+%TMPL:P{"solr::templates::hits::comment"}%<!-- -->
+%TMPL:P{"solr::templates::hits::misc"}%<!-- -->
+%TMPL:P{"solr::templates::hits::ClassifiedTopic"}%<!-- -->
+<script id="solrHitTemplate" type="text/x-jquery-tmpl"> 
+{{tmpl($data, $item) $item.getTemplateName()}}
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hits::ClassifiedTopic"}%<script id="solrHitTemplate_ClassifiedTopic" type="text/x-jquery-tmpl">
+  <div class='solrSearchHit solrTopicHit'>
+    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+      <a href='${url}'>${title}</a>
+      <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
+        %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
+      </span>
+    </h3>
+    <div class='foswikiGrayText'>
+      {{html $item.renderTopicInfo()}}
+    </div>
+    <div class='solrHilite'>
+      {{html $item.getHilite(id)}}
+    </div>
+    <div class='solrRevision'> 
+      ${$item.formatDate(date,'%TMPL:P{"solr::dateformat"}%')}, ${author}
+    </div>
+  </div>
+</script>
+%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hits::topic"}%<script id="solrHitTemplate_topic" type="text/x-jquery-tmpl">
+  <div class='solrSearchHit solrTopicHit'>
+    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+      <a href='${url}'>${title}</a>
+      <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
+        %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
+      </span>
+    </h3>
+    <div class='solrHilite'>
+      {{html $item.getHilite(id)}}
+    </div>
+    <div class='solrRevision'> 
+      ${$item.formatDate(date,'%TMPL:P{"solr::dateformat"}%')}, ${author}
+    </div>
+  </div>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hits::image"}%<script id="solrHitTemplate_image" type="text/x-jquery-tmpl">
+  <div class='solrSearchHit solrImageHit'>
+    <div class='solrImageFrame'>
+      <a class='imageHref imageSimple' href='${url}' title='${name}'>
+        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(name)};size=64>;crop=on' alt='${name}' />
+      </a>
+    </div>
+    <h3>
+      <a href='${url}'>${name}</a>
+      <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
+        %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
+      </span>
+      {{if comment}}
+        <div class='foswikiGrayText foswikiSmallish solrSearchHitSummary'>${comment}</div>
+      {{/if}}
+    </h3>
+    <div class='solrHilite'>
+      {{html $item.getHilite(id)}}
+    </div>
+    <div class='solrRevision'> 
+      ${$item.formatDate(date,'%TMPL:P{"solr::dateformat"}%')}, ${author}
+    </div>
+    %CLEAR%
+  </div>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hits:comment"}%<script id="solrHitTemplate_comment" type="text/x-jquery-tmpl">
+  <div class='solrSearchHit solrCommentHit'>
+    <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/comment.png)'>
+      <a href='${url}'>${title}</a>
+      <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
+        %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
+      </span>
+    </h3>
+    <div class='solrHilite'>
+      {{html $item.getHilite(id)}}
+    </div>
+    <div class='solrRevision'> 
+      ${$item.formatDate(date,'%TMPL:P{"solr::dateformat"}%')}, ${author}
+    </div>
+  </div>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hits::misc"}%<script id="solrHitTemplate_misc" type="text/x-jquery-tmpl">
+  <div class='solrSearchHit solrAttachmentHit'>
+    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+      <a href='${url}'>${name}</a>
+      <span class='foswikiGrayText foswikiSmallish solrContainerLink' >
+        %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
+      </span>
+      {{if comment}}
+        <div class='foswikiGrayText foswikiSmallish'>${comment}</div>
+      {{/if}}
+    </h3>
+    <div class='solrHilite'>
+      {{html $item.getHilite(id)}}
+    </div>
+    <div class='solrRevision'> 
+      ${$item.formatDate(date,'%TMPL:P{"solr::dateformat"}%')}, ${author}
+    </div>
+  </div>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%TMPL:DEF{"solr::templates::facetfield"}%<script id="solrFacetFieldTemplate" type="text/x-jquery-tmpl"> 
+  <div class="jqSerialPager" data-prev-text="%MAKETEXT{"prev"}%" data-next-text="%MAKETEXT{"next"}%" data-pagesize="10">
+    <ul>
+      {{each(index, value) widget.facetCounts}}
+        <li>
+          <table class='foswikiLayoutTable' width='100%'>
+            <tr>
+            <td width='12px'>
+              <input type='${widget.inputType}' name='${widget.field}' title='{{html $item.getFacetKey(facet)}}' value='{{html $item.getFacetValue(facet)}}' id='${widget.field}_${index}' autocomplete='off' class='solrFacetValue' {{html $item.checked(facet)}} />
+            </td>
+            <td><label for='${widget.field}_${index}' style='display:block'>{{html $item.getFacetKey(facet)}} (${count})</label></td>
+            </tr>
+          </table>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::currentselection"}%<script id="solrCurrentSelectionTemplate" type="text/x-jquery-tmpl"> 
+  <li>
+    <table class='foswikiLayoutTable' width='100%'>
+      <tr>
+        <td width='12px'>
+          <input type='checkbox' class='foswikiCheckbox' id='${id}' name='filter' checked='checked'/>
+        </td>
+        <td>
+          <label for='${id}' style='display:block'>${facet} <nobr>(${field})</nobr></label>
+        </td>
+      </tr>
+    </table>
+  </li>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::togglefacet"}%<script id="solrToggleFacetTemplate" type="text/x-jquery-tmpl"> 
+  <input type='checkbox' class='foswikiCheckbox' id='${id}' />
+  <label class='foswikiLabel' for='${id}'>${title}</label>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::tagcloud"}%<script id="solrTagCloudTemplate" type="text/x-jquery-tmpl">
+{{html group}}<span style='font-size:${weight}px'><a href='#' title='${count}' style='color:${color};' class='solrFacetValue ${current} tag_${facet}'>${facet}</a> </span>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::resultsperpage"}%<script id="solrResultsPerPageTemplate" type="text/x-jquery-tmpl">
+<table class='foswikiNullTable' width='100%'>
+  <tr>
+    <td>
+     {{if count > 0}}
+       %MAKETEXT{"Results [_1] - [_2] of <b>[_3]</b>" args="${from}, ${to}, ${count}"}%
+     {{else}}
+        <span class="foswikiAlert">%MAKETEXT{"nothing found"}%</span>
+     {{/if}}
+    </td>
+    <td align="right">
+      <table class='foswikiNullTable solrRows'>
+        <tr>
+          <th>%MAKETEXT{"Results per page"}%:</th>
+          <td>
+            <select class='foswikiSelect'>
+              <option class='foswikiOption' value="5">5</option>
+              <option class='foswikiOption' value="10">10</option>
+              <option class='foswikiOption' value="20">20</option>
+              <option class='foswikiOption' value="30">30</option>
+              <option class='foswikiOption' value="40">40</option>
+              <option class='foswikiOption' value="50">50</option>
+              <option class='foswikiOption' value="100">100</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::spellcorrection"}%<script id="solrSpellCorrectionTemplate" type="text/x-jquery-tmpl">
+%MAKETEXT{"Did you mean [_1]?" args="{{each suggestions}}{{if $index > 0}} or {{/if}} <a class='solrCorrection' href='#'>${$value}</a>{{/each}}"}%
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::header - header to be put infront of the search hits. this provides
+   the containers for spellcheck corrections, pagination, counters and the like.
+   It also calls the "solr::searchform" to display the search input field.
+}%
+%TMPL:DEF{"solr::header"}%<div class='solrHeader'>
+%TMPL:P{"solr::searchform"}%
+%TMPL:P{"solr::spellchecker"}%
+%TMPL:P{"solr::resultsperpage"}%
+%TMPL:P{"solr::pager"}%
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::spellchecker"}%<div class='solrSpellchecking'></div>%TMPL:END%
+%TMPL:DEF{"solr::resultsperpage"}%<div class='solrResultsPerPage'></div>%TMPL:END%
+%TMPL:DEF{"solr::pager"}%<div class="solrPager" data-next-text="%MAKETEXT{"Next"}%" data-prev-text="%MAKETEXT{"Previous"}%" data-enable-scroll="%IF{"'%scroll%'=~'^(true|false)$'" then="%scroll%" else="false"}%" ></div>%TMPL:END%
+%TMPL:DEF{"solr::footer"}%<div class='solrFooter'>%TMPL:P{"solr::pager" scroll="true"}%</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::searchform - this calls the separate steps comprising the form steps.
+   this macro can be redefined to include more steps as needed.
+}%
+%TMPL:DEF{"solr::searchform"}%<!-- -->
+%TMPL:P{"solr::formstart"}%
+%TMPL:P{"solr::inputstep"}%
+%TMPL:P{"solr::tagcloudstep"}%<!-- -->
+%TMPL:P{"solr::hierarchystep"}%<!-- -->
+%TMPL:P{"solr::formend"}%
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::formstart - beginning of the solr::searchform. contains the starting form 
+}%
+%TMPL:DEF{"solr::formstart"}%<!-- -->
+<form name="searchform" class='solrSearchForm' id='solrSearchBox' data-instant-search='%TMPL:P{"solr::instantsearch"}%'>
+<div class='foswikiFormSteps'>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::inputstep - this is a part of the solr::searchform defining the 
+   actual input field, as well as some basic select and checkboxes
+}%
+%TMPL:DEF{"solr::inputstep"}%<!-- -->
+<div class='foswikiFormStep'>
+<div class='foswikiLeft'>
+<table class='foswikiNullTable'>
+  <tr>
+    <td>
+      <input type='text' autocomplete='off' class='foswikiInputField jqFocus solrSearchField' size='50' style='margin-right:8px;' value="%URLPARAM{"search"}%" />
+    </td>
+    <td>
+      %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find" class="solrSubmitButton"}%
+    </td>
+  </tr>
+</table>
+%TMPL:P{"solr::input::checkboxes"}%
+</div>
+<div class='foswikiRight'>
+%TMPL:P{"solr::sortby"}%
+%TMPL:P{"solr::displayas"}%
+</div>
+%CLEAR%
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::formend - closing markup of the solr::searchform
+}%
+%TMPL:DEF{"solr::formend"}%<!-- -->
+</div>
+</form>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::sidebar: this hooks into the skin to display all sidebar facets. the topmost
+   widget is the "your selection" area displaying a summary of the current filters
+   followed by the list of facets. Each facet is displayed calling the "facet" macro
+}%
+%TMPL:DEF{"solr::sidebar"}%<!-- -->
+<noautolink>
+%TMPL:P{"solr::selection"}%
+</noautolink>
+%TMPL:P{"solr::facet"
+  id="web"
+  class="solrWebFacetField"
+  title="%MAKETEXT{"Web"}%"
+  include="%TMPL:P{"solr::facet::include::web"}%"
+  exclude="%TMPL:P{"solr::facet::exclude::web"}%"
+  multivalue="true" 
+  union="true" 
+  exclusion="true" 
+  sort="title" 
+}%
+%TMPL:P{"solr::facet"
+  id="type"
+  title="%MAKETEXT{"Media"}%"
+}%
+%TMPL:P{"solr::facetquery"
+  id="date"
+  exclusion="true" 
+  title="%MAKETEXT{"Recent changes"}%"
+  queries="[
+      { \"key\": \"%MAKETEXT{"1 hour"}%\", \"value\": \"date:[NOW-1HOUR TO NOW]\" }, 
+      { \"key\": \"%MAKETEXT{"4 hours"}%\", \"value\": \"date:[NOW-4HOUR TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"today"}%\", \"value\": \"date:[NOW/DAY TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"2 days"}%\", \"value\": \"date:[NOW/DAY-1DAY TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"7 days"}%\", \"value\": \"date:[NOW/DAY-7DAY TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"1 month"}%\", \"value\": \"date:[NOW-1MONTH TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"2 months"}%\", \"value\": \"date:[NOW-2MONTH TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"1 year"}%\", \"value\": \"date:[NOW-1YEAR TO NOW]\" },
+      { \"key\": \"%MAKETEXT{"older"}%\", \"value\": \"date:[* TO NOW/YEAR]\" }
+    ]"
+}%
+%TMPL:P{"solr::facet"
+  id="field_TopicType_lst"
+  exclude="ApplicationLicense|ApplicationTopic|DataForm|DocuTopic|TopicFunction|TopicStub|TopicTemplate|TopicType|TopicView|WebTool|WikiApplication|WikiTopic"
+  title="%MAKETEXT{"Topic type"}%"
+}%
+%TMPL:P{"solr::facet"
+  id="language"
+  title="%MAKETEXT{"Language"}%"
+}%
+%TMPL:P{"solr::facet"
+  id="author"
+  exclude="UnknownUser|AdminUser|RegistrationAgent|AdminGroup|WikiGuest|FoswikiContributor|ProjectContributor|TestUser"
+  title="%MAKETEXT{"Author"}%"
+}%
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::facet - format a facet for the given field id
+
+   Parameters:
+      * id - the field name of the facet, e.g. category, author
+      * title - the heading 
+      * multivalue - boolean
+      * union - boolean
+      * exclusion - boolean
+      * sort - count or title
+      * reverse - boolean
+      * exclude - count or title
+      * include - count or title
+      * mincount - lower boundary for facet values to display
+      * hidesingle - boolean
+      * hidenullvalues - boolean
+}%
+%TMPL:DEF{"solr::facet"}%<div data-field='%id%' %IF{
+  "not '%class%'=~'^([%]class%)?$'"
+  then="class='%class%'"
+  else="class='solrFacetField'"
+}%%IF{
+  "not '%hidesingle%'=~'^([%]hidesingle%)?$'"
+  then=" data-hide-single='%hidesingle%'"
+}%%IF{
+  "not '%hidenullvalues%'=~'^([%]hidenullvalues%)?$'"
+  then=" data-hide-null-values='%hidenullvalues%'"
+}%%IF{
+  "not '%multivalue%'=~'^([%]multivalue%)?$'"
+  then=" data-multi-value='%multivalue%'"
+}%%IF{
+  "not '%union%'=~'^[%]union%$'"
+  then=" data-union='%union%'"
+}%%IF{
+  "not '%exclusion%'=~'^([%]exclusion%)?$'"
+  then=" data-exclusion='%exclusion%'"
+}%%IF{
+  "not '%sort%'=~'^([%]sort%)?$'"
+  then=" data-facet-sort='%sort%'"
+}%%IF{
+  "not '%exclude%'=~'^([%]exclude%)?$'"
+  then=" data-exclude='%exclude%'"
+}%%IF{
+  "not '%mincount%'=~'^([%]mincount%)?$'"
+  then=" data-facet-mincount='%mincount%'"
+}%%IF{
+  "not '%include%'=~'^([%]include%)?$'"
+  then=" data-include='%include%'"
+}%%IF{
+  "not '%reverse%'=~'^([%]reverse%)?$'"
+  then="data-facet-sort-reverse='%reverse%'"
+}%>
+<h2 class='jqTwisty' data-initial-state='open' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%title%</h2>
+  <div class='solrFacetFieldContainer'></div>
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::facetquery - format a facet query
+
+   Parameters: 
+      * id - the field name
+      * title - the heading 
+      * queries - json object of the form [ {"key":"some label", "value": "some query"}, ...]
+      * multivalue - boolean
+      * union - boolean
+      * exclusion - boolean
+}%
+%TMPL:DEF{"solr::facetquery"}%<div class='solrFacetField' data-field='%id%' data-facet-type='facet_queries' %IF{
+  "not '%multivalue%'=~'^([%]multivalue%)?$'"
+  then=" data-multi-value='%multivalue%'"
+}%%IF{
+  "not '%union%'=~'^[%]union%$'"
+  then=" data-union='%union%'"
+}%%IF{
+  "not '%exclusion%'=~'^([%]exclusion%)?$'"
+  then=" data-exclusion='%exclusion%'"
+}%>
+  <literal>
+  <div class="solrJsonData">%queries%</div>
+  </literal>
+  <h2 class='jqTwisty' data-initial-state='open' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%title%</h2>
+  <div class='solrFacetFieldContainer'></div>
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::facetrange - renders a range facet
+
+   Parameters:
+      * id - the field name
+      * title - the heading 
+      * start - start of range
+      * end - end of range
+      * gap - increment from start to end
+      * other - TODO: look up solr docu
+      * include - TODO: look up solr docu
+      * dateformat - format string used when the facet goes over a date range
+      * hidesingle - boolean
+}%
+%TMPL:DEF{"solr::facetrange"}%<div class='solrFacetField' data-field='%id%' data-facet-type='facet_ranges'%IF{
+  "not '%start%'=~'^([%]start%)?$'"
+  then=" data-facet-range-start='%start%'"
+  else=" date-facet-range-start='NOW/DAY-7DAYS'"
+}%%IF{
+  "not '%hidesingle%'=~'^([%]hidesingle%)?$'"
+  then=" data-hide-single='%hidesingle%'"
+}%%IF{
+  "not '%dateformat%'=~'^([%]dateformat%)?$'"
+  then=" data-date-format='%dateformat%'"
+}%%IF{
+  "not '%end%'=~'^([%]end%)?$'"
+  then=" data-facet-range-end='%end%'"
+  else=" data-facet-range-end='NOW/DAY+1DAYS'"
+}%%IF{
+  "not '%gap%'=~'^([%]gap%)?$'"
+  then=" data-facet-range-gap='%gap%'"
+  else=" data-facet-range-gap='+1DAY'"
+}%%IF{
+  "not '%other%'=~'^([%]other%)?$'"
+  then=" data-facet-range-other='%other%'"
+  else=" data-facet-range-other='before'"
+}%>
+  <h2 class='jqTwisty' data-initial-state='open' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%title%</h2>
+  <div class='solrFacetFieldContainer'></div>
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::selection - renders the "your selection" part in the solr::sidebar
+}%
+%TMPL:DEF{"solr::selection"}%<!-- -->
+<h2>%MAKETEXT{"Filter results"}%</h2>
+<div id='solrCurrentSelection'>
+  <h3>%MAKETEXT{"Your selection"}%:</h3>
+  <ul>
+    <li class='solrNoSelection'>%MAKETEXT{"(none)"}%</li>
+  </ul>
+  <a href='#' class="solrClear">%MAKETEXT{"Clear"}%</a>
+  <span class='foswikiClear'></span>
+</div>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::hits - this macro either calls "solr::hits::list" or solr::hist::grid
+   depending of the display style given in the display urlparam
+}%
+%TMPL:DEF{"solr::hits"}%<div class="solrSearchHits jqPrettyPhoto {itemSelector:'.solrImageFrame a'} clearfix" data-block-ui="window"></div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::sortby - renders the sort interface
+}%
+%TMPL:DEF{"solr::sortby"}%<!-- -->
+<table class='foswikiNullTable'>
+  <tr>
+    <th>%MAKETEXT{"Sort by"}%:&nbsp;</th>
+    <td>
+      <select class='foswikiSelect' id='solrSorting' data-default-sort="%TMPL:P{"solr::defaultsort"}%">
+        <option class='foswikiOption' value='score desc'>%MAKETEXT{"Relevance"}%</option>
+        <option class='foswikiOption' value='date desc'>%MAKETEXT{"Last changed"}%</option>
+        <option class='foswikiOption' value='title_sort asc'>%MAKETEXT{"Name"}%</option>
+      </select>
+    </td>
+  </tr>
+</table>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::displayas - render the display switcher
+}%
+%TMPL:DEF{"solr::displayas"}%<!-- -->
+<table class='foswikiNullTable'>
+  <tr>
+    <th>%MAKETEXT{"Display as"}%:</th>
+    <td>
+      <input type='radio' class='foswikiRadio solrDisplay' id='display_list' value='list' name='display'>
+    </td>
+    <td>
+      <label class='foswikiLabel' for='display_list'>%MAKETEXT{"list"}%</label>
+    </td>
+    <td>
+      <input type='radio' class='foswikiRadio solrDisplay' id='display_grid' value='grid' name='display'>
+    </td>
+    <td>
+      <label class='foswikiLabel' for='display_grid'>%MAKETEXT{"grid"}%</label>
+    </td>
+  </tr>
+</table>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::input::checkboxes - some convenience checkbox selections under the input field
+}%
+%TMPL:DEF{"solr::input::checkboxes"}%<div class='solrCheckboxContainer'>
+%IF{"'%TMPL:P{"solr::defaultweb"}%'='all'" 
+  then="$percntTMPL:P{\"solr::input::checkboxes::incurrentweb\"}$percnt"
+  else="$percntTMPL:P{\"solr::input::checkboxes::inallwebs\"}$percnt"
+}%<!-- -->
+%TMPL:P{"solr::input::checkboxes::inweb"}%<!-- -->
+%TMPL:P{"solr::input::checkboxes::inmycontribs"}%<!-- -->
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::input::checkboxes::inweb - display a "Search in current web only" checkbox
+}%
+%TMPL:DEF{"solr::input::checkboxes::incurrentweb"}%<!-- -->
+<span class='solrToggleFacet' data-field='web' data-value='%FORMATLIST{"%BASEWEB%" split="/" separator="."}%' data-title='%MAKETEXT{"In current web"}%'></span>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::input::checkboxes::inallwebs - display a "Search in all webs" checkbox
+}%
+%TMPL:DEF{"solr::input::checkboxes::inallwebs"}%<!-- -->
+<span class='solrToggleFacet' data-field='web' data-value='%TMPL:P{"solr::defaultweb"}%' data-inverse='true' data-title='%MAKETEXT{"In all webs"}%'></span>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::input::checkboxes::inmycontribs - display a "Search in my contribs" checkbox
+}%
+%TMPL:DEF{"solr::input::checkboxes::inmycontribs"}%<!-- -->
+<span class='solrToggleFacet' data-field='contributor' data-value='%USERINFO{format="$wikiname"}%' data-title='%MAKETEXT{"In my contributions"}%'></span>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::tagcloudstep - part of the solr::searchform. this contains the tagcloud facet
+}%
+%TMPL:DEF{"solr::tagcloudstep"}%<!-- -->
+<div class='foswikiFormStep solrTagCloud' data-field='tag' data-start-color="[111, 169, 255]" data-end-color='[0, 89, 224]'>
+  <div class='foswikiFormStep foswikiFormLast'>
+    <hr />
+    <h3><a href='#' class='jqTwisty' data-target='.solrTagCloudContainer' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%MAKETEXT{"Popular tags"}%</a></h3>
+    <div class='solrTagCloudContainer tagCloud'></div>
+  </div>
+</div>
+%{</verbatim>}%

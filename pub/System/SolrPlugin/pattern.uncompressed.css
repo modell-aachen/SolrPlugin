@@ -13,6 +13,7 @@
 .patternRevInfo {
   display:none; 
 }
+/*
 .foswikiFormSteps {
   border-top:1px solid #ddd;
 }
@@ -22,6 +23,7 @@
 .foswikiFormSteps hr { 
   display:none; 
 }
+*/
 .foswikiLayoutTable {
   border-collapse:collapse;
   border-spacing:0;

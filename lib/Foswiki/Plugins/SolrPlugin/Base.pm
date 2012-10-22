@@ -423,6 +423,20 @@ sub getTopicSummary {
 }
 
 ################################################################################
+# wrapper around Foswiki::Func::getScriptUrlPath 
+# that really, _really_, __really__ returns a relative path even when
+# called from the command line
+sub getScriptUrlPath {
+  my $this = shift;
+
+  my $url = Foswiki::Func::getScriptUrlPath(@_);
+
+  $url =~ s/^$this->{session}{urlHost}//;
+
+  return $url;
+}
+
+################################################################################
 sub plainify {
   my ($this, $text, $web, $topic, $skipDecode) = @_;
 

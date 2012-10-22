@@ -325,7 +325,7 @@ sub indexTopic {
   my $summary = $this->getTopicSummary($web, $topic, $meta, $text);
 
   # url to topic
-  my $url = Foswiki::Func::getViewUrl($web, $topic);
+  my $url = $this->getScriptUrlPath($web, $topic, "view");
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
 
@@ -350,7 +350,7 @@ sub indexTopic {
     createdate => $createDate,
     type => 'topic',
     container_id => $web,
-    container_url => Foswiki::Func::getViewUrl($web, $Foswiki::cfg{HomeTopicName}),
+    container_url => $this->getScriptUrlPath($web, $Foswiki::cfg{HomeTopicName}, "view"),
     container_title => $containerTitle,
     icon => $this->mapToIconFileName('topic'),
 
@@ -710,7 +710,7 @@ sub indexAttachment {
   my $id = "$web.$topic.$name";
 
   # view url
-  my $url = Foswiki::Func::getScriptUrl($web, $topic, 'viewfile', filename => $name);
+  my $url = $this->getScriptUrlPath($web, $topic, 'viewfile', filename => $name);
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
   my $icon = $this->mapToIconFileName($extension);
@@ -738,7 +738,7 @@ sub indexAttachment {
     size => $size,
     icon => $icon,
     container_id => $web . '.' . $topic,
-    container_url => Foswiki::Func::getViewUrl($web, $topic),
+    container_url => $this->getScriptUrlPath($web, $topic, "view"),
     container_title => $this->getTopicTitle($web, $topic),
 
     # TODO: thumbnails

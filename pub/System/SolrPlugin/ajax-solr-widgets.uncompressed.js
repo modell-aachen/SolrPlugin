@@ -684,7 +684,7 @@
             if (typeof(hilite) === 'undefined' || typeof(hilite.text) === 'undefined') {
               return self.getSnippet(this.data);
             } else {
-              hilite = hilite.text.join(' ... ').replace(/^[^\w]+/, '') 
+              hilite = hilite.text.join(' ... ');
               return hilite || self.getSnippet(this.data);
             }
           },
