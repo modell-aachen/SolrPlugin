@@ -394,11 +394,11 @@
     </td>
   </tr>
 </table>
-%TMPL:P{"solr::input::checkboxes"}%
+%TMPL:P{"solr::input::checkboxes"}%<!-- -->
 </div>
 <div class='foswikiRight'>
-%TMPL:P{"solr::sortby"}%
-%TMPL:P{"solr::displayas"}%
+%TMPL:P{"solr::sortby"}%<!-- -->
+%TMPL:P{"solr::displayas"}%<!-- -->
 </div>
 %CLEAR%
 </div>

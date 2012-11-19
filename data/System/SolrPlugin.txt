@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1309416307" format="1.1" reprev="9" version="10"}%
+%META:TOPICINFO{author="micha" comment="save topic" date="1353165378" format="1.1" reprev="9" version="12"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -207,7 +207,7 @@ Instead of waiting for cron to trigger the delta indexing job, [[http://iwatch.s
     <contactpoint email="root@localhost" name="Administrator"/>
     <path type="recursive" alert="off" syslog="on" exec="su www-data -c '<foswiki-dir>/tools/solrjob --host mydomain.com'"><vhosts-dir>/mydomain.com/data</path>
     <!-- add other virtual hosts here -->
-    <path type="regexception">\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]</path>
+    <path type="regexception">\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]|^log</path>
   </watchlist>
 </config>
 </verbatim>
@@ -398,7 +398,6 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 | mindwordlength | | |
 | maxdwordlength | | |
 
-
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%"
    filter="web:%BASEWEB% type:topic"
    fields="web,topic,title,score"
@@ -568,7 +567,6 @@ can be indexed type-specific nevertheless.
 
 Similarly topic preferences are indexed using a =preference_*= prefix.
 
-
 | *Name* | *Type* | *Multivalued* | *Stored* | *Description* |
 | *_i | tint | | stored | fields with a _i suffix are indexed as an integer number |
 | *_l | tlong | | stored | fields with a _l suffix are indexed as a long integer |
@@ -653,8 +651,6 @@ specific search applications. The destination fields are then analysed using the
 ---+++ Replacing !WebSearch and !WebChanges
 
 ---+++ Creating custom search interfaces
-
-
 
 ---++ Plugin Info
 <!--

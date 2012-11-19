@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="save topic" date="1350564517" format="1.1" reprev="2" version="11"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1351149452" format="1.1" reprev="12" version="12"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -19,17 +19,20 @@ Note: all components make use of Foswiki:Extensions/DBCachePlugin for greater fl
 Default sidebar implementation that includes all of the components listed below.
 
 <verbatim class="tml">
-%STARTINCLUDE%%INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%%INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%%STOPINCLUDE%
+%STARTINCLUDE%<noautolink>
+%INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%<!-- -->
+%INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%<!-- -->
+</noautolink>%STOPINCLUDE%
 </verbatim>
 
 ---++ Component: "solrsimilar"
 Renders a list of topics similar to the current one. This can be customized
 using the =%<nop>SOLRSIMILAR_LIKE%= preference variable set in your web's <nop>WebPreferences
-or on  the current topic the sidebar is rendered for. See the documentation of =%<nop>SOLRSIMILAR{}%
+or on  the current topic the sidebar is rendered for. See the documentation of =%<nop>SOLRSIMILAR{}%=
 part of the %SYSTEMWEB%.SolrPlugin documentation.
 
 <verbatim class="tml">
-%STARTSECTION{"solrsimilar"}%<noautolink>
+%STARTSECTION{"solrsimilar"}%<!-- -->
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%" 
    filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
    %IF{"defined SOLRSIMILAR_LIKE" then="like=\"%SOLRSIMILAR_LIKE%\""}%
@@ -46,7 +49,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
        </a>
      </li>"
    separator="$n"
-}%</noautolink>%ENDSECTION{"solrsimilar"}%
+}%%ENDSECTION{"solrsimilar"}%
 </verbatim>
 
 ---++ Component: "recentchanges"
@@ -54,7 +57,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
 Renders a list of the five most recent changes in the current web.
 
 <verbatim class="tml">
-%STARTSECTION{"recentchanges"}%<noautolink>
+%STARTSECTION{"recentchanges"}%<!-- -->
 %SOLRSEARCH{
   "web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
   sort="date desc" 
@@ -66,11 +69,10 @@ Renders a list of the five most recent changes in the current web.
   format="<li>
       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic'>
         $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" SIZE=\"40x40>\" TYPE=\"plain\"}$percnt<!-- -->
-        $title<br />
+        <!-- -->$title<br />
         <span class='foswikiGrayText'>$summary</span>
         %CLEAR%
       </a>
     </li>"
-}%
-</noautolink>%ENDSECTION{"recentchanges"}%
+}%%ENDSECTION{"recentchanges"}%
 </verbatim>

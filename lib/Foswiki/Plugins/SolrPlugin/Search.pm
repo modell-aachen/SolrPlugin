@@ -145,10 +145,10 @@ sub formatResponse {
   Foswiki::Plugins::JQueryPlugin::createPlugin("focus");
   Foswiki::Plugins::JQueryPlugin::createPlugin("ui");
 
-  Foswiki::Func::addToZone('head', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::AUTOCOMPLETE, JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
+  Foswiki::Func::addToZone('head', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
 <link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.css' type='text/css' media='all' />
 HERE
-  Foswiki::Func::addToZone('script', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::AUTOCOMPLETE, JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
+  Foswiki::Func::addToZone('script', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
 <script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.js'></script>
 HERE
 
@@ -447,6 +447,7 @@ HERE
   
   if ($params->{fields}) {
     my $cleanupPattern = '('.join('|', split(/\s*,\s*/, $params->{fields})).')';
+    $cleanupPattern =~ s/\*/\\*/g;
     $result =~ s/\$$cleanupPattern//g;
   }
 

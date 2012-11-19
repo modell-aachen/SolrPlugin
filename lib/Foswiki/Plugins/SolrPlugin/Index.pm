@@ -57,6 +57,16 @@ sub new {
     $this->log("ERROR: can't conect solr daemon");
   }
 
+  # trap SIGINT
+  $SIG{INT} = sub {
+    $this->log("got interrupted ... finishing work");
+    $this->{_trappedSignal} = 1; # will be detected by loops further down
+  };
+
+  # TODO: trap SIGALARM
+  # let the indexer run for a maximum timespan, then flag a signal for it
+  # to bail out from work done so far
+
   return $this;
 }
 
@@ -200,24 +210,20 @@ sub update {
         next if $this->isSkippedTopic($web, $topic);
         $this->indexTopic($web, $topic);
         $found = 1;
+        last if $this->{_trappedSignal};
       }
     } else {
 
       # delta
       my $since = $this->getTimestamp($web);
 
-      # SMELL: foswiki's eachChangSince is too imprecise, see http://foswiki.org/Tasks/Item8460
-      # my $iterator = Foswiki::Func::eachChangeSince($web, $since);
-      # while ($iterator->hasNext()) {
-      #   my $change = $iterator->next();
-      #   my $topic = $change->{topic};
-      #   $this->updateTopic($web, $topic);
-      #   $found = 1;
-      # }
-
       my @topics = Foswiki::Func::getTopicList($web);
       foreach my $topic (@topics) {
         next if $this->isSkippedTopic($web, $topic);
+
+        my $topicIndexTime = $this->getTimestamp($web, $topic);
+        next if $topicIndexTime > $since;
+
         my $time;
         if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
           $time = $Foswiki::Plugins::SESSION->getApproxRevTime($web, $topic);
@@ -227,11 +233,16 @@ sub update {
           $time = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
         }
         next if $time < $since;
+
         $this->deleteTopic($web, $topic);
         $this->indexTopic($web, $topic);
+
+        $this->setTimestamp($web, $topic);
         $found = 1;
+        last if $this->{_trappedSignal};
       }
     }
+    last if $this->{_trappedSignal};
     $this->setTimestamp($web) if $found;
   }
 }
@@ -461,7 +472,7 @@ sub indexTopic {
               $doc->add_fields(
                 $fieldName . '_s' => $value,
                 $fieldName . '_search' => $value,
-              );
+              ) if defined $value && $value ne '';
             } else {
               $doc->add_fields($fieldName . $fieldType => $value,) if defined $value && $value ne '';
             }
@@ -561,12 +572,13 @@ sub indexTopic {
   # add the document to the index
   try {
     $this->add($doc);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
     $this->log("ERROR: " . $e->{-text});
   };
+
+  $this->commit();
 
   if (PROFILE) {
     my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
@@ -768,12 +780,13 @@ sub indexAttachment {
   # add the document to the index
   try {
     $this->add($doc);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
     $this->log("ERROR: " . $e->{-text});
   };
+
+  $this->commit();
 
   #if (PROFILE) {
   #  my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
@@ -879,7 +892,7 @@ sub deleteByQuery {
 
   return unless $query;
 
-  $this->log("Deleting documents by query $query") if VERBOSE;
+  #$this->log("Deleting documents by query $query") if VERBOSE;
 
   my $success;
   try {
@@ -902,7 +915,7 @@ sub deleteDocument {
   my $id = "$web.$topic";
   $id .= ".$attachment" if $attachment;
 
-  $this->log("Deleting document $id");
+  #$this->log("Deleting document $id");
 
   try {
     $this->{solr}->delete_by_id($id);
@@ -1043,6 +1056,9 @@ sub getContributors {
   my $creator = getWikiName($user);
   $contributors{$creator} = 1;
 
+  # only take the top 10; extracting revinfo takes too long otherwise :(
+  $maxRev = 10 if $maxRev > 10;
+
   for (my $i = $maxRev; $i > 0; $i--) {
     my (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, $i, $attachment, $maxRev);
     my $wikiName = getWikiName($user);
@@ -1170,23 +1186,33 @@ sub getAclFields {
 
 ################################################################################
 sub getTimestampFile {
-  my ($this, $web) = @_;
+  my ($this, $web, $topic) = @_;
 
   return unless $web;
   return unless Foswiki::Func::webExists($web);
 
   $web =~ s/\//./g;
-  return Foswiki::Func::getWorkArea('SolrPlugin') . '/' . $web . '.timestamp';
+
+  my $timestampsDir = Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps';
+  mkdir $timestampsDir unless -d $timestampsDir;
+
+  return $timestampsDir . '/' . $web . '.timestamp' unless defined $topic;
+
+  $timestampsDir .= '/' . $web;
+  mkdir $timestampsDir unless -d $timestampsDir;
+
+  return $timestampsDir . '/' . $topic . '.timestamp';
 }
 
 ################################################################################
 sub setTimestamp {
-  my ($this, $web) = @_;
+  my ($this, $web, $topic, $time) = @_;
 
-  my $timestampFile = $this->getTimestampFile($web);
+  $time = time() unless defined $time;
+
+  my $timestampFile = $this->getTimestampFile($web, $topic);
   return 0 unless $timestampFile;
 
-  my $time ||= time();
   Foswiki::Func::saveFile($timestampFile, $time);
 
   return $time;
@@ -1194,9 +1220,9 @@ sub setTimestamp {
 
 ################################################################################
 sub getTimestamp {
-  my ($this, $web) = @_;
+  my ($this, $web, $topic) = @_;
 
-  my $timestampFile = $this->getTimestampFile($web);
+  my $timestampFile = $this->getTimestampFile($web, $topic);
 
   return 0 unless $timestampFile;
 

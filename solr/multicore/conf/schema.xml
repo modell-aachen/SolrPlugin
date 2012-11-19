@@ -387,6 +387,37 @@
         <filter class="solr.TrimFilterFactory" />
       </analyzer>
     </fieldType>
+
+    <fieldType name="text_wikiword" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" 
+          splitOnCaseChange="1" 
+          generateWordParts="1" 
+          generateNumberParts="1" 
+          catenateWords="0" 
+          catenateNumbers="0" 
+          catenateAll="0" 
+          preserveOriginal="1" 
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true" maxPosAsterisk="3" maxPosQuestion="2" maxFractionAsterisk="0.33"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" 
+          splitOnCaseChange="1" 
+          generateWordParts="1" 
+          generateNumberParts="1" 
+          catenateWords="0" 
+          catenateNumbers="0" 
+          catenateAll="0" 
+          preserveOriginal="1" 
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+      </analyzer>
+    </fieldType>
     
     <fieldtype name="phonetic" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
@@ -1156,6 +1187,8 @@
 
    <!-- TOPICS: -->
    <field name="parent" type="string" />
+   <field name="topic_search" type="text_wikiword" />
+   <field name="web_search" type="text_wikiword" />
 
    <!-- form: this is the web.topic.  -->
    <field name="form" type="string" />

@@ -7,11 +7,13 @@ data/System/SiteChangesViewTemplate.txt 0644
 data/System/SolrAjaxSearchBaseTemplate.txt 0644
 data/System/SolrAjaxSearch.txt 0644
 data/System/SolrAjaxSearchViewTemplate.txt 0644
+data/System/SolrAjaxWikiUsersViewTemplate.txt 0644
 data/System/SolrPlugin.txt 0644
 data/System/SolrSearchBaseTemplate.txt 0644
 data/System/SolrSearch.txt 0644
 data/System/SolrSearchViewTemplate.txt 0644
 data/System/SolrSideBar.txt 0644
+data/System/SolrWikiUsersViewTemplate.txt 0644
 data/System/WebChangesViewTemplate.txt 0644
 lib/CharsetDetector.pm 0644
 lib/Foswiki/Configure/Checkers/SolrPlugin/SolrHome.pm 0644
@@ -29,6 +31,8 @@ lib/WebService/Solr/Query.pm 0644
 lib/WebService/Solr/Response.pm 0644
 locale/SolrPlugin/de.po 0644
 locale/SolrPlugin/Foswiki.pot 0644
+pub/System/SolrPlugin/ajax-solr/ASL-LICENSE 0644
+pub/System/SolrPlugin/ajax-solr/COPYRIGHT.txt 0644
 pub/System/SolrPlugin/ajax-solr/core/AbstractFacetWidget.js 0644
 pub/System/SolrPlugin/ajax-solr/core/AbstractManager.js 0644
 pub/System/SolrPlugin/ajax-solr/core/AbstractSpatialWidget.js 0644
@@ -92,6 +96,9 @@ pub/System/SolrPlugin/widgets/SpellcheckWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/TagCloudWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/ToggleFacetWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/WebFacetWidget.uncompressed.js 0644
+pub/System/SolrPlugin/wikiusers.css 0644
+pub/System/SolrPlugin/wikiusers.css.gz 0644
+pub/System/SolrPlugin/wikiusers.uncompressed.css 0644
 solr/60solr.policy 0644
 solr/etc/jetty.xml 0644
 solr/etc/webdefault.xml 0644
@@ -157,6 +164,7 @@ solr/multicore/conf/xslt/example_rss.xsl 0644
 solr/multicore/conf/xslt/example.xsl 0644
 solr/multicore/conf/xslt/luke.xsl 0644
 solr/multicore/solr.xml 0644
+solr/multicore.tar.gz 0644
 solr/solr-context.xml 0644
 tools/etc-defaults-jetty 0755
 tools/solrdelete 0755

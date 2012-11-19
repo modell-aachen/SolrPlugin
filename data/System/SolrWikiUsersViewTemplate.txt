@@ -1,0 +1,149 @@
+%META:TOPICINFO{author="ProjectContributor" comment="pending" date="1343316280" format="1.1" version="1"}%
+%META:TOPICPARENT{name="SolrPlugin"}%
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"SolrSearchView"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::defaultweb"}%%USERSWEB%%TMPL:END%
+%TMPL:DEF{"solr::input::checkboxes::inallwebs"}%%TMPL:END%
+%TMPL:DEF{"solr::input::checkboxes::inmycontribs"}%%TMPL:END%
+%TMPL:DEF{"solr::hierarchystep"}%%TMPL:END%
+%TMPL:DEF{"solr::sortby"}%%TMPL:END%
+%TMPL:DEF{"solr::displayas"}%%TMPL:END%
+%TMPL:DEF{"solr::defaultsort"}%title%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%form:*%QUERY{"{Ldap}{PersonDataForm}"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::facets"}%
+  %MAKETEXT{"Organisation"}%=field_Organisation_s,
+  %MAKETEXT{"Location"}%=field_Location_s,
+  %MAKETEXT{"Profession"}%=field_Profession_s
+%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::fields"}%field_Location_s, field_Profession_s, field_Email_s, field_LoginName_s, web, topic, field_Telephone_s, title%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::sidebar"}%<!-- -->
+<noautolink>
+%TMPL:P{"solr::selection"}%
+%SOLRFORMAT{"solr1"
+  %TMPL:P{"solr::facet"
+    id="field_Organisation_s"
+    format="$key&nbsp;($count)"
+    value="$id:$key"
+    input="checkbox"
+    include=""
+    exclude=""
+    extraclass="solrSort"
+    pageropts=""
+  }%
+  %TMPL:P{"solr::facet"
+    id="field_Location_s"
+    format="$key&nbsp;($count)"
+    value="$id:$key"
+    input="checkbox"
+    include=""
+    exclude=""
+    extraclass=""
+    pageropts=""
+  }%
+  %TMPL:P{"solr::facet"
+    id="field_Profession_s"
+    format="$key&nbsp;($count)"
+    value="$id:$key"
+    input="checkbox"
+    include=""
+    exclude=""
+    extraclass="solrSort"
+    pageropts=""
+  }%
+}%<!-- -->
+</noautolink>
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%TMPL:DEF{"solr::hits::list"}%%SOLRFORMAT{"solr1"
+  header="<div class='solrSearchHits solrSearchHitsList jqPrettyPhoto {itemSelector:\".solrImageFrame a\"}'>"
+  footer="%CLEAR%</div>"
+  format="<div class='solrSearchHit foswikiProfileInfo jqShrinkUrls {size:15}'>
+    $percntTMPL:P{\"solr::hits::userimage\" web=\"$web\" topic=\"$topic\"}$percnt<!-- -->
+      <h4>[[$web.$topic]] ($percntUSERINFO{\"$topic\" format=\"$username\"}$percnt)</h4>
+      <ul class='foswikiTopicInfo'>
+        $percntIF{\"'$field_Profession_s'!=''\"
+          then=\"<li>%MAKETEXT{"Profession"}%: $field_Profession_s </li>\"
+        }$percnt<!-- -->
+        $percntIF{\"'$field_Telephone_s'!=''\"
+          then=\"<li>%MAKETEXT{"Telephone"}%: $field_Telephone_s </li>\"
+        }$percnt<!-- -->
+        $percntIF{\"'$field_Email_s'!=''\"
+          then=\"<li>%MAKETEXT{"Email"}%: $field_Email_s </li>\"
+        }$percnt<!-- -->
+        $percntIF{\"'$field_Location_s'!=''\"
+          then=\"<li>%MAKETEXT{"Location"}%: $field_Location_s </li>\"
+        }$percnt<!-- -->
+      </ul>
+   </div>"
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"solr::hits::userimage"}%%ATTACHMENTS{ 
+   "%web%.%topic%" 
+   name=".*\.(jpe?g|gif|png|JE?PG|GIF|PNG)" 
+   warn="off" 
+   limit="1" 
+   sort="comment:name" 
+   hidenull="off" 
+   format="$percntIMAGE{ 
+     \"$name\" 
+     class=\"foswikiImage\"
+     topic=\"$web.$topic\" 
+     href=\"%SCRIPTURLPATH{"view"}%/$web/$topic\" 
+     size=\"%TMPL:P{"solr::hits::userimage::size"}%\" 
+     crop=\"northwest\" 
+     warn=\"off\" 
+     align=\"left\"
+   }$percnt" 
+   nullformat="$percntIMAGE{ 
+     \"%PUBURLPATH%/%SYSTEMWEB%/JQueryPlugin/images/nobody.gif\" 
+     class=\"foswikiImage\"
+     href=\"%SCRIPTURLPATH{"view"}%/$web/$topic\" 
+     size=\"%TMPL:P{"solr::hits::userimage::size"}%\" 
+     crop=\"northwest\" 
+     DISwarn=\"off\" 
+     align=\"left\"
+   }$percnt" 
+}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"solr::hits::userimage::size"}%48x48>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::assets"}%<!-- -->
+%JQREQUIRE{"focus, serialpager, prettyphoto, shrinkurls"}%<!-- -->
+%ADDTOZONE{"head"
+  requires="SOLRPLUGIN"
+  text="<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/wikiusers.css' media='all' />"
+}%
+<!-- -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::header::results"}%<!-- -->
+%SOLRFORMAT{"solr1" 
+  header="<div class='solrNumResults'>
+            $percntIF{\"$count>0\" 
+              then=\"<nop>$percntMAKETEXT{\"Results [_1] of <strong>[_2]</strong>\" args=\"$from - $to, $count\"}$percnt\"
+              else=\"<span class='foswikiAlert'>%MAKETEXT{"nothing found"}%</span>\"
+            }$percnt
+          </div>"
+}%
+<!-- -->%TMPL:END%
+%{</verbatim>}%

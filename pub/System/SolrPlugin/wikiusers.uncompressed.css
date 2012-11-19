@@ -1,0 +1,30 @@
+.solrCheckboxContainer,
+.solrSearchHitsList {
+  margin-top:0;
+}
+.solrSpellchecking {
+  margin-top:1em;
+}
+.solrSearchHits .foswikiProfileInfo {
+  margin:1em 0 0 0;
+  width:33%;
+  float:left;
+  position:relative;
+}
+.solrSearchHits .foswikiProfileInfo:nth-child(3n+1) {
+  clear:both;
+}
+.solrSearchHits .foswikiProfileInfo .foswikiImage img,
+.solrSearchHits .foswikiProfileInfo .foswikiImage {
+  height:80px;
+}
+.solrSearchHits h4 {
+  margin-top:0;
+  margin-left:75px;
+  margin-bottom:0.5em;
+}
+.solrSearchHits .foswikiTopicInfo {
+  margin:0 0 0 75px;
+  list-style:none;
+}
+

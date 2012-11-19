@@ -28,6 +28,7 @@
 %TMPL:DEF{"solr::defaultautosubmit"}%on%TMPL:END%
 %TMPL:DEF{"solr::defaultinfinitescroll"}%off%TMPL:END%
 %TMPL:DEF{"solr::boostquery"}%type:topic^200%TMPL:END%
+%TMPL:DEF{"solr::fields"}%*,score%TMPL:END%
 %TMPL:DEF{"solr::queryfields"}%
   web_search^8.0 
   topic_search^4.0 
@@ -204,6 +205,7 @@ jQuery(function($) {
   display="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%"
   type="%URLPARAM{"type" default="%TMPL:P{"solr::defaultquerytype"}%"}%"
   boostquery="%TMPL:P{"solr::boostquery"}%"
+  fields="%TMPL:P{"solr::fields"}%"
   queryfields="%TMPL:P{"solr::queryfields"}%"
   phrasefields="%TMPL:P{"solr::phrasefields"}%"
   start="%URLPARAM{"start" default="0"}%"
@@ -383,13 +385,12 @@ jQuery(function($) {
       <td width='12px'>
         <input type='checkbox' autocomplete='off' class='solrFacetValue solrFacetValue_$name' value='category:$name' title='$title' id='$name' name='filter_category' />
       </td>
-      <td><label for='$name' style='display:block'>$title&nbsp;($count)</label></td>
+      <td><label for='$name' style='display:block'>$title$percntIF{\"$count>0\" then=\"&nbsp;($count)\"}$percnt</label></td>
       </tr>
     </table>
     $children </li>"
   footer="</ul>"
-  hidenull="on"
-  nrtopics="%SOLRFORMAT{"solr1" format_category="$key:$count" separator_category=", "}%"
+  hidenull="off"
 }%
 </noautolink>
 %ENDTWISTYTOGGLE% 
@@ -633,8 +634,8 @@ jQuery(function($) {
 %TMPL:DEF{"solr::searchform"}%<!-- -->
 %TMPL:P{"solr::formstart"}%
 %TMPL:P{"solr::inputstep"}%
-%TMPL:P{"solr::tagcloudstep"}%
-%TMPL:P{"solr::hierarchystep"}%
+%TMPL:P{"solr::tagcloudstep"}%<!-- -->
+%TMPL:P{"solr::hierarchystep"}%<!-- -->
 %TMPL:P{"solr::formend"}%
 <!-- -->%TMPL:END%
 %{</verbatim>}%
@@ -817,11 +818,11 @@ jQuery(function($) {
     </td>
   </tr>
 </table>
-%TMPL:P{"solr::input::checkboxes"}%
+%TMPL:P{"solr::input::checkboxes"}%<!-- -->
 </div>
 <div class='foswikiRight'>
-%TMPL:P{"solr::sortby"}%
-%TMPL:P{"solr::displayas"}%
+%TMPL:P{"solr::sortby"}%<!-- -->
+%TMPL:P{"solr::displayas"}%<!-- -->
 </div>
 %CLEAR%
 </div>

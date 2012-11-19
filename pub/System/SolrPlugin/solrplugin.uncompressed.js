@@ -399,6 +399,7 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
         
       url = foswiki.getPreference("SCRIPTURL")
           + '/rest/SolrPlugin/autocomplete?topic='+foswiki.getPreference('WEB')+'.'+foswiki.getPreference('TOPIC')
+          + ';field=catchall'
           + filter;
 
       $searchField.autocomplete({
