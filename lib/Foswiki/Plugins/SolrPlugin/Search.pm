@@ -603,7 +603,7 @@ sub restSOLRAUTOCOMPLETE {
   return '' unless defined $this->{solr};
   my $query = Foswiki::Func::getCgiQuery();
 
-  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE > 4.10)?1:0;
+  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE gt '4.10')?1:0;
 
   my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
   my $theQuery = $query->param($isNewAutocomplete?'term':'q') || '';
