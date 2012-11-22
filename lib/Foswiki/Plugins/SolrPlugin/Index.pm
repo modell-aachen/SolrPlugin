@@ -945,7 +945,8 @@ sub getStringifiedVersion {
     $attText = Foswiki::Func::readFile($cachedFilename);
   }
 
-  $attText = Encode::decode('Windows-1252', $attText);
+  my $utf8Text = eval { Encode::decode('utf-8', $attText, 1) };
+  $attText = (defined $utf8Text ? $utf8Text : Encode::decode('Windows-1252', $attText));
   $attText = Encode::encode($Foswiki::cfg{Site}{CharSet}, $attText);
   return $attText;
 }
