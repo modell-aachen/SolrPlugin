@@ -7,6 +7,7 @@ TARGET=\
   solrplugin.js \
   pattern.css \
   solr-searchbox.js \
+  wikiusers.js \
   wikiusers.css
 
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include

@@ -11,12 +11,17 @@
   float:left;
   position:relative;
 }
+.solrSearchHits .foswikiProfileInfo.first { /* IE7, IE8 */
+  clear:both;
+}
 .solrSearchHits .foswikiProfileInfo:nth-child(3n+1) {
   clear:both;
 }
 .solrSearchHits .foswikiProfileInfo .foswikiImage img,
 .solrSearchHits .foswikiProfileInfo .foswikiImage {
-  height:80px;
+  max-height:80px;
+  max-width:75px;
+  margin-right:0;
 }
 .solrSearchHits h4 {
   margin-top:0;

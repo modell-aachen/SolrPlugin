@@ -34,9 +34,8 @@ use constant PROFILE => 0;  # toggle me
 
 #use Time::HiRes (); # enable this too when profiling
 
-use constant COMMIT_THRESHOLD => 1000;    # commit every 1000 topics on a bulk index job
-use constant WAIT_FLUSH => 0;
-use constant WAIT_SEARCHER => 0;
+use constant COMMIT_THRESHOLD => 200;    # commit every x topics on a bulk index job
+use constant WAIT_SEARCHER => 1;
 
 ##############################################################################
 sub new {
@@ -831,7 +830,6 @@ sub commit {
     $this->log("Committing index") if VERBOSE;
     $this->{solr}->commit(
       {
-        waitFlush => WAIT_FLUSH,
         waitSearcher => WAIT_SEARCHER
       }
     );

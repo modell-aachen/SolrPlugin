@@ -512,17 +512,12 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-           <lst><str name="q">foswiki</str>
-           <lst><str name="q">rocks</str>
-          -->
+        <lst><str name="q">foswiki</str></lst>
       </arr>
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <lst>
-          <str name="q">foswiki</str>
-        </lst>
+        <lst><str name="q">foswiki</str></lst>
       </arr>
     </listener>
 

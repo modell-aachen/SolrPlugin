@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic"date="1346678572"format="1.1" version="3"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic"date="1346678572"format="1.1" version="1"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -435,6 +435,7 @@
   union="true" 
   exclusion="true" 
   sort="title" 
+  limit="-1"
 }%
 %TMPL:P{"solr::facet"
   id="type"
@@ -458,7 +459,7 @@
 }%
 %TMPL:P{"solr::facet"
   id="field_TopicType_lst"
-  exclude="ApplicationLicense|ApplicationTopic|DataForm|DocuTopic|TopicFunction|TopicStub|TopicTemplate|TopicType|TopicView|WebTool|WikiApplication|WikiTopic"
+  exclude="ApplicationLicense|ApplicationTopic|DataForm|DocuTopic|TopicFunction|TopicStub|TopicTemplate|TopicType|TopicView|WebTool|WikiApplication|WikiTopic|TaggedTopic|CategorizedTopic"
   title="%MAKETEXT{"Topic type"}%"
 }%
 %TMPL:P{"solr::facet"
@@ -490,6 +491,7 @@
       * mincount - lower boundary for facet values to display
       * hidesingle - boolean
       * hidenullvalues - boolean
+      * limit - max number of facet values to return
 }%
 %TMPL:DEF{"solr::facet"}%<div data-field='%id%' %IF{
   "not '%class%'=~'^([%]class%)?$'"
@@ -519,6 +521,9 @@
 }%%IF{
   "not '%mincount%'=~'^([%]mincount%)?$'"
   then=" data-facet-mincount='%mincount%'"
+}%%IF{
+  "not '%limit%'=~'^([%]limit%)?$'"
+  then=" data-facet-limit='%limit%'"
 }%%IF{
   "not '%include%'=~'^([%]include%)?$'"
   then=" data-include='%include%'"

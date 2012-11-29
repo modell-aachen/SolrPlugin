@@ -1,0 +1,22 @@
+#!/bin/bash
+
+GOTSIGNAL=false
+SOLRINDEX_CMD=$FOSWIKI_ROOT/tools/solrindex
+LOGFILE=/tmp/solrindex.log
+
+(
+  trap "echo 'exiting ...'; GOTSIGNAL=true" SIGINT
+
+  while :
+  do
+    echo -n "### starting solrindex "
+    date
+    $SOLRINDEX_CMD 
+    if $GOTSIGNAL; then
+      break
+    fi
+    sleep 1
+  done
+
+  echo "done"
+) >>$LOGFILE 2>&1 

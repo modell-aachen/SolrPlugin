@@ -11,7 +11,7 @@
 %TMPL:DEF{"solr::hierarchystep"}%%TMPL:END%
 %TMPL:DEF{"solr::sortby"}%%TMPL:END%
 %TMPL:DEF{"solr::displayas"}%%TMPL:END%
-%TMPL:DEF{"solr::defaultsort"}%title%TMPL:END%
+%TMPL:DEF{"solr::defaultsort"}%title_sort%TMPL:END%
 %TMPL:DEF{"solr::extrafilter"}%form:*%QUERY{"{Ldap}{PersonDataForm}"}%%TMPL:END%
 %{</verbatim>}%
 
@@ -78,7 +78,7 @@
           then=\"<li>%MAKETEXT{"Profession"}%: $field_Profession_s </li>\"
         }$percnt<!-- -->
         $percntIF{\"'$field_Telephone_s'!=''\"
-          then=\"<li>%MAKETEXT{"Telephone"}%: $field_Telephone_s </li>\"
+          then=\"<li>%MAKETEXT{"Tel"}%: $field_Telephone_s </li>\"
         }$percnt<!-- -->
         $percntIF{\"'$field_Email_s'!=''\"
           then=\"<li>%MAKETEXT{"Email"}%: $field_Email_s </li>\"
@@ -131,8 +131,10 @@
 %ADDTOZONE{"head"
   requires="SOLRPLUGIN"
   text="<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/wikiusers.css' media='all' />"
-}%
-<!-- -->%TMPL:END%
+}%%ADDTOZONE{"script"
+  requires="SOLRPLUGIN"
+  text="<script src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/wikiusers.js' ></script>"
+}%<!-- -->%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%

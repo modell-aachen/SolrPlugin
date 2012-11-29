@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1351149452" format="1.1" reprev="12" version="12"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1353535753" format="1.1" reprev="12" version="14"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -68,9 +68,8 @@ Renders a list of the five most recent changes in the current web.
   footer="</ul>"
   format="<li>
       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic'>
-        $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" SIZE=\"40x40>\" TYPE=\"plain\"}$percnt<!-- -->
-        <!-- -->$title<br />
-        <span class='foswikiGrayText'>$summary</span>
+        $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" SIZE=\"40x40>\" TYPE=\"plain\"}$percnt<!-- -->$title
+        <div class='foswikiGrayText'>$summary</div>
         %CLEAR%
       </a>
     </li>"

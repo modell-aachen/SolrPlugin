@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="save topic" date="1353165378" format="1.1" reprev="9" version="12"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1353165378" format="1.1" reprev="9" version="12"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%

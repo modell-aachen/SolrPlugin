@@ -1709,9 +1709,6 @@ sub toUtf8 {
   my $string = shift;
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
-  return $string if $charset =~ /^utf-?8$/i;
-
-
   my $octets = Encode::decode($charset, $string);
   $octets = Encode::encode('utf-8', $octets);
   return $octets;

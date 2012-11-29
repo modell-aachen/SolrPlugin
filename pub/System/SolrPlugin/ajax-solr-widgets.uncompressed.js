@@ -1040,7 +1040,7 @@
           selectedValues = {};
 
       $.each(self.getQueryValues(self.getParams()), function(index, value) {
-        selectedValues[value] = true;
+        selectedValues[value.replace(/^"(.*)"$/, "$1")] = true;
       });
      
       // normalize, floor, ceiling
