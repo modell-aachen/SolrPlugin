@@ -1213,6 +1213,7 @@
 
    <!-- ATTACHMENTS: -->
    <field name="name" type="string" />
+   <field name="name_lc" type="lowercase" />
    <field name="comment" type="text_generic" />
    <field name="size" type="tint" />
 
@@ -1302,6 +1303,8 @@
    <copyField source="topic" dest="topic_search" />
    <copyField source="web" dest="web_search" />
    <copyField source="webtopic" dest="webtopic_search"/>
+
+   <copyField source="name" dest="name_lc"/>
 
    <copyField source="attachment" dest="catchall"/>
    <copyField source="category" dest="catchall"/>
