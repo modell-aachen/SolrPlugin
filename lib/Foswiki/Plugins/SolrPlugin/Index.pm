@@ -61,6 +61,10 @@ sub new {
     $this->log("ERROR: can't conect solr daemon");
   }
 
+  $this->{groupcache} = {};
+  $this->{groupnesscache} = {};
+  $this->{webaclcache} = {};
+
   return $this;
 }
 
@@ -72,12 +76,21 @@ sub finish {
     $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates} ||
     $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} ||
     $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
+
+  delete $this->{groupcache};
+  delete $this->{groupnesscache};
+  delete $this->{webaclcache};
 }
 
 ################################################################################
 # entry point to either update one topic or a complete web
 sub index  {
   my $this = shift;
+
+  # Need to get rid of the topic context stack in command-line mode
+  # because we're going to push our own things there and Main.WebHome is on
+  # it by default...
+  Foswiki::Func::popTopicContext();
 
   # exclusively lock the indexer to prevent a delta and a full index
   # mode to run in parallel
@@ -1135,6 +1148,72 @@ sub getRevisionInfo {
 }
 
 ################################################################################
+# fetches list of users in a group (cached)
+sub _getGroupMembers {
+  my ($this, $group) = @_;
+
+  return $this->{groupcache}{$group} if exists $this->{groupcache}{$group};
+
+  my $udb = $Foswiki::Plugins::SESSION->{users};
+  my $users = {};
+  my $it = $udb->eachGroupMember($group);
+  while ($it->hasNext) {
+    my $u = $it->next;
+    if ($this->_checkGroupness($u)) {
+      my @sub_users = keys %{$this->_getGroupMembers($u)};
+      @$users{@sub_users} = @sub_users;
+    } else {
+      $u = $udb->getWikiName($u);
+      $users->{$u} = 1;
+    }
+  }
+  $this->{groupcache}{$group} = $users;
+  return $users;
+}
+
+sub _expandUserList {
+  my ($this, @users) = @_;
+
+  my $res = {};
+  my $udb = $Foswiki::Plugins::SESSION->{users};
+  foreach my $u (@users) {
+    if (!$this->_checkGroupness($u)) {
+      $u = $udb->getWikiName($udb->getCanonicalUserID($u));
+      $res->{$u} = 1;
+    } else {
+      my @members = keys %{$this->_getGroupMembers($u)};
+      @$res{@members} = @members;
+    }
+  }
+  return $res;
+}
+
+sub _checkGroupness {
+  my ($this, $group) = @_;
+  if (!exists $this->{groupnesscache}{$group}) {
+    my $udb = $Foswiki::Plugins::SESSION->{users};
+    $this->{groupnesscache}{$group} = $udb->isGroup($group);
+  }
+  return $this->{groupnesscache}{$group};
+}
+
+# SMELL: copied from Foswiki::Meta::_getACL, but we need this separately
+sub _ACLify {
+  my $text = shift;
+  return undef unless defined $text;
+
+  # Remove HTML tags (compatibility, inherited from Users.pm
+  $text =~ s/(<[^>]*>)//g;
+
+  # Dump the users web specifier if userweb
+  my @list = grep { /\S/ } map {
+    s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+    $_
+  } split( /[,\s]+/, $text );
+  return \@list;
+}
+
+################################################################################
 # returns the list of users granted view access, or "all" if all users have got view access
 sub getGrantedUsers {
   my ($this, $web, $topic, $meta, $text) = @_;
@@ -1144,49 +1223,72 @@ sub getGrantedUsers {
 
   $text ||= '';
 
-  my @grantedUsers = ();
+  my $allow = _ACLify($meta->getPreference('ALLOWTOPICVIEW'));
+  my $deny = _ACLify($meta->getPreference('DENYTOPICVIEW'));
+  print "  allow topic: ".join(' ', @$allow)."\n" if DEBUG && defined $allow;
+  print "  deny  topic: ".join(' ', @$deny)."\n" if DEBUG && defined $deny;
 
-  my $topicHasPerms  = ($text =~ /(ALLOW|DENY)/ || 
-     $meta->get('PREFERENCE', 'ALLOWTOPICVIEW') ||
-     $meta->get('PREFERENCE', 'DENYTOPICVIEW'))?1:0;
+  my $grantedUsers = {};
+  my $forbiddenUsers = {};
 
-  if ($this->{_webViewPermission}{$web}{all} && !$topicHasPerms) {
+  if (defined $deny && scalar(@$deny) == 0) {
+    # Special exception: empty DENYTOPICVIEW = everyone is allowed
+    return ('all');
+  }
+  if (defined($deny)) {
+    $forbiddenUsers = $this->_expandUserList(@$deny);
+  }
+  if (defined($allow) && scalar(@$allow)) {
+    $grantedUsers = $this->_expandUserList(@$allow);
+    delete @$grantedUsers{keys %$forbiddenUsers};
+    # A non-empty ALLOW is final
+    return keys %$grantedUsers;
+  }
 
-    # short circuit the rest as we already know all have access
-    push @grantedUsers, 'all';
+  # Use cache if possible (no topic-level perms set)
+  if (!defined($deny) && exists $this->{webaclcache}{$web}) {
+    return @{ $this->{webaclcache}{$web} };
+  }
 
-    #print STDERR "all got access to $web.$topic (found in cache)\n";
+  # No specific permissions -> fall back on web permissions
+  Foswiki::Func::pushTopicContext($web, $topic);
+  $allow = _ACLify(Foswiki::Func::getPreferencesValue('ALLOWWEBVIEW'));
+  my $denyWeb = _ACLify(Foswiki::Func::getPreferencesValue('DENYWEBVIEW'));
+  Foswiki::Func::popTopicContext($web, $topic);
+  print "  allow web: ".join(' ', @$allow)."\n" if DEBUG && defined $allow;
+  print "  deny  web: ".join(' ', @$denyWeb)."\n" if DEBUG && defined $denyWeb;
 
+  # ANY DENYTOPICVIEW overrides DENYWEBVIEW
+  if (!defined($deny) && defined($denyWeb) && scalar(@$denyWeb)) {
+    $forbiddenUsers = $this->_expandUserList(@$denyWeb);
+  }
+
+  if (defined($allow) && scalar(@$allow)) {
+    $grantedUsers = $this->_expandUserList(@$allow);
+  } elsif (!defined($deny) && !defined($denyWeb)) {
+    # No denies, no allows -> open door policy
+    $this->{webaclcache}{$web} = ['all'];
+    return ('all');
   } else {
-    
-    # test each user. smell: no api in foswiki, so we need to do it hard core
-    foreach my $wikiName (keys %{$this->{knownUsers}}) {
+    # Need list of all users here in case we have to subtract forbidden users
+    $grantedUsers = { %{$this->{knownUsers}} }; # Copy the hash
+  }
+  # unify the two lists
+  delete @$grantedUsers{keys %$forbiddenUsers};
+  my @grantedUsers = grep { exists $this->{knownUsers}{$_} } keys %$grantedUsers;
 
-      if ($topicHasPerms) {
-        # detailed access check
-        if (Foswiki::Func::checkAccessPermission('VIEW', $wikiName, $text, $topic, $web, $meta)) {
-          push @grantedUsers, $wikiName;
-        }
-      } else {
-
-        # check web permission
-        my $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName};
-
-        unless (defined $webViewPermission) {
-          $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName} =
-            Foswiki::Func::checkAccessPermission('VIEW', $wikiName, undef, undef, $web);
-        }
-
-        push @grantedUsers, $wikiName if $webViewPermission;
-      }
+  # check if this is all users
+  if (scalar(@grantedUsers) == $this->{nrKnownUsers}) {
+    if (!defined($deny)) {
+      # Cache it for entire web
+      $this->{webaclcache}{$web} = ['all'];
     }
+    return ('all');
+  }
 
-    # check if this is all users
-    if (scalar(@grantedUsers) == $this->{nrKnownUsers}) {
-      $this->{_webViewPermission}{$web}{all} = 1;
-      @grantedUsers = ( 'all' );
-      #print STDERR "all got access to $web.$topic\n";
-    }
+  if (!defined($deny)) {
+    # Topic-level perms don't apply, so we can cache this for the whole web
+    $this->{webaclcache}{$web} = \@grantedUsers;
   }
 
   return @grantedUsers;
