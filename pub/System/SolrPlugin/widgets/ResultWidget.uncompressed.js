@@ -143,8 +143,6 @@
               return "???";
             }
 
-console.log("dateFormat=",dateFormat);
-
             return moment(dateString).format(dateFormat || self.options.dateFormat);
             //return moment(dateString).calendar();
           }
