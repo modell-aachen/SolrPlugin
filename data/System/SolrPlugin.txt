@@ -664,6 +664,10 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  14 Mar 2013: | improved indexing performance; \
+                  added configurable http timeouts takling to the solr backend; \
+                  fixed language mappings for multilingual content; \
+                  fixes due to latest changes in jquery.moment |
 |  17 Oct 2011: | fixed WebServices::Solr to only encode to utf8 if needed; \
                   fixed handling character encoding on a pure utf8 foswiki; \
                   fixed schema for spell correction |

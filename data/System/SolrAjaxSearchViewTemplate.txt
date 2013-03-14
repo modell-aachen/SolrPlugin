@@ -1,5 +1,6 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1332844392" format="1.1" reprev="1" version="1"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="2"}%
 %META:TOPICPARENT{name="WebHome"}%
+
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrAjaxSearchBase"}%
 %{</verbatim>}%
@@ -8,8 +9,9 @@
 %TMPL:DEF{"sidebar"}%%TMPL:P{"solr::sidebar"}%%TMPL:END%
 %TMPL:DEF{"searchbox"}%%TMPL:END%
 %TMPL:DEF{"revinfo"}%%TMPL:END%
-%TMPL:DEF{"bottombar"}%%TMPL:END%
 %TMPL:DEF{"form"}%%TMPL:END%
+%TMPL:DEF{"bottombar"}%%TMPL:END%
+%TMPL:DEF{"contentfooter"}%%TMPL:END%
 %TMPL:DEF{"bodyclass"}%natViewBody natSolrBody%TMPL:END%
 %{</verbatim>}%
 

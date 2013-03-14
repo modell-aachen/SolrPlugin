@@ -16,8 +16,10 @@
     inputType: null,
 
     initQueries: function() {
-      var self = this;
-      self.queries = $.parseJSON($(self.target).find(".solrJsonData").text());
+      var self = this, text = $(self.target).find(".solrJsonData").text();
+      if (text) {
+        self.queries = $.parseJSON(text);
+      }
     },
 
     getFacetValue: function(facet) {

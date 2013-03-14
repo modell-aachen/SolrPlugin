@@ -1,4 +1,5 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1332844392" format="1.1" reprev="1" version="1"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="1"}%
+
 %META:TOPICPARENT{name="WebHome"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrAjaxSearchView"}%
@@ -20,7 +21,7 @@
 %TMPL:DEF{"solr::sidebar"}%<noautolink>
 %TMPL:P{"solr::selection"}%
 %TMPL:P{"solr::facet"
-  id="field_Organisation_s"
+  id="field_OrganisationName_s"
   title="%MAKETEXT{"Organisation"}%"
   hidesingle="false"
   multivalue="true"
@@ -35,11 +36,11 @@
   multivalue="true"
   exclusion="true"
   union="true"
-
 }%
 %TMPL:P{"solr::facet"
   id="field_Profession_s"
   title="%MAKETEXT{"Profession"}%"
+  hidesingle="false"
 }%
 </noautolink>%TMPL:END%
 %{</verbatim>}%

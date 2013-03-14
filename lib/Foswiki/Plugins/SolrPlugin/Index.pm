@@ -45,6 +45,9 @@ sub new {
 
   $this->{url} = $Foswiki::cfg{SolrPlugin}{UpdateUrl} || $Foswiki::cfg{SolrPlugin}{Url};
 
+  $this->{_groupCache} = {};
+  $this->{_webACLCache} = {};
+
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
   # Compared to the Search constructor there's no autostarting here
@@ -77,6 +80,10 @@ sub finish {
     if $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates}
       || $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates}
       || $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
+
+  undef $this->{_knownUsers};
+  undef $this->{_groupCache};
+  undef $this->{_webACLCache};
 }
 
 ################################################################################
@@ -606,7 +613,7 @@ sub getContentLanguage {
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
   my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
 
-  $this->log("contentLanguage=$contentLanguage") if DEBUG;
+  #$this->log("contentLanguage=$contentLanguage") if DEBUG;
 
   Foswiki::Func::popTopicContext() if $donePush;
 
@@ -660,7 +667,7 @@ sub indexAttachment {
 
   my $name = $attachment->{'name'} || '';
   if (VERBOSE) {
-    $this->log("Indexing attachment $web.$topic.$name");
+    #$this->log("Indexing attachment $web.$topic.$name");
   } else {
 
     #$this->log("a", 1);
@@ -721,7 +728,10 @@ sub indexAttachment {
   my $id = "$web.$topic.$name";
 
   # view url
-  my $url = $this->getScriptUrlPath($web, $topic, 'viewfile', filename => $name);
+  #my $url = $this->getScriptUrlPath($web, $topic, 'viewfile', filename => $name);
+  my $webDir = $web;
+  $webDir =~ s/\./\//g;
+  my $url = $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name;
 
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
   my $icon = $this->mapToIconFileName($extension);
@@ -812,9 +822,17 @@ sub optimize {
 
   return unless $this->{solr};
 
+  # temporarily set a different timeout for this operation
+  my $agent = $this->{solr}->agent();
+  my $oldTimeout = $agent->timeout();
+
+  $agent->timeout($this->{optimizeTimeout});  
+
   $this->{solr}->commit();
   $this->log("Optimizing index");
   $this->{solr}->optimize();
+
+  $agent->timeout($oldTimeout);
 }
 
 ################################################################################
@@ -930,8 +948,6 @@ sub deleteDocument {
 sub lock {
   my $this = shift;
 
-  return if DEBUG;
-
   my $lockfile = Foswiki::Func::getWorkArea('SolrPlugin') . "/indexer.lock";
   open($this->{lock}, ">$lockfile")
     or die "can't create lockfile $lockfile";
@@ -943,8 +959,6 @@ sub lock {
 ################################################################################
 sub unlock {
   my $this = shift;
-
-  return if DEBUG;
 
   flock($this->{lock}, LOCK_UN)
     or die "unable to unlock: $!";
@@ -1002,26 +1016,41 @@ sub modificationTime {
 }
 
 ################################################################################
+sub nrKnownUsers {
+  my ($this, $id) = @_;
+
+  $this->getListOfUsers();
+  return $this->{_nrKnownUsers};
+}
+
+################################################################################
+sub isKnownUser {
+  my ($this, $id) = @_;
+
+  $this->getListOfUsers();
+  return (exists $this->{_knownUsers}{$id}?1:0);
+}
+
+################################################################################
 # Get a list of all registered users
-# excludes out admin users
 sub getListOfUsers {
   my $this = shift;
 
-  unless (defined $this->{knownUsers}) {
+  unless (defined $this->{_knownUsers}) {
 
     my $it = Foswiki::Func::eachUser();
     while ($it->hasNext()) {
       my $user = $it->next();
-      $this->{knownUsers}{$user} = 1 if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
+      $this->{_knownUsers}{$user} = 1;# if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
     }
 
-    #$this->log("known users=".join(", ", sort keys %{$this->{knownUsers}})) if DEBUG;
-    $this->{nrKnownUsers} = scalar(keys %{ $this->{knownUsers} });
+    #$this->log("known users=".join(", ", sort keys %{$this->{_knownUsers}})) if DEBUG;
+    $this->{_nrKnownUsers} = scalar(keys %{ $this->{_knownUsers} });
 
-    #$this->log("found ".$this->{nrKnownUsers}." users");
+    #$this->log("found ".$this->{_nrKnownUsers}." users");
   }
 
-  return $this->{knownUsers};
+  return $this->{_knownUsers};
 }
 
 ################################################################################
@@ -1113,73 +1142,187 @@ sub getRevisionInfo {
 sub getGrantedUsers {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  # set {knownUsers} and {nrKnownUsers}
-  $this->getListOfUsers();
+  my %grantedUsers;
+  my $forbiddenUsers;
 
-  $text = $meta->text() unless defined $text;
-  $text ||= '';
+  my $allow = $this->getACL($meta, 'ALLOWTOPICVIEW');
+  my $deny = $this->getACL($meta, 'DENYTOPICVIEW');
 
-  my @grantedUsers = ();
+  if (DEBUG) {
+    $this->log("topicAllow=@$allow") if defined $allow;
+    $this->log("topicDeny=@$deny") if defined $deny;
+  }
 
-  my $topicHasPerms =
-    ($text =~ /(ALLOW|DENY)/ || $meta->get('PREFERENCE', 'ALLOWTOPICVIEW') || $meta->get('PREFERENCE', 'DENYTOPICVIEW')) ? 1 : 0;
+  # Check DENYTOPIC
+  if (defined $deny) {
+    if (scalar(@$deny)) {
+      $forbiddenUsers = $this->expandUserList(@$deny);
+    } else {
 
-  if ($this->{_webViewPermission}{$web}{all} && !$topicHasPerms) {
+      $this->log("empty deny -> grant all access") if DEBUG;
 
-    # short circuit the rest as we already know all have access
-    push @grantedUsers, 'all';
-
-    #print STDERR "all got access to $web.$topic (found in cache)\n";
-
-  } else {
-
-    # test each user. smell: no api in foswiki, so we need to do it hard core
-    foreach my $wikiName (keys %{ $this->{knownUsers} }) {
-
-      if ($topicHasPerms) {
-
-        # detailed access check
-        if (Foswiki::Func::checkAccessPermission('VIEW', $wikiName, $text, $topic, $web, $meta)) {
-          push @grantedUsers, $wikiName;
-        }
-      } else {
-
-        # check web permission
-        my $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName};
-
-        unless (defined $webViewPermission) {
-          $webViewPermission = $this->{_webViewPermission}{$web}{$wikiName} = Foswiki::Func::checkAccessPermission('VIEW', $wikiName, undef, undef, $web);
-        }
-
-        push @grantedUsers, $wikiName if $webViewPermission;
-      }
+      # Empty deny
+      return ['all'];
     }
+  }
+  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
 
-    # check if this is all users
-    if (scalar(@grantedUsers) == $this->{nrKnownUsers}) {
-      $this->{_webViewPermission}{$web}{all} = 1;
-      @grantedUsers = ('all');
+  # Check ALLOWTOPIC
+  if (defined($allow)) {
+    if (scalar(@$allow)) {
+      $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$allow)};
 
-      #print STDERR "all got access to $web.$topic\n";
+      if (defined $forbiddenUsers) {
+        delete $grantedUsers{$_} foreach @$forbiddenUsers;
+      }
+      my @grantedUsers = keys %grantedUsers;
+
+      $this->log("(1) granting access for @grantedUsers") if DEBUG;
+
+      # A non-empty ALLOW is final
+      return \@grantedUsers;
     }
   }
 
-  return @grantedUsers;
+  # use cache if possible (no topic-level perms set)
+  if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
+    $this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if DEBUG;
+    return $this->{_webACLCache}{$web};
+  }
+
+  my $webMeta = $meta->getContainer;
+  my $webAllow = $this->getACL($webMeta, 'ALLOWWEBVIEW');
+  my $webDeny = $this->getACL($webMeta, 'DENYWEBVIEW');
+
+  if (DEBUG) {
+    $this->log("webAllow=@$webAllow") if defined $webAllow;
+    $this->log("webDeny=@$webDeny") if defined $webDeny;
+  }
+
+  # Check DENYWEB, but only if DENYTOPIC is not set 
+  if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
+    push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
+  }
+  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
+
+  if (defined($webAllow) && scalar(@$webAllow)) {
+    $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$webAllow)};
+  } elsif (!defined($deny) && !defined($webDeny)) {
+
+    $this->log("no denies, no allows -> grant all access") if DEBUG;
+
+    # No denies, no allows -> open door policy
+    $this->{_webACLCache}{$web} = ['all'];
+    return ['all'];
+
+  } else {
+    %grantedUsers = %{$this->getListOfUsers()};
+  }
+
+  if (defined $forbiddenUsers) {
+    delete $grantedUsers{$_} foreach @$forbiddenUsers;
+  }
+
+  # get list of users granted access that actually still exist
+  foreach my $user (keys %grantedUsers) {
+    $grantedUsers{$user}++ if defined $this->isKnownUser($user);
+  }
+
+  my @grantedUsers = ();
+  foreach my $user (keys %grantedUsers) {
+    push @grantedUsers, $user if $grantedUsers{$user} > 1;
+  }
+
+  @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
+
+  # can't cache when there are topic-level perms 
+  $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
+
+  $this->log("(2) granting access for ".join(", ", sort @grantedUsers)) if DEBUG;
+
+  return \@grantedUsers;
 }
+
+################################################################################
+# SMELL: coppied from core; only works with topic-based ACLs
+sub getACL {
+  my ($this, $meta, $mode) = @_;
+
+  if (defined $meta->{_topic} && !defined $meta->{_loadedRev}) {
+    # Lazy load the latest version.
+    $meta->loadVersion();
+  }
+
+  my $text = $meta->getPreference($mode);
+  return unless defined $text;
+
+  # Remove HTML tags (compatibility, inherited from Users.pm
+  $text =~ s/(<[^>]*>)//g;
+
+  # Dump the users web specifier if userweb
+  my @list = grep { /\S/ } map {
+    s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+    $_
+  } split(/[,\s]+/, $text);
+
+  #print STDERR "getACL($mode): ".join(', ', @list)."\n";
+
+  return \@list;
+}
+
+################################################################################
+sub expandUserList {
+  my ($this, @users) = @_;
+
+  my %result = ();
+
+  foreach my $id (@users) {
+    $id =~ s/(<[^>]*>)//go;
+    $id =~ s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+    next unless $id;
+
+    if (Foswiki::Func::isGroup($id)) {
+      $result{$_} = 1 foreach @{$this->_expandGroup($id)};
+    } else {
+      $result{getWikiName($id)} = 1;
+    }
+  }
+
+  return [keys %result];
+}
+
+sub _expandGroup {
+  my ($this, $group) = @_;
+
+  return $this->{_groupCache}{$group} if exists $this->{_groupCache}{$group};
+
+  my %result = ();
+
+  my $it = Foswiki::Func::eachGroupMember($group);
+
+  while ($it->hasNext) {
+    my $id = $it->next;
+
+    if (Foswiki::Func::isGroup($id)) {
+      $result{$_} = 1 foreach @{$this->_expandGroup($id)};
+    } else {
+      $result{getWikiName($id)} = 1;
+    }
+  }
+
+  $this->{_groupCache}{$group} = [keys %result];
+
+  return [keys %result];
+}
+
 
 ################################################################################
 sub getAclFields {
   my $this = shift;
 
-  my @aclFields = ();
-
-  # permissions
-  my @grantedUsers = $this->getGrantedUsers(@_);
-  foreach my $wikiName (@grantedUsers) {
-    push @aclFields, 'access_granted' => $wikiName;
-  }
-
-  return @aclFields;
+  my $grantedUsers = $this->getGrantedUsers(@_);
+  return () unless $grantedUsers;
+  return ('access_granted' => $grantedUsers);
 }
 
 ################################################################################

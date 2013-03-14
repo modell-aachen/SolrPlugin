@@ -48,6 +48,17 @@ $Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexC
 # Url where to find the solr server
 $Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr';
 
+# **NUMBER**
+# default timeout in seconds for an HTTP transaction to the SOLR server 
+$Foswiki::cfg{SolrPlugin}{Timeout} = 180;
+
+# **NUMBER**
+# timeout in seconds for an HTTP transaction to the SOLR server issuing an "optimize" 
+# action. This normally takes a lot longer than a normal request as all of the SOLR database
+# is restructured with a lot of IO on the disk. 
+$Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
+
+
 # **STRING** 
 # Url of the server to send updates to. Note, you will only need this setting
 # in a solr setup with master-slave replication where all updates are sent to
@@ -87,8 +98,8 @@ $Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
 # Entries in the list below are key =&gt; value pairs mapping a cleartext language label to the used locale ID
 # used in the schema.
 $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
-  'en' => 'en', 'english' => 'en',
-  'cjk' => 'cjk', 'chinese' => 'cjk', 'japanese' => 'cjk', 'korean' => 'cjk', 
+  'en' => 'en', 'en-us' => 'en', 'en-gb' => 'en', 'english' => 'en', 
+  'cjk' => 'cjk', 'zh-cn' => 'cjk', 'zh-tw' => 'cjk', 'ja' => 'cjk', 'ko' => 'cjk', 'chinese' => 'cjk', 'japanese' => 'cjk', 'korean' => 'cjk', 
   'da' => 'da', 'danish' => 'da', 
   'de' => 'de', 'german' => 'de', 
   'es' => 'es', 'spanish' => 'es', 
@@ -96,10 +107,14 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
   'fr' => 'fr', 'french' => 'fr', 
   'it' => 'it', 'italian' => 'it', 
   'nl' => 'nl', 'dutch' => 'nl', 
-  'pt' => 'pt', 'portuguese' => 'pt', 
+  'pt' => 'pt', 'pt-br' => 'pt', 'portuguese' => 'pt', 
   'ru' => 'ru', 'russian' => 'ru', 
-  'se' => 'se', 'swedish' => 'se', 
-  'tr' => 'tr', 'turkish' => 'tr'
+  'sv' => 'sv', 'swedish' => 'sv', 
+  'tr' => 'tr', 'turkish' => 'tr',
+  'cs' => 'detect', 
+  'no' => 'detect',
+  'pl' => 'detect',
+  'uk' => 'detect',
 };
 
 1;

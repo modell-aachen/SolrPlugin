@@ -1,4 +1,5 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1353535753" format="1.1" reprev="12" version="14"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="15"}%
+
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -15,7 +16,7 @@ You can also pick individual components using
 
 Note: all components make use of Foswiki:Extensions/DBCachePlugin for greater flexibility and performance.
 
----++ Implememntation
+---++ Implementation
 Default sidebar implementation that includes all of the components listed below.
 
 <verbatim class="tml">

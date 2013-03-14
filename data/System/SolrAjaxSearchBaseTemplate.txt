@@ -1,5 +1,6 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic"date="1346678572"format="1.1" version="1"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1357641167" format="1.1" version="5"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
+
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    template inheritance and general presets 
@@ -16,7 +17,7 @@
 %TMPL:DEF{"solr::defaultrows"}%10%TMPL:END%
 %TMPL:DEF{"solr::defaultquerytype"}%edismax%TMPL:END%
 %TMPL:DEF{"solr::defaultsort"}%score desc%TMPL:END%
-%TMPL:DEF{"solr::dateformat"}%dddd, Do MMMM YYYY, LT%TMPL:END%
+%TMPL:DEF{"solr::dateformat"}%dddd, Do MMMM YYYY, HH:mm%TMPL:END%
 %TMPL:DEF{"solr::fields"}%%TMPL:END%
 %TMPL:DEF{"solr::extrafilter"}%%IF{
   "defined 'SOLR_EXTRAFILTER'" 
@@ -26,10 +27,10 @@
   then="-web_search:Applications"
 }%%TMPL:END%
 %TMPL:DEF{"solr::facet::include::web"}%%TMPL:END%
-%TMPL:DEF{"solr::facet::exclude::web"}%%IF{
+%TMPL:DEF{"solr::facet::exclude::web"}%^(_.*%IF{
   "not $USERNAME ingroup 'AdminGroup'"
-  then="^Application"
-}%%TMPL:END%
+  then="|Application.*"
+}%)$%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
@@ -201,7 +202,7 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::templates::hits:comment"}%<script id="solrHitTemplate_comment" type="text/x-jquery-tmpl">
+%TMPL:DEF{"solr::templates::hits::comment"}%<script id="solrHitTemplate_comment" type="text/x-jquery-tmpl">
   <div class='solrSearchHit solrCommentHit'>
     <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/comment.png)'>
       <a href='${url}'>${title}</a>
@@ -628,8 +629,7 @@
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
-   solr::hits - this macro either calls "solr::hits::list" or solr::hist::grid
-   depending of the display style given in the display urlparam
+   solr::hits - display all search hits
 }%
 %TMPL:DEF{"solr::hits"}%<div class="solrSearchHits jqPrettyPhoto {itemSelector:'.solrImageFrame a'} clearfix" data-block-ui="window"></div>%TMPL:END%
 %{</verbatim>}%
@@ -659,19 +659,15 @@
    solr::displayas - render the display switcher
 }%
 %TMPL:DEF{"solr::displayas"}%<!-- -->
-<table class='foswikiNullTable'>
+<table class='foswikiLayoutTable'>
   <tr>
     <th>%MAKETEXT{"Display as"}%:</th>
     <td>
       <input type='radio' class='foswikiRadio solrDisplay' id='display_list' value='list' name='display'>
-    </td>
-    <td>
       <label class='foswikiLabel' for='display_list'>%MAKETEXT{"list"}%</label>
     </td>
     <td>
       <input type='radio' class='foswikiRadio solrDisplay' id='display_grid' value='grid' name='display'>
-    </td>
-    <td>
       <label class='foswikiLabel' for='display_grid'>%MAKETEXT{"grid"}%</label>
     </td>
   </tr>
@@ -725,7 +721,7 @@
    solr::tagcloudstep - part of the solr::searchform. this contains the tagcloud facet
 }%
 %TMPL:DEF{"solr::tagcloudstep"}%<!-- -->
-<div class='foswikiFormStep solrTagCloud' data-field='tag' data-start-color="[111, 169, 255]" data-end-color='[0, 89, 224]'>
+<div class='foswikiFormStep solrTagCloud' data-field='tag' data-start-color="[%TAGCLOUD_START{default="111, 169, 255"}%]" data-end-color='[%TAGCLOUD_END{default="0, 89, 224"}%]'>
   <div class='foswikiFormStep foswikiFormLast'>
     <hr />
     <h3><a href='#' class='jqTwisty' data-target='.solrTagCloudContainer' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%MAKETEXT{"Popular tags"}%</a></h3>

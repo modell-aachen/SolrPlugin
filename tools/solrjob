@@ -15,8 +15,9 @@ THROTTLE=10
 # lock file
 LOCKFILE=$FOSWIKI_ROOT/working/tmp/solrindex.lock
 
-# set time format
+# set time format 
 TIME="%E real, %U user, %S system"
+TIMEFORMAT="%R real, %U user, %S system"
 
 # mode: delta or full
 MODE=delta
@@ -24,8 +25,12 @@ MODE=delta
 # if VHOST is not set we do a normal solrjob
 VHOST=
 
-longopts="throttle:,mode:,host:"
-shortopts="t:m:h:"
+# set this to the full path of the file that triggered the event
+FILE=
+
+
+longopts="throttle:,mode:,host:,file:"
+shortopts="t:m:h:f:"
 
 temp=`getopt -o $shortopts --long $longopts -n $0 -- "$@"`
 if [ $? != 0 ] ; then 
@@ -35,6 +40,11 @@ fi
 eval set -- "$temp"
 while true; do
   case $1 in
+    -f|--file)
+      FILE=$2
+      shift
+      shift
+      ;;
     -h|--host)
       VHOST=$2
       shift
@@ -65,6 +75,7 @@ export TIME
     cd $FOSWIKI_ROOT/tools 
     SOLRINDEX=./solrindex
     SOLRINDEX_ARGS=
+    WEB=
     if test -n "$VHOST"; then
       SOLRINDEX=./virtualhosts-solrindex
       SOLRINDEX_ARGS="host=$VHOST"
@@ -72,13 +83,19 @@ export TIME
 
     #echo -n "indexing " >&2
     #test -n "$VHOST" && echo -n "$VHOST " >&2
+    #test -n "$FILE" && echo -n "triggered by $FILE" >&2
     #echo "in $THROTTLE seconds" >&2
+    if test -n "$FILE"; then
+      WEB=${FILE/*data\//};
+      WEB="web=$(dirname $WEB)"
+      echo "WEB=$WEB" >&2
+    fi
     sleep $THROTTLE
 
     if test "$MODE" = "delta"; then
-      /usr/bin/time $SOLRINDEX mode=delta $SOLRINDEX_ARGS >> $LOG 2>&1
+      time $SOLRINDEX mode=delta $WEB $SOLRINDEX_ARGS >> $LOG 2>&1
     else
-      /usr/bin/time $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS > $LOG 2>&1
+      time $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS > $LOG 2>&1
     fi
   )
 ) 200>$LOCKFILE&

@@ -190,6 +190,7 @@
 .solrPager a.current {
   color:#fff;
   background:#bb2222;
+  text-decoration:none;
 }
 .solrPagerEllipsis {
   margin:0px 5px;

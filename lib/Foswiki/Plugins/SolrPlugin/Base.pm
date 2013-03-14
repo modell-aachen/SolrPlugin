@@ -18,6 +18,7 @@ use warnings;
 
 use Foswiki::Func ();
 use Foswiki::Plugins ();
+use Foswiki::Plugins::SolrPlugin ();
 use WebService::Solr ();
 use Error qw( :try );
 use Encode ();
@@ -43,9 +44,14 @@ sub new {
   my $this = {
     session => $session,
     url => $Foswiki::cfg{SolrPlugin}{Url},    # || 'http://localhost:8983',
+    timeout => $Foswiki::cfg{SolrPlugin}{Timeout},
+    optimizeTimeout => $Foswiki::cfg{SolrPlugin}{OptimizeTimeout},
     @_
   };
   bless($this, $class);
+
+  $this->{timeout} = 180 unless defined $this->{timeout};
+  $this->{optimizeTimeout} = 600 unless defined $this->{optimizeTimeout};
 
   return $this;
 }
@@ -92,7 +98,14 @@ sub connect {
 
   for ($tries = 1; $tries <= $maxConnectRetries; $tries++) {
     eval {
-      $this->{solr} = WebService::Solr->new($this->{url}, { autocommit => 0, });
+      $this->{solr} = WebService::Solr->new($this->{url}, { 
+        agent => LWP::UserAgent->new( 
+          agent => "Foswiki-SolrPlugin/$Foswiki::Plugins::SolrPlugin::VERSION",
+          timeout => $this->{timeout}, 
+          keep_alive => 1 
+        ), 
+        autocommit => 0, 
+      });
 
       # SMELL: WebServices::Solr somehow does not degrade nicely
       if ($this->{solr}->ping()) {

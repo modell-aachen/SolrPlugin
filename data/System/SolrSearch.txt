@@ -1,4 +1,5 @@
-%META:TOPICINFO{author="ProjectContributor" date="1263303948" format="1.1" version="1.1"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="2"}%
+
 %META:TOPICPARENT{name="SolrPlugin"}%
 <!--
    * Set VIEW_TEMPLATE = SolrSearchView

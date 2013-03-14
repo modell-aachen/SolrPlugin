@@ -9,7 +9,7 @@
       defaultDisplay: 'list',
       smallSize: 64,
       largeSize: 150,
-      dateFormat: 'dddd, Do MMMM YYYY, LT',
+      dateFormat: 'dddd, Do MMMM YYYY, HH:mm',
       dictionary: 'default'
     },
 
@@ -68,6 +68,10 @@
 
             if (type.match(/png|gif|jpe?g|tiff|bmp/)) {
               return "#solrHitTemplate_image";
+            } 
+
+            if (type.match(/comment/)) {
+              return "#solrHitTemplate_comment";
             } 
 
             return "#solrHitTemplate_misc";
@@ -135,23 +139,14 @@
             }
           },
           formatDate: function(dateString, dateFormat) {
-            var oldFormat, result;
-
             if (dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
               return "???";
             }
 
-            if (typeof(dateFormat) === 'undefined') {
-              return moment(dateString).calendar();
-            } 
+console.log("dateFormat=",dateFormat);
 
-            // hack it in temporarily ... jaul
-            oldFormat = moment.calendar.sameElse;
-            moment.calendar.sameElse = moment.calendar.lastWeek = dateFormat;
-            result = moment(dateString).calendar();
-            moment.calendar.sameElse = moment.calendar.lastWeek = oldFormat;
-            
-            return result;
+            return moment(dateString).format(dateFormat || self.options.dateFormat);
+            //return moment(dateString).calendar();
           }
         }
       ));
@@ -195,11 +190,6 @@
       self._isFirst = true;
 
       self.update();
-
-      // customize formatCalendar
-      moment.calendar.sameElse = self.options.dateFormat;
-      moment.calendar.lastWeek = self.options.dateFormat; // too funky for most users
-      moment.longDateFormat.LT = 'HH:mm';
     }
   });
 

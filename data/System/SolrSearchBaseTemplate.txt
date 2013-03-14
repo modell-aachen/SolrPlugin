@@ -1,4 +1,5 @@
-%META:TOPICINFO{author="ProjectContributor" date="1309519615" format="1.1" reprev="1.4" version="1.4"}%
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="12"}%
+
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -853,7 +854,7 @@ jQuery(function($) {
     <th>%MAKETEXT{"Sort by"}%:&nbsp;</th>
     <td>
       <select class='foswikiSelect' id='solrSorting'>
-        <option class='foswikiOption' value='score desc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='sort desc'" then="selected"}%>%MAKETEXT{"Relevance"}%</option>
+        <option class='foswikiOption' value='score desc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='score desc'" then="selected"}%>%MAKETEXT{"Relevance"}%</option>
         <option class='foswikiOption' value='date desc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='date desc'" then="selected"}%>%MAKETEXT{"Last changed"}%</option>
         <option class='foswikiOption' value='title_sort asc' %IF{"'%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%'='title_sort asc'" then="selected"}%>%MAKETEXT{"Name"}%</option>
       </select>

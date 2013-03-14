@@ -14,3 +14,4 @@ LWP::UserAgent,>=5.820,cpan,Required.
 Moose,>=0.63,cpan,Required.
 XML::Easy,>0,cpan,Required.
 HTML::Entities,>=3.64,cpan,Required.
+Digest::SHA1,>0.0,cpan,Required.

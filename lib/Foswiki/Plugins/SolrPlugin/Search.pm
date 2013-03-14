@@ -241,7 +241,8 @@ HERE
         }
 
       }
-      next unless Foswiki::Func::topicExists($web, $topic);
+# DISABLED for performance reasons
+#      next unless Foswiki::Func::topicExists($web, $topic);
 
       my $hilite = '';
       $hilite = ($hilites->{$id} || $summary) if $id && $hilites;
@@ -253,14 +254,13 @@ HERE
         #$line =~ s/\$morelikethis/$mlt->{id}/g;
       }
 
-      my $icon = $this->mapToIconFileName($type);
       my $itemFormat = 'attachment';
       $itemFormat = 'image' if $type =~ /^(gif|jpe?g|png|bmp)$/i;
       $itemFormat = 'topic' if $type eq 'topic';
       $itemFormat = 'comment' if $type eq 'comment';
       $line =~ s/\$format/$itemFormat/g;
       $line =~ s/\$id/$id/g;
-      $line =~ s/\$icon/$icon/g;
+      $line =~ s/\$icon/$this->mapToIconFileName($type)/ge;
       $line =~ s/\$index/$index/g;
       $line =~ s/\$page/$page/g;
       $line =~ s/\$limit/$limit/g;
@@ -562,7 +562,7 @@ sub restSOLRPROXY {
   my %params = map {$_ => [$query->param($_)]} grep {!/^_$/} $query->param();
 
   my $wikiUser = Foswiki::Func::getWikiName();
-  
+
   unless (Foswiki::Func::isAnAdmin($wikiUser)) { # add ACLs
     push @{$params{fq}}, " (access_granted:$wikiUser OR access_granted:all)"
   }
@@ -1502,13 +1502,16 @@ sub handleSOLRSCRIPTURL {
 
   my $theAjax = Foswiki::Func::isTrue(delete $params->{ajax}, 1);
  
+  my $result = '';
   if ($theAjax) {
     my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $theTopic);
-    return $this->getAjaxScriptUrl($web, $topic, $params);
+     $result = $this->getAjaxScriptUrl($web, $topic, $params);
   } else {
     my ($web, $topic) = $this->normalizeWebTopicName($theWeb, $theTopic);
-    return $this->getScriptUrl($web, $topic, $params, $cacheEntry->{response});
+    $result = $this->getScriptUrl($web, $topic, $params, $cacheEntry->{response});
   }
+
+  return $result;
 }
 
 ##############################################################################
@@ -1534,7 +1537,12 @@ sub getAjaxScriptUrl {
     push @locals, "q.op=OR" if $isUnion{$key};
     $locals = '{!'.join(' ', @locals).'}' if @locals;;
 
-    #$val = '('.$val.')' unless $val =~ /^\[.*\]$/;
+    # If the field value has a space or a colon in it, wrap it in quotes,
+    # unless it is a range query or it is already wrapped in quotes.
+    if ($val =~ /[ :]/  && $val !~ /[\[\{]\S+ TO \S+[\]\}]/ && $val !~ /^["\(].*["\)]$/) {
+      $val = '%22' . $val . '%22'; # already escaped
+    }
+
     push @anchors, 'fq='.$locals.$key.':'.($isUnion{$key}?"($val)":$val);
   }
 
