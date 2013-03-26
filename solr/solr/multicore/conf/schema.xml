@@ -1178,7 +1178,7 @@
 
    <field name="container_id" type="string" />
    <field name="container_url" type="string" />
-   <fielf name="container_title" type="string" />
+   <field name="container_title" type="string" />
 
    <!-- state: used by comments or any other application that tracks specific states of a topic;
         example values are: new, unapproved, approved, draft, unpublished, published, ...
