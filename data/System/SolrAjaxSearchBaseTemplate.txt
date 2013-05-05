@@ -1,6 +1,5 @@
-%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1357641167" format="1.1" version="5"}%
+%META:TOPICINFO{author="micha" comment="autosave" date="1365071806" format="1.1" version="6"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
-
 %{<verbatim class="tml">}%
 %{ ###########################################################################
    template inheritance and general presets 
@@ -22,7 +21,7 @@
 %TMPL:DEF{"solr::extrafilter"}%%IF{
   "defined 'SOLR_EXTRAFILTER'" 
   then="%SOLR_EXTRAFILTER%" 
-}%%IF{
+}% %IF{
   "not $USERNAME ingroup 'AdminGroup'"
   then="-web_search:Applications"
 }%%TMPL:END%

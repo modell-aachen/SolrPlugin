@@ -625,16 +625,16 @@ sub extractOutgoingLinks {
   my ($this, $web, $topic, $text, $outgoingLinks) = @_;
 
   my $removed = {};
-  $text = $this->takeOutBlocks($text, 'noautolink', $removed);
 
   # normal wikiwords
+  $text = $this->takeOutBlocks($text, 'noautolink', $removed);
   $text =~ s#(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#$this->_addLink($outgoingLinks, $web, $topic, $1, $2)#gexom;
+  $this->putBackBlocks(\$text, $removed, 'noautolink');
 
   # square brackets
   $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink($outgoingLinks, $web, $topic, undef, $1)#ge;
   $text =~ s#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#$this->_addLink($outgoingLinks, $web, $topic, undef, $1)#ge;
 
-  $this->putBackBlocks(\$text, $removed, 'noautolink');
 }
 
 sub _addLink {
@@ -979,6 +979,11 @@ sub getStringifiedVersion {
   $filename =~ /(.*)/;
   $filename = $1;
 
+  my $mime = $this->mmagic->checktype_filename($filename);
+  my $skipCaching = ($mime =~ /^(text\/plain)$/)?1:0;
+
+  #print STDERR "filename=$filename, mime=$mime\n";
+
   my $workArea = Foswiki::Func::getWorkArea('SolrPlugin');
   my $cachedFilename = "$workArea/$web/$topic/$attachment.txt";
 
@@ -986,25 +991,44 @@ sub getStringifiedVersion {
   $cachedFilename =~ /(.*)/;
   $cachedFilename = $1;
 
-  mkdir "$workArea/$web" unless -d "$workArea/$web";
-  mkdir "$workArea/$web/$topic" unless -d "$workArea/$web/$topic";
-
-  my $origModified = modificationTime($filename);
-  my $cachedModified = modificationTime($cachedFilename);
-
   my $attText = '';
-  if ($origModified > $cachedModified) {
 
-    #$this->log("caching stringified version of $attachment in $cachedFilename");
+  if ($skipCaching) {
+    #print STDERR "skipping caching attachment $filename as it is a $mime\n";
     $attText = Foswiki::Contrib::Stringifier->stringFor($filename) || '';
-    Foswiki::Func::saveFile($cachedFilename, $attText);
   } else {
 
-    #$this->log("found stringified version of $attachment in cache");
-    $attText = Foswiki::Func::readFile($cachedFilename);
+    mkdir "$workArea/$web" unless -d "$workArea/$web";
+    mkdir "$workArea/$web/$topic" unless -d "$workArea/$web/$topic";
+
+    my $origModified = modificationTime($filename);
+    my $cachedModified = modificationTime($cachedFilename);
+
+    if ($origModified > $cachedModified) {
+
+      #$this->log("caching stringified version of $attachment in $cachedFilename");
+      $attText = Foswiki::Contrib::Stringifier->stringFor($filename) || '';
+      Foswiki::Func::saveFile($cachedFilename, $attText);
+    } else {
+
+      #$this->log("found stringified version of $attachment in cache");
+      $attText = Foswiki::Func::readFile($cachedFilename);
+    }
   }
 
   return $attText;
+}
+
+################################################################################
+sub mmagic {
+  my $this = shift;
+
+  unless (defined $this->{mmagic}) {
+    require File::MMagic;
+    $this->{mmagic} = File::MMagic->new();
+  }
+
+  return $this->{mmagic};
 }
 
 ################################################################################

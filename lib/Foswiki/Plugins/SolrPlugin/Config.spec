@@ -33,9 +33,8 @@ $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
 
 # **BOOLEAN**
 # Update the index whenever a topic is renamed or deleted.
-# Warning: this flag should be enabled by default. If you disable it, foswiki might still list some
-# topics as a search result even though they have been removed physically.
-$Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
+# If this flag is disabled, you will have to install a cronjob to update the index regularly.
+$Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 0;
 
 # **PERL H**
 # This setting is required to enable executing the solrsearch script from the bin directory

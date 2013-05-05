@@ -1556,7 +1556,7 @@ sub getAjaxScriptUrl {
 
   my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{websearch} || 'WebSearch');;
 
-  my $url = Foswiki::Func::getScriptUrl($webSearchWeb, $webSearchTopic, 'view');
+  my $url = Foswiki::Func::getScriptUrlPath($webSearchWeb, $webSearchTopic, 'view');
   # not using getScriptUrl() for anchors due to encoding problems
 
   my $theSep = $params->{separator};
@@ -1635,7 +1635,7 @@ sub getScriptUrl {
     }
   }
 
-  return Foswiki::Func::getScriptUrl($web, $topic, 'view', @urlParams);
+  return Foswiki::Func::getScriptUrlPath($web, $topic, 'view', @urlParams);
 }
 
 ##############################################################################
