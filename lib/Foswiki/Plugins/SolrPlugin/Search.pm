@@ -707,7 +707,7 @@ sub restSOLRAUTOSUGGEST {
       $topicFilter,
       $attachmentFilter,
      ],
-     fq => @filter,
+     fq => \@filter,
   );
 
   my $theQueryFields = $query->param('queryfields');
