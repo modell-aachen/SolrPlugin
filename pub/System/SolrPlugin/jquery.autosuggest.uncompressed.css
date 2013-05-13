@@ -1,0 +1,60 @@
+.ui-autosuggest { 
+  max-height:445px;
+  max-width:400px;
+  border-top:0;
+  position: absolute; 
+  cursor: default; 
+  overflow-y:auto;
+  overflow-x:hidden;
+}	
+.ui-autosuggest-loading {
+  background-image:url(../JQueryPlugin/images/spinner.gif) !important;
+  background-position:right center !important;
+  background-repeat:no-repeat !important;
+}
+.ui-autosuggest.ui-menu .ui-menu-item a.ui-state-hover,
+.ui-autosuggest.ui-menu .ui-menu-item a.ui-state-active {
+  background-color:#E1F3FD;
+  text-shadow:#F2F9FD;
+  border-color:#F2F9FD;
+  color:inherit;
+}
+.ui-autosuggest .ui-menu-item table {
+  table-layout:fixed;
+  height:48px;
+  width:100%;
+}
+.ui-autosuggest .ui-menu-item th {
+  width:48px;
+}
+.ui-autosuggest .ui-menu-item th div {
+  height:48px;
+  overflow:hidden;
+}
+.ui-autosuggest .ui-menu-item.ui-widget-header {
+  padding:5px;
+  border-top:1px solid #ddd;
+  font-weight:bold;
+}
+
+.ui-autosuggest .ui-widget-header .ui-autosuggest-more {
+  float:right;
+  font-weight:normal;
+  margin-right:15px;
+  padding:0;
+  color:#7B7E81;
+}
+.ui-autosuggest .ui-widget-header .ui-autosuggest-more:hover {
+  text-decoration:underline;
+  background-color:transparent;
+}
+.ui-autosuggest .ui-menu-item .thumbnail.dummy {
+  background-color:#f8f8f8;
+  border:1px solid #ddd;
+}
+.ui-autosuggest .ui-menu-item td {
+  padding:0px 5px 0px 10px;
+  overflow:hidden;
+  white-space:nowrap;
+}
+

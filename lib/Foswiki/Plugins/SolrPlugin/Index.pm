@@ -556,7 +556,7 @@ sub indexTopic {
       if (!defined $thumbnail && $attachment->{isthumbnail}) {
         $thumbnail = $name;
       }
-      if (!defined $firstImage && $name =~ /(png|jpe?g|gif|bmp$)/i) {
+      if (!defined $firstImage && $name =~ /\.(png|jpe?g|gif|bmp|svg)$/i) {
         $firstImage = $name;
       }
 

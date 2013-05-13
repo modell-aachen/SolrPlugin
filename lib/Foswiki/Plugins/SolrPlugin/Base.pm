@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2012 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -351,7 +351,9 @@ sub putBackBlocks {
 
 ##############################################################################
 sub mapToIconFileName {
-  my ($this, $type) = @_;
+  my ($this, $type, $size) = @_;
+
+  $size ||= 16;
 
   my $pubUrlPath = $Foswiki::cfg{PubUrlPath}.'/'.$Foswiki::cfg{SystemWebName}.'/FamFamFamSilkIcons/';
 
@@ -361,7 +363,7 @@ sub mapToIconFileName {
 
   if (Foswiki::Func::getContext()->{MimeIconPluginEnabled}) {
     require Foswiki::Plugins::MimeIconPlugin;
-    my ($iconName, $iconPath) = Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", 16);
+    my ($iconName, $iconPath) = Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", $size);
     return $iconPath;
   } 
 
@@ -430,6 +432,7 @@ sub getTopicSummary {
   my $charset = $Foswiki::cfg{Site}{CharSet};
   $summary = Encode::decode($charset, $summary);
   $summary = $this->plainify($summary, $web, $topic, 1);
+  $summary =~ s/\n/ /g;
   $summary = Encode::encode($charset, $summary);
 
   return $summary;
@@ -514,7 +517,6 @@ sub plainify {
   $text =~ s/#+//g;
   $text =~ s/\$perce?nt//g;
   $text =~ s/\$dollar//g;
-  $text =~ s/\n/ /g;
   $text =~ s/~~~/ /g;
   $text =~ s/^$//gs;
 

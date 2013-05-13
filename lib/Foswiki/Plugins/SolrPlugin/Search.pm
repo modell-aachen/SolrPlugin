@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@ use Foswiki::Plugins ();
 use Foswiki::Plugins::JQueryPlugin ();
 use POSIX ();
 use Error qw(:try);
+use JSON ();
 
 use constant DEBUG => 0; # toggle me
 #use Data::Dumper ();
@@ -255,7 +256,7 @@ HERE
       }
 
       my $itemFormat = 'attachment';
-      $itemFormat = 'image' if $type =~ /^(gif|jpe?g|png|bmp)$/i;
+      $itemFormat = 'image' if $type =~ /^(gif|jpe?g|png|bmp|svg)$/i;
       $itemFormat = 'topic' if $type eq 'topic';
       $itemFormat = 'comment' if $type eq 'comment';
       $line =~ s/\$format/$itemFormat/g;
@@ -660,6 +661,128 @@ sub getFirstUrl {
 
   return $url;
 }
+##############################################################################
+sub restSOLRAUTOSUGGEST {
+  my ($this, $theWeb, $theTopic) = @_;
+
+  return '' unless defined $this->{solr};
+  my $query = Foswiki::Func::getCgiQuery();
+
+  my $theQuery = $query->param('term') || '*';
+  $theQuery .= '*' if $theQuery !~ /\*$/ && $theQuery !~ /:/;
+
+  my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
+
+  my $theLimit = $query->param('limit');
+  $theLimit = 5 unless defined $theLimit;
+
+  my $theFields = $query->param('fields');
+  $theFields = "name,web,topic,container_title,title,thumbnail,url,score,type" unless defined $theFields;
+
+  my $wikiUser = Foswiki::Func::getWikiName();
+
+  my @filter = ();
+
+  push @filter, "-web:_*"; # SMELL
+
+  push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
+    unless Foswiki::Func::isAnAdmin($wikiUser);
+
+  my $userForm = $Foswiki::cfg{PersonDataForm} || $Foswiki::cfg{Ldap}{PersonDataForm} || 'UserForm';
+
+  my $personTopicFilter = "form:*$userForm";
+  my $topicFilter = "-form:*$userForm type:topic";
+  my $attachmentFilter = "-type:topic";
+
+  my %params = (
+    q => $theQuery,
+    qt => "edismax",
+    indent => "true",
+    group => "true",
+    fl => $theFields,
+    "group.sort" => "score desc",
+    "group.limit" => $theLimit,
+    "group.query" => [
+      $personTopicFilter,
+      $topicFilter,
+      $attachmentFilter,
+     ],
+     fq => @filter,
+  );
+
+  my $theQueryFields = $query->param('queryfields');
+  $params{qf} = [split(/\s*,\s*/, $theQueryFields)]
+    if defined $theQueryFields;
+
+  my $response = $this->solrSearch($theQuery, \%params);
+
+  my $result = '';
+  my $status = 200;
+  my $contentType = "application/json; charset=$Foswiki::cfg{Site}{CharSet}";
+
+  try {
+    if ($theRaw) {
+      $result = $response->raw_response->content();
+    } else {
+      $result = $response->content();
+    }
+  } catch Error::Simple with {
+    $result = "Error parsing response: ".$response->raw_response->content();
+    $status = 500;
+    $contentType = "text/plain";
+  };
+
+  if ($status == 200 && !$theRaw) {
+    my @autoSuggestions = ();
+
+    # person topics
+    if (defined $result->{grouped}{$personTopicFilter}) {
+      foreach my $doc (@{$result->{grouped}{$personTopicFilter}{doclist}{docs}}) {
+        $doc->{thumbnail} = $Foswiki::cfg{PubUrlPath}."/".$Foswiki::cfg{SystemWebName}."/JQueryPlugin/images/nobody.gif"
+          unless defined $doc->{thumbnail};
+        $doc->{_section} = 'persons';
+        $doc->{value} = $doc->{title}; # TODO
+        push @autoSuggestions, $doc;
+      }
+    }
+
+    # normal topics
+    if (defined $result->{grouped}{$topicFilter}) {
+      foreach my $doc (@{$result->{grouped}{$topicFilter}{doclist}{docs}}) {
+        $doc->{thumbnail} = $this->mapToIconFileName("unknown", 48)
+          unless defined $doc->{thumbnail};
+        $doc->{_section} = 'topics';
+        $doc->{value} = $doc->{title}; # TODO
+        push @autoSuggestions, $doc;
+      }
+    }
+
+    # attachments
+    if (defined $result->{grouped}{$attachmentFilter}) {
+      foreach my $doc (@{$result->{grouped}{$attachmentFilter}{doclist}{docs}}) {
+        unless (defined $doc->{thumbnail}) {
+          if ($doc->{type} =~ /^(gif|jpe?g|png|bmp|svg)$/i) {
+            $doc->{thumbnail} = $doc->{name};
+          } else {
+            my $ext = $doc->{name};
+            $ext =~ s/^.*\.([^\.]+)$/$1/g;
+            $doc->{thumbnail} = $this->mapToIconFileName($ext, 48);
+          }
+        }
+        $doc->{_section} = 'attachments';
+        $doc->{value} = $doc->{title}; # TODO
+        push @autoSuggestions, $doc;
+      }
+    }
+
+    $result = JSON::to_json(\@autoSuggestions, {utf8=>1, pretty=>1});
+  }
+  
+  $this->{session}->{response}->status($status);
+  $this->{session}->{response}->header(-type=>$contentType);
+
+  return $result;
+}
 
 ##############################################################################
 sub restSOLRAUTOCOMPLETE {
@@ -668,10 +791,8 @@ sub restSOLRAUTOCOMPLETE {
   return '' unless defined $this->{solr};
   my $query = Foswiki::Func::getCgiQuery();
 
-  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE > 4.10)?1:0;
-
   my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
-  my $theQuery = $query->param($isNewAutocomplete?'term':'q') || '';
+  my $theQuery = $query->param('term') || '';
   my $theFilter = $query->param('filter');
   my $theEllipsis = Foswiki::Func::isTrue($query->param('ellipsis'));
   my $thePrefix;
@@ -683,7 +804,6 @@ sub restSOLRAUTOCOMPLETE {
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
   # tokenize here as well to separate query and prefix
-
   $theQuery =~ s/[\!"§\$%&\/\(\)=\?{}\[\]\*\+~#',\.;:\-_]/ /g;
   $theQuery =~ s/([$Foswiki::regex{lowerAlpha}])([$Foswiki::regex{upperAlpha}$Foswiki::regex{numeric}]+)/$1 $2/go;
   $theQuery =~ s/([$Foswiki::regex{numeric}])([$Foswiki::regex{upperAlpha}])/$1 $2/go;
@@ -741,22 +861,13 @@ sub restSOLRAUTOCOMPLETE {
         $title =~ s/$thePrefix $theQuery/.../;
       }
       my $line;
-      if ($isNewAutocomplete) {
-        # jquery-ui's autocomplete takes a json
-	$line = "{\"value\":\"$key\", \"label\":\"$title\", \"frequency\":$freq}";
-      } else {
-        # old jquery.autocomplete takes proprietary format
-	$line = "$key|$title|$freq";
-      }
+
+      $line = "{\"value\":\"$key\", \"label\":\"$title\", \"frequency\":$freq}";
       push(@result, $line);
     }
   }
 
-  if ($isNewAutocomplete) {
-    return "[\n".join(",\n ", @result)."\n]";
-  } else {
-    return join("\n", @result)."\n\n";
-  }
+  return "[\n".join(",\n ", @result)."\n]";
 }
 
 ##############################################################################
@@ -867,91 +978,6 @@ sub doSimilar {
 
   return $this->solrRequest('mlt', $solrParams);
 }
-
-##############################################################################
-sub restSOLRTERMS {
-  my ($this, $theWeb, $theTopic) = @_;
-
-  return '' unless defined $this->{solr};
-  my $query = Foswiki::Func::getCgiQuery();
-
-  my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
-
-  # TODO: distinguish new and old autocomplete
-  my $isNewAutocomplete = ($Foswiki::Plugins::JQueryPlugin::RELEASE > 4.10)?1:0;
-  my $theQuery = $query->param($isNewAutocomplete?'term':'q') || '';
-
-  my $theFields = $query->param('fields') || '';
-  my $theField = $query->param('field');
-  my $theEllipsis = Foswiki::Func::isTrue($query->param('ellipsis'));
-  my $theLength = $query->param('length') || 0;
-
-  if (defined $theLength) {
-    $theLength =~ s/[^\d]//g;
-  }
-  $theLength ||= 0;
-
-  my @fields = split(/\s*,\s*/, $theFields);
-  push(@fields, $theField) if defined $theField;
-  push(@fields, 'catchall') unless @fields;
-
-  my $wikiUser = Foswiki::Func::getWikiName();
-  my $solrParams = {
-    "terms" => 'true',
-    "terms.fl" => \@fields,
-    "terms.mincount" => 1,
-    "terms.limit" => ($query->param('limit') || 10),
-    "terms.lower" => $theQuery,
-    "terms.prefix" => $theQuery,
-    "terms.lower.incl" => 'false',
-    "indent" => 'true',
-  };
-
-  $solrParams->{"fq"} = "(access_granted:$wikiUser OR access_granted:all)" 
-    unless Foswiki::Func::isAnAdmin($wikiUser);
-
-  my $response = $this->solrRequest('terms', $solrParams);
-  #$this->log($response->raw_response->content()) if DEBUG;
-
-  my %struct = ();
-  try {
-    %struct = @{$response->content->{terms}};
-  } catch Error::Simple with {
-    # ignore
-  };
-  my @result = ();
-  foreach my $field (keys %struct) {
-    while (my $term = shift @{$struct{$field}}) {
-      my $freq = shift @{$struct{$field}};
-      my $title = $term;
-
-      my $strip = $theQuery;
-      my $hilite = $theQuery;
-      if ($theLength) {
-        $strip = substr($theQuery, 0, -$theLength);
-        $hilite = substr($theQuery, -$theLength);
-      }
-      $title =~ s/$strip/.../ if $theEllipsis;
-
-      # TODO: use different formats for new and old autocomplete library
-      my $line = "$term|$title|$hilite|$freq";
-      push(@result, $line);
-    }
-  }
-  if ($theRaw) {
-    my $result = '';
-    try {
-      $result = $response->raw_response->content();
-      $result = toSiteCharSet($result);
-    } catch Error::Simple with {
-      #
-    };
-    return $result."\n\n";
-  }
-
-  return join("\n", @result)."\n\n";
-}
-
 
 ##############################################################################
 sub doSearch {

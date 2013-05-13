@@ -8,7 +8,9 @@ TARGET=\
   pattern.css \
   solr-searchbox.js \
   wikiusers.js \
-  wikiusers.css
+  wikiusers.css \
+  jquery.autosuggest.js \
+  jquery.autosuggest.css
 
 -include $(FOSWIKI_ROOT)/pub/System/JQueryPlugin/Makefile.include
 

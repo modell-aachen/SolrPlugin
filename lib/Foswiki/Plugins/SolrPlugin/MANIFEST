@@ -29,6 +29,7 @@ lib/WebService/Solr/Field.pm 0644
 lib/WebService/Solr.pm 0644
 lib/WebService/Solr/Query.pm 0644
 lib/WebService/Solr/Response.pm 0644
+lib/Foswiki/Plugins/SolrPlugin/Autosuggest.pm 0644
 locale/SolrPlugin/de.po 0644
 locale/SolrPlugin/Foswiki.pot 0644
 pub/System/SolrPlugin/ajax-solr/ASL-LICENSE 0644
@@ -64,6 +65,8 @@ pub/System/SolrPlugin/ajax-solr-widgets.js.gz 0644
 pub/System/SolrPlugin/ajax-solr-widgets.uncompressed.js 0644
 pub/System/SolrPlugin/ajax-solr/widgets/yui/ParameterYUIStore.js 0644
 pub/System/SolrPlugin/Makefile 0644
+pub/System/SolrPlugin/jquery.autosuggest.uncompressed.css 0644
+pub/System/SolrPlugin/jquery.autosuggest.uncompressed.js 0644
 pub/System/SolrPlugin/pattern.css 0644
 pub/System/SolrPlugin/pattern.css.gz 0644
 pub/System/SolrPlugin/pattern.uncompressed.css 0644

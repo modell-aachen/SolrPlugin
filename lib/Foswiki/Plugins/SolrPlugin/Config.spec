@@ -116,4 +116,12 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
   'uk' => 'detect',
 };
 
+# ---++ JQueryPlugin
+# ---+++ Extra plugins
+# **STRING**
+$Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Module} = 'Foswiki::Plugins::SolrPlugin::Autosuggest';
+
+# **BOOLEAN**
+$Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Enabled} = 1;
+
 1;

@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2012 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,8 +18,8 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
   
-our $VERSION = '1.10';
-our $RELEASE = '1.10';
+our $VERSION = '1.20';
+our $RELEASE = '1.20';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseWeb;
@@ -79,15 +79,6 @@ sub initPlugin {
   });
 
 
-  Foswiki::Func::registerRESTHandler('terms', sub {
-    my $session = shift;
-
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRTERMS($web, $topic);
-  });
-
-
   Foswiki::Func::registerRESTHandler('similar', sub {
     my $session = shift;
 
@@ -102,6 +93,14 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
+  });
+
+  Foswiki::Func::registerRESTHandler('autosuggest', sub {
+    my $session = shift;
+
+    my $web = $session->{webName};
+    my $topic = $session->{topicName};
+    return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
   });
 
 
