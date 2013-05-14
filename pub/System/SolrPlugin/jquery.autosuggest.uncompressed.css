@@ -12,13 +12,6 @@
   background-position:right center !important;
   background-repeat:no-repeat !important;
 }
-.ui-autosuggest.ui-menu .ui-menu-item a.ui-state-hover,
-.ui-autosuggest.ui-menu .ui-menu-item a.ui-state-active {
-  background-color:#E1F3FD;
-  text-shadow:#F2F9FD;
-  border-color:#F2F9FD;
-  color:inherit;
-}
 .ui-autosuggest .ui-menu-item table {
   table-layout:fixed;
   height:48px;

@@ -30,13 +30,9 @@
       },
 
       select: function(event, data) {
-        var self = $(this).data("autosuggest");
-
-        if (typeof(data.item.url) !== 'undefined') {
-          $.blockUI({message:"<h1>"+self.options.locales.loading+"</h1>"});
+        if (event.keyCode == 13) {
           window.location.href = data.item.url;
         }
-
         return false;
       }
     },
@@ -65,7 +61,7 @@
             title: self.options.locales[key] || key,
             more: self.options.locales.more,
             moreUrl: foswiki.getPreference("SCRIPTURLPATH")+"/System/WebHome"
-          }).appendTo(ul);
+          }).data("ui-autocomplete-item", {value:''}).appendTo(ul);
 
           ul.find("a.ui-autosuggest-more").click(function() {
             window.location.href = $(this).attr("href");
@@ -74,7 +70,7 @@
           });
 
           $.each(section, function(index, item) {
-            self._renderItem(ul, item);
+            self._renderItemData(ul, item);
           });
         });
       },
@@ -103,10 +99,21 @@
             description: typeof(item.container_title) !== 'undefined' ?  item.container_title : ''
           });          
 
-        return $row.data("item.autocomplete", item).appendTo(ul);
+        return $row.appendTo(ul);
       },
       _normalize: function( items ) {
         return items; // don't normalize 
+      },
+      _move: function(direction, event) {
+        var elem;
+
+        this._super(direction, event);
+
+        elem = this.menu.active;
+
+        if ($(elem).is(".ui-widget-header")) {
+          this._super(direction, event);
+        }
       }
   });
 
