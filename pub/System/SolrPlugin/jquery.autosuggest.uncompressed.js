@@ -1,11 +1,18 @@
-// (c)opyright 2013 Michael Daum http://michaeldaumconsulting.com
-
+/*
+ * jQuery autosuggest plugin 1.00
+ *
+ * Copyright (c) 2013 Michael Daum http://michaeldaumconsulting.com
+ *
+ * Dual licensed under the MIT and GPL licenses:
+ *   http://www.opensource.org/licenses/mit-license.php
+ *   http://www.gnu.org/licenses/gpl.html
+ *
+ */
 (function($) {
 
   $.widget( "solr.autosuggest", $.ui.autocomplete, {
     options: {
-      source: foswiki.getPreference("SCRIPTURL") + '/rest/SolrPlugin/autosuggest',
-      thumbnailUrl: foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=north",
+      thumbnailBase: foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=north",
       delay: 500,
       minLength: 3,
       position: {
@@ -18,23 +25,29 @@
         persons: 'Persons',
         topics: 'Topics',
         attachments: 'Attachments',
-        more: "show more &#187;",
         loading: "Loading ..."
       },
 
-      itemTemplate: "<li><a href='${url}'><table class='foswikiNullTable'><tr><th><div><img class='${imgClass}' width='48' alt='${name}' src='${thumbnailUrl}' /></div></th><td>${title}<div class='foswikiGrayText'>${description}</div></td></tr></table></a></li>",
-      headerTemplate: "<li class='ui-menu-item ui-widget-header ${key}'><a class='ui-autosuggest-more' href='${moreUrl}'>${more}</a>${title}</li>",
+      templates: {
+        "persons": "<li class='ui-menu-item person'><a href='${url}'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${phoneNumber}</div></td></tr></table></a></li>",
+        "default": "<li class='ui-menu-item'><a href='${url}'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${container_title}</div></td></tr></table></a></li>",
+        "header": "<li class='ui-menu-item ui-widget-header ${group}'><span class='ui-autosuggest-pager'><a class='ui-autosuggest-prev ui-icon ui-icon-circle-triangle-w' title='prev' href='#'></a><a class='ui-autosuggest-next ui-icon ui-icon-circle-triangle-e' title='next' href='#'></a></span>${title}</li>"
+      },
 
       focus: function() {
         return false;
       },
 
       select: function(event, data) {
-        if (event.keyCode == 13) {
+        if (event.keyCode == 13 || $.browser.msie) {
           window.location.href = data.item.url;
         }
         return false;
-      }
+      },
+
+      cache: true,
+      source: foswiki.getPreference("SCRIPTURL") + '/rest/SolrPlugin/autosuggest'
+
     },
 
     _init: function() {
@@ -43,61 +56,105 @@
       elem.addClass("ui-autosuggest").removeClass("ui-autocomplete");
     },
 
-    _renderMenu: function(ul, items) {
-        var self = this,
-            sections = {};
+    _initSource: function() {
+      var self = this;
 
-        $.each(items, function(index, item) {
-          if (typeof(sections[item._section]) === 'undefined') {
-            sections[item._section] = [];
+      self.cache = {};
+
+      self.source = function(request, response) {
+        var term = request.term, cacheKey = term;
+
+        // add extra parameters 
+        if (typeof(self.options.extraParams) != 'undefined') {
+          $.each(self.options.extraParams, function(key, param) {
+            var val = typeof(param) === "function" ? param(self) : param;
+            request[key] = val;
+            cacheKey += ';' + key + '=' + val;
+          });
+        }
+
+        // check cache
+        if (self.options.cache && cacheKey in self.cache) {
+          //console.log("found in cache",cacheKey);
+          response(self.cache[cacheKey]);
+          return;
+        }
+
+        // abort the last xhr
+        if (self.xhr ) {
+          self.xhr.abort();
+        }
+
+        // get result from backend
+        self.xhr = $.ajax({
+          url: self.options.source, 
+          data: request, 
+          dataType: "json",
+          success: function(data, status, xhr) {
+            if (self.options.cache) {
+              self.cache[cacheKey] = data;
+            }
+            if (xhr === self.xhr) {
+              response(data);
+            }
+          },
+          error: function() {
+            response([]);
           }
-          sections[item._section].push(item);
         });
+      };
+    },
 
-        $.each(sections, function(key, section) {
+    _renderMenu: function(ul, items) {
+        var self = this;
 
-          $.tmpl(self.options.headerTemplate, {
-            key: key,
-            title: self.options.locales[key] || key,
-            more: self.options.locales.more,
-            moreUrl: foswiki.getPreference("SCRIPTURLPATH")+"/System/WebHome"
-          }).data("ui-autocomplete-item", {value:''}).appendTo(ul);
+        $.each(items, function(key, section) {
+          var header;
 
-          ul.find("a.ui-autosuggest-more").click(function() {
-            window.location.href = $(this).attr("href");
-            $.blockUI({message:"<h1>"+self.options.locales.loading+"</h1>"});
-            return false;
-          });
+          if (section.docs.length) {
 
-          $.each(section, function(index, item) {
-            self._renderItemData(ul, item);
-          });
+            header = $.tmpl(self.options.templates.header, {
+              group: section.group,
+              title: self.options.locales[section.group] || key
+            }).data("ui-autocomplete-item", {value:''}).appendTo(ul);
+
+            header.find(".ui-autosuggest-pager a").css('visibility', 'hidden');
+
+            if (section.start + 5 < section.numFound) {
+              header.find(".ui-autosuggest-next").css('visibility', 'visible').click(function() {
+                console.log(section.group+" next clicked");
+                return false;
+              });
+            }
+
+            if (section.start > 0) {
+              header.find(".ui-autosuggest-prev").css('visibility','visible').click(function() {
+                console.log(section.group+" prev clicked");
+                return false;
+              });
+            }
+
+            $.each(section.docs, function(index, item) {
+              item.group = section.group;
+              self._renderItemData(ul, item);
+            });
+          }
         });
       },
 
       _renderItem: function(ul, item) {
-        var self = this, thumbnailUrl, $row, imgClass;
+        var self = this, $row,
+            template = self.options.templates[item.group] || self.options.templates["default"];
 
-          if (typeof(item.thumbnail) !== 'undefined') {
-            imgClass = "thumbnail";
-            if (/^(\/|http:)/.test(item.thumbnail)) {
-              thumbnailUrl = item.thumbnail;
-            } else {
-              thumbnailUrl = self.options.thumbnailUrl + '&topic=' + item.web + '.' + item.topic + '&file=' + item.thumbnail;
-            }
-          } else {
-            imgClass = "thumbnail dummy";
-            thumbnailUrl = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+        if (typeof(item.thumbnail) !== 'undefined') {
+          if (!/^(\/|http:)/.test(item.thumbnail)) {
+            item.thumbnail = self.options.thumbnailBase + '&topic=' + item.web + '.' + item.topic + '&file=' + item.thumbnail;
           }
+        } else {
+          item.thumbnail = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+        }
 
-          $row = $.tmpl(self.options.itemTemplate, {
-            url: item.url,
-            thumbnailUrl: thumbnailUrl,
-            imgClass: imgClass,
-            name: item.name,
-            title: item._section === 'attachments' ?  item.name : item.title,
-            description: typeof(item.container_title) !== 'undefined' ?  item.container_title : ''
-          });          
+        $row = $.tmpl(template, item); 
 
         return $row.appendTo(ul);
       },

@@ -70,7 +70,7 @@
 %TMPL:DEF{"solr::hits::list"}%%SOLRFORMAT{"solr1"
   header="<div class='solrSearchHits solrSearchHitsList jqPrettyPhoto {itemSelector:\".solrImageFrame a\"}'>"
   footer="%CLEAR%</div>"
-  format="<div class='solrSearchHit foswikiProfileInfo jqShrinkUrls {size:15}'>
+  format="<div class='solrSearchHit foswikiProfileInfo jqShrinkUrls' data-size='15'>
     $percntTMPL:P{\"solr::hits::userimage\" web=\"$web\" topic=\"$topic\"}$percnt<!-- -->
       <h4>[[$web.$topic]] ($percntUSERINFO{\"$topic\" format=\"$username\"}$percnt)</h4>
       <ul class='foswikiTopicInfo'>

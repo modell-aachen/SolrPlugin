@@ -15,3 +15,4 @@ Moose,>=0.63,cpan,Required.
 XML::Easy,>0,cpan,Required.
 HTML::Entities,>=3.64,cpan,Required.
 Digest::SHA1,>0.0,cpan,Required.
+File::MMagic,>0,cpan,Required.

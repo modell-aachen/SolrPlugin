@@ -676,8 +676,28 @@ sub restSOLRAUTOSUGGEST {
   my $theLimit = $query->param('limit');
   $theLimit = 5 unless defined $theLimit;
 
+  my $theOffset = $query->param('offset');
+  $theOffset = 0 unless defined $theOffset;
+
   my $theFields = $query->param('fields');
-  $theFields = "name,web,topic,container_title,title,thumbnail,url,score,type" unless defined $theFields;
+  $theFields = "name,web,topic,container_title,title,thumbnail,url,score,type,field_Telephone_s,field_Phone_s,field_Mobile_s" unless defined $theFields;
+
+  my $theGroups = $query->param('groups');
+  $theGroups = 'persons, topics, attachments' unless defined $theGroups;
+
+  my $userForm = $Foswiki::cfg{SolrPlugin}{PersonDataForm} || $Foswiki::cfg{PersonDataForm} || $Foswiki::cfg{Ldap}{PersonDataForm} || '*UserForm';
+  my %filter = (
+    persons => "form:$userForm",
+    topics => "-form:$userForm type:topic",
+    attachments => "-type:topic",
+  );
+
+  my @groupQuery = ();
+  foreach my $group (split(/\s*,\s*/, $theGroups)) {
+    my $filter = $filter{$group};
+    next unless defined $filter;
+    push @groupQuery, $filter;
+  }
 
   my $wikiUser = Foswiki::Func::getWikiName();
 
@@ -688,12 +708,6 @@ sub restSOLRAUTOSUGGEST {
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);
 
-  my $userForm = $Foswiki::cfg{PersonDataForm} || $Foswiki::cfg{Ldap}{PersonDataForm} || 'UserForm';
-
-  my $personTopicFilter = "form:*$userForm";
-  my $topicFilter = "-form:*$userForm type:topic";
-  my $attachmentFilter = "-type:topic";
-
   my %params = (
     q => $theQuery,
     qt => "edismax",
@@ -701,12 +715,9 @@ sub restSOLRAUTOSUGGEST {
     group => "true",
     fl => $theFields,
     "group.sort" => "score desc",
+    "group.offset" => $theOffset,
     "group.limit" => $theLimit,
-    "group.query" => [
-      $personTopicFilter,
-      $topicFilter,
-      $attachmentFilter,
-     ],
+    "group.query" => \@groupQuery,
      fq => \@filter,
   );
 
@@ -734,32 +745,54 @@ sub restSOLRAUTOSUGGEST {
 
   if ($status == 200 && !$theRaw) {
     my @autoSuggestions = ();
+    my $group;
 
     # person topics
-    if (defined $result->{grouped}{$personTopicFilter}) {
-      foreach my $doc (@{$result->{grouped}{$personTopicFilter}{doclist}{docs}}) {
+    $group = $result->{grouped}{$filter{persons}};
+    if (defined $group) {
+      my @docs = ();
+      foreach my $doc (@{$group->{doclist}{docs}}) {
+        my $phoneNumber = $doc->{field_Telephone_s} || $doc->{field_Phone_s} || $doc->{field_Mobile_s};
+        $doc->{phoneNumber} = $phoneNumber if defined $phoneNumber;
+
         $doc->{thumbnail} = $Foswiki::cfg{PubUrlPath}."/".$Foswiki::cfg{SystemWebName}."/JQueryPlugin/images/nobody.gif"
           unless defined $doc->{thumbnail};
-        $doc->{_section} = 'persons';
-        $doc->{value} = $doc->{title}; # TODO
-        push @autoSuggestions, $doc;
+
+        $doc->{value} = $doc->{title}; 
+
+        push @docs, $doc;
       }
+      push @autoSuggestions, {
+        "group" => "persons",
+        "start" => $group->{doclist}{start},
+        "numFound" => $group->{doclist}{numFound},
+        "docs" => \@docs
+      } if @docs;
     }
 
     # normal topics
-    if (defined $result->{grouped}{$topicFilter}) {
-      foreach my $doc (@{$result->{grouped}{$topicFilter}{doclist}{docs}}) {
+    $group = $result->{grouped}{$filter{topics}};
+    if (defined $group) {
+      my @docs = ();
+      foreach my $doc (@{$group->{doclist}{docs}}) {
         $doc->{thumbnail} = $this->mapToIconFileName("unknown", 48)
           unless defined $doc->{thumbnail};
-        $doc->{_section} = 'topics';
-        $doc->{value} = $doc->{title}; # TODO
-        push @autoSuggestions, $doc;
+        $doc->{value} = $doc->{title};
+        push @docs, $doc;
       }
+      push @autoSuggestions, {
+        "group" => "topics",
+        "start" => $group->{doclist}{start},
+        "numFound" => $group->{doclist}{numFound},
+        "docs" => \@docs
+      } if @docs;
     }
 
     # attachments
-    if (defined $result->{grouped}{$attachmentFilter}) {
-      foreach my $doc (@{$result->{grouped}{$attachmentFilter}{doclist}{docs}}) {
+    $group = $result->{grouped}{$filter{attachments}};
+    if (defined $group) {
+      my @docs = ();
+      foreach my $doc (@{$group->{doclist}{docs}}) {
         unless (defined $doc->{thumbnail}) {
           if ($doc->{type} =~ /^(gif|jpe?g|png|bmp|svg)$/i) {
             $doc->{thumbnail} = $doc->{name};
@@ -769,10 +802,15 @@ sub restSOLRAUTOSUGGEST {
             $doc->{thumbnail} = $this->mapToIconFileName($ext, 48);
           }
         }
-        $doc->{_section} = 'attachments';
-        $doc->{value} = $doc->{title}; # TODO
-        push @autoSuggestions, $doc;
+        $doc->{value} = $doc->{title}; 
+        push @docs, $doc;
       }
+      push @autoSuggestions, {
+        "group" => "attachments",
+        "start" => $group->{doclist}{start},
+        "numFound" => $group->{doclist}{numFound},
+        "docs" => \@docs
+      } if @docs;
     }
 
     $result = JSON::to_json(\@autoSuggestions, {utf8=>1, pretty=>1});

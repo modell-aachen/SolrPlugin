@@ -25,20 +25,33 @@
   overflow:hidden;
 }
 .ui-autosuggest .ui-menu-item.ui-widget-header {
-  padding:5px;
   border-top:1px solid #ddd;
   font-weight:bold;
+  padding:0.2em 0.5em;
 }
 
-.ui-autosuggest .ui-widget-header .ui-autosuggest-more {
+.ui-autosuggest .ui-widget-header .ui-autosuggest-pager {
   float:right;
-  font-weight:normal;
-  margin-right:15px;
-  padding:0;
-  color:#7B7E81;
+  position:relative;
+  margin:0.2em 0.5em;
+  width:45px;
+  height:10px;
 }
-.ui-autosuggest .ui-widget-header .ui-autosuggest-more:hover {
-  text-decoration:underline;
+.ui-autosuggest .ui-widget-header .ui-autosuggest-pager a {
+  display:inline-block;
+  width:16px;
+  height:16px;
+  overflow:hidden;
+  margin:0;
+  padding:0;
+  position:initial;
+}
+.ui-autosuggest .ui-widget-header a.ui-autosuggest-prev {
+  margin-right:5px;
+  visibility:hidden;
+}
+.ui-autosuggest .ui-widget-header .ui-autosuggest-pager a:hover {
+  text-decoration:none;
   background-color:transparent;
 }
 .ui-autosuggest .ui-menu-item .thumbnail.dummy {
