@@ -71,19 +71,22 @@
 
     // remove duplicates
     param = manager.store.get("fl");
-    val = param.val().concat(solrParams.fl).concat(moreFields);
-    arr = {};
+    val = param.val();
+    if (val) {
+      val = val.concat(solrParams.fl).concat(moreFields);
+      arr = {};
 
-    for (var i = 0, l = val.length; i < l; i++) {
-      if (val[i] != undefined) {
-        arr[val[i]] = 1;
+      for (var i = 0, l = val.length; i < l; i++) {
+        if (val[i] != undefined) {
+          arr[val[i]] = 1;
+        }
       }
+      val = [];
+      for (var key in arr) {
+        val.push(key);
+      }
+      manager.store.addByValue("fl", val);
     }
-    val = [];
-    for (var key in arr) {
-      val.push(key);
-    }
-    manager.store.addByValue("fl", val);
     
 
     if (extraFilter) {

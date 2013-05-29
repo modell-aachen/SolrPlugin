@@ -1,6 +1,5 @@
-%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="3"}%
-%META:TOPICPARENT{name="SolrPlugin"}%
-
+%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="2"}%
+%META:TOPICPARENT{name="WebHome"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchBase"}%
 %{</verbatim>}%
@@ -9,8 +8,9 @@
 %TMPL:DEF{"sidebar"}%%TMPL:P{"solr::sidebar"}%%TMPL:END%
 %TMPL:DEF{"searchbox"}%%TMPL:END%
 %TMPL:DEF{"revinfo"}%%TMPL:END%
-%TMPL:DEF{"bottombar"}%%TMPL:END%
 %TMPL:DEF{"form"}%%TMPL:END%
+%TMPL:DEF{"bottombar"}%%TMPL:END%
+%TMPL:DEF{"contentfooter"}%%TMPL:END%
 %TMPL:DEF{"bodyclass"}%natViewBody natSolrBody%TMPL:END%
 %{</verbatim>}%
 
@@ -25,4 +25,3 @@
    then="%TMPL:P{"sep"}%[[%BASEWEB%.%BASETOPIC%][%MAKETEXT{"Search"}%]]"
  }%%TMPL:END%
 %{</verbatim>}%
-

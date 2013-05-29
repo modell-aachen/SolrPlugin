@@ -62,7 +62,11 @@
       self.cache = {};
 
       self.source = function(request, response) {
-        var term = request.term, cacheKey = term;
+        var term = request.term.replace(/(^\s+)|(\s+$)/g, ""),
+            cacheKey = term;
+
+        // play back term with stripped whitespace
+        request.term = term;
 
         // add extra parameters 
         if (typeof(self.options.extraParams) != 'undefined') {

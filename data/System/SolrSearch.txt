@@ -1,6 +1,4 @@
-%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="2"}%
+%META:TOPICINFO{author="ProjectContributor" date="1332844270" format="1.1" version="2"}%
+%META:TOPICPARENT{name="WebHome"}%
 
-%META:TOPICPARENT{name="SolrPlugin"}%
-<!--
-   * Set VIEW_TEMPLATE = SolrSearchView
--->
+%META:PREFERENCE{name="VIEW_TEMPLATE" title="VIEW_TEMPLATE" type="Set" value="SolrSearchView"}%
