@@ -13,6 +13,7 @@
 
 package Foswiki::Plugins::SolrPlugin::Search;
 use strict;
+use warnings;
 
 use Foswiki::Plugins::SolrPlugin::Base ();
 our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );

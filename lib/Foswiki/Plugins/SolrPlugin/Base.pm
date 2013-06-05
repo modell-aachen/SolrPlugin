@@ -32,6 +32,8 @@ BEGIN {
   if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
     $WebService::Solr::ENCODE = 0;    # don't encode to utf8 in WebService::Solr
   }
+
+  #print STDERR "Any::Moose prefers $Any::Moose::PREFERRED\n"
 }
 
 ##############################################################################
