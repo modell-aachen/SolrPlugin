@@ -35,7 +35,8 @@ use constant PROFILE => 0;  # toggle me
 #use Time::HiRes (); # enable this too when profiling
 
 use constant COMMIT_THRESHOLD => 200;    # commit every x topics on a bulk index job
-use constant WAIT_SEARCHER => 1;
+use constant WAIT_SEARCHER => "true";
+use constant SOFTCOMMIT => "true";
 
 ##############################################################################
 sub new {
@@ -830,7 +831,10 @@ sub optimize {
 
   $this->{solr}->commit();
   $this->log("Optimizing index");
-  $this->{solr}->optimize();
+  $this->{solr}->optimize({
+    waitSearcher => WAIT_SEARCHER,
+    softCommit => SOFTCOMMIT,
+  });
 
   $agent->timeout($oldTimeout);
 }
@@ -846,11 +850,10 @@ sub commit {
 
   if ($this->{commitCounter} > 1 && ($this->{commitCounter} >= COMMIT_THRESHOLD || $force)) {
     $this->log("Committing index") if VERBOSE;
-    $this->{solr}->commit(
-      {
-        waitSearcher => WAIT_SEARCHER
-      }
-    );
+    $this->{solr}->commit({
+        waitSearcher => WAIT_SEARCHER,
+        softCommit => SOFTCOMMIT,
+    });
     $this->{commitCounter} = 0;
 
     # invalidate page cache for all search interfaces
