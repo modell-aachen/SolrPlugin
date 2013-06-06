@@ -657,7 +657,7 @@ specific search applications. The destination fields are then analysed using the
    * Set SHORTDESCRIPTION = Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]
 -->
 |  Author: | Foswiki:Main.MichaelDaum|
-|  Copyright: | &copy; 2009-2011, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2013, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |

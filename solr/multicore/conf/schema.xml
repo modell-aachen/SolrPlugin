@@ -1157,7 +1157,7 @@
    <field name="author" type="string" />
    <field name="contributor" type="string" multiValued="true" />
    <field name="version" type="float" indexed="false" />
-   <field name="text" type="text_generic" indexed="true" stored="true" storeOffsetsWithPositions="true"/>
+   <field name="text" type="text_generic" />
    <field name="date" type="tdate" />
    <field name="createauthor" type="string" />
    <field name="createdate" type="tdate" />
