@@ -1,7 +1,3 @@
-/* solr plugin css */
-.natSolrBody .natTopicActions {
-  display:none;
-}
 .solrJsonData {
   display:none;
 }
@@ -195,10 +191,6 @@
 .solrPagerEllipsis {
   margin:0px 5px;
 }
-.solrPagerPrev,
-.solrPagerNext {
-  font-weight:bold;
-}
 .solrPager .solrPagerPrev {
   margin-right:0.5em;
 }
@@ -241,13 +233,10 @@
   line-height:110%;
 }
 
-.solrClearAll,
 .solrClear {
   display:none;
 }
 
-.solrClearAll,
-.solrClearAll:hover,
 .solrClear,
 .solrClear:hover {
   background-image:url(../FamFamFamSilkIcons/delete.png);
@@ -255,30 +244,6 @@
   background-position:0% 50%;
   padding-left:25px;
   float:left;
-}
-.natSideBar .solrHierarchy ul ul {
-  margin:6px 0px 0px 25px;
-  padding:0px;
-  border:0px;
-}
-.natSideBar .solrHierarchy ul li li {
-  border:0px;
-  margin:0px -1em 5px;
-  padding:0px 1em;
-}
-.solrHierarchy .fltMakeIndexWrapper,
-.solrHierarchy .fltLayoutTable {
-  margin:0px;
-}
-.solrHierarchy .fltMakeIndexWrapper ul {
-  margin:0px 0px 10px 0px;
-}
-.solrCategory {
-  background-repeat:no-repeat;
-  padding:0px 0px 2px 20px;
-}
-.natSideBar .solrCategory {
-  padding:0px;
 }
 .solrCheckboxContainer {
   margin-top:0.3em;

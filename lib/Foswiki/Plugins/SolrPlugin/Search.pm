@@ -143,17 +143,6 @@ sub formatResponse {
 
   #$this->log("called formatResponse()") if DEBUG;
 
-  Foswiki::Plugins::JQueryPlugin::createPlugin("metadata");
-  Foswiki::Plugins::JQueryPlugin::createPlugin("focus");
-  Foswiki::Plugins::JQueryPlugin::createPlugin("ui");
-
-  Foswiki::Func::addToZone('head', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
-<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.css' type='text/css' media='all' />
-HERE
-  Foswiki::Func::addToZone('script', "SOLRPLUGIN", <<'HERE', "JQUERYPLUGIN::FOCUS, JQUERYPLUGIN::METADATA");
-<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solrplugin.js'></script>
-HERE
-
   my $theFormat = $params->{format} || '';
   my $theSeparator = $params->{separator} || '';
   my $theHeader = $params->{header} || '';
@@ -1619,7 +1608,7 @@ sub getAjaxScriptUrl {
 
   my @urlParams = ();
 
-  my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{websearch} || 'WebSearch');;
+  my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{topic} || 'WebSearch');;
 
   my $url = Foswiki::Func::getScriptUrlPath($webSearchWeb, $webSearchTopic, 'view');
   # not using getScriptUrl() for anchors due to encoding problems
@@ -1666,12 +1655,13 @@ sub getScriptUrl {
     start=>$start,
     rows=>$theRows,
     sort=>$theSort,
-    search=>$params->{search},
-    display=>$params->{display}, # list, grid
-    type=>$params->{type}, # standard, dismax
-    web=>$params->{web},
-    autosubmit=>$params->{autosubmit},
   );
+  push(@urlParams, search => $params->{search}) if $params->{search};
+  push(@urlParams, display => $params->{display}) if $params->{display};
+  push(@urlParams, type => $params->{type}) if $params->{type};
+  push(@urlParams, web => $params->{web}) if $params->{web};
+  push(@urlParams, autosubmit => $params->{autosubmit}) if defined $params->{autosubmit};
+
 
   # SMELL: duplicates parseFilter 
   my $theFilter = $params->{filter} || '';

@@ -4,7 +4,6 @@ TARGET=\
   ajax-solr-widgets.js \
   ajax-solr-init.js \
   solrplugin.css \
-  solrplugin.js \
   pattern.css \
   solr-searchbox.js \
   wikiusers.js \
