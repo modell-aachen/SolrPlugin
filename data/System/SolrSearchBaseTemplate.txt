@@ -37,7 +37,7 @@
    content: main definition that puts together all pieces
 }%
 %TMPL:DEF{"content"}%<noautolink>
-<div id='solrSearch' style='display:none' data-more-fields='%TMPL:P{"solr::fields"}%' data-solr-url='%SCRIPTURL{"rest"}%/SolrPlugin/proxy' data-solr-params='{"qt":"%TMPL:P{"solr::defaultquerytype"}%", "rows": %TMPL:P{"solr::defaultrows"}%}' data-extra-filter='%TMPL:P{"solr::extrafilter"}%%IF{"'%TMPL:P{"solr::defaultweb"}%'!='all'" then=" web:%TMPL:P{"solr::defaultweb"}%"}%'>
+<div id='solrSearch' style='display:none' data-more-fields='%TMPL:P{"solr::fields"}%' data-solr-url='%SCRIPTURL{"rest"}%/SolrPlugin/proxy' data-solr-params='{"topic": "%WEB%.%TOPIC%", "qt":"%TMPL:P{"solr::defaultquerytype"}%", "rows": %TMPL:P{"solr::defaultrows"}%}' data-extra-filter='%TMPL:P{"solr::extrafilter"}%%IF{"'%TMPL:P{"solr::defaultweb"}%'!='all'" then=" web:%TMPL:P{"solr::defaultweb"}%"}%'>
 %TMPL:P{"solr::title"}%<!-- -->
 %TMPL:P{"solr::header"}%<!-- -->
 %TMPL:P{"solr::hits"}%<!-- -->

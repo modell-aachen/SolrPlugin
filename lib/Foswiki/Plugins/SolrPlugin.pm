@@ -20,8 +20,8 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
   
-our $VERSION = '1.99_005';
-our $RELEASE = '1.99_005';
+use version; our $VERSION = version->declare("v2.0.0");
+our $RELEASE = '14 Jul 2013';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseWeb;

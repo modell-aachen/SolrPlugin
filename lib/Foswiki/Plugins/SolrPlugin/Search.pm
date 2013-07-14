@@ -578,6 +578,24 @@ sub restSOLRPROXY {
   $this->{session}->{response}->status($status);
   $this->{session}->{response}->header(-type=>$contentType);
 
+  if (Foswiki::Func::getContext()->{"PiwikPluginEnabled"}) {
+    my $count = 0;
+    if ($result =~ /"numFound"\s*:\s*(\d+),/) {
+      $count = $1;
+    }
+    require Foswiki::Plugins::PiwikPlugin;
+    try {
+      Foswiki::Plugins::PiwikPlugin::tracker->doTrackSiteSearch(
+        $theQuery,
+        $theWeb, # hm, there's no single category that makes sense here
+        $count
+      );
+    } catch Error::Simple with {
+      # report but ignore
+      print STDERR "PiwikiPlugin::Tracker - ".shift."\n";
+    };
+  }
+
   return $result;
 }
 

@@ -423,6 +423,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
    rows="5"
 }%<!-- solrsimilar -->
 
+<verbatim class="foswikiHidden">
 ---++++ SOLRSCRIPTURL
 
 ---+++ Rest inteface
@@ -448,6 +449,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 ---++++ registerIndexTopicHandler()
 
 ---++++ registerIndexAttachmentHandler()
+</verbatim>
 
 ---++ Solr indexing schema
 
@@ -644,6 +646,7 @@ specific search applications. The destination fields are then analysed using the
 | topic | spell |
 | web | spell |
 
+<verbatim class="foswikiHidden">
 ---++ Templates
 
 ---+++ Structure of !SolrSearchBaseTemplate
@@ -651,6 +654,7 @@ specific search applications. The destination fields are then analysed using the
 ---+++ Replacing !WebSearch and !WebChanges
 
 ---+++ Creating custom search interfaces
+</verbatim>
 
 ---++ Plugin Info
 <!--
@@ -664,6 +668,7 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  14 Jul 2013: | added support for [[Foswiki:Extensions/PiwikPlugin][PiwikPlugin]] |
 |  14 Mar 2013: | improved indexing performance; \
                   added configurable http timeouts takling to the solr backend; \
                   fixed language mappings for multilingual content; \
