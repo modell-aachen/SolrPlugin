@@ -275,6 +275,7 @@ sub inlineError {
 sub fromUtf8 {
   my ($this, $string) = @_;
 
+  return $string if Encode::is_utf8($string);
   return Encode::decode_utf8($string);
 }
 
