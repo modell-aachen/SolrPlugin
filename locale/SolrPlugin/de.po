@@ -91,7 +91,7 @@ msgstr "In allen Bereichen"
 
 #: data/System/SolrSearchBaseTemplate.txt:696
 msgid "In current web"
-msgstr "Im momentanen Web"
+msgstr "Im momentanen Bereich"
 
 #: data/System/SolrSearchBaseTemplate.txt:714
 msgid "In my contributions"
@@ -193,7 +193,7 @@ msgstr "Topic Typ"
 
 #: data/System/SolrSearchBaseTemplate.txt:431
 msgid "Web"
-msgstr "Web"
+msgstr "Bereich"
 
 #: data/System/SolrSearchBaseTemplate.txt:619
 msgid "Webs"
