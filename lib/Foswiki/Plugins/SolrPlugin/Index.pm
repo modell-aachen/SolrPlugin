@@ -444,11 +444,12 @@ sub indexTopic {
           $seenFields{$name} = 1;
 
           my $value = $field->{value};
-          if ($isValueMapped) {
-            $fieldDef->getOptions(); # load value map
-            # SMELL: there's no api to get the mapped display value
-            $value = $fieldDef->{valueMap}{$value} if defined $fieldDef->{valueMap} && defined $fieldDef->{valueMap}{$value};
-          } 
+          # Modac: disabled for backwards compatibility
+          # if ($isValueMapped) {
+          #   $fieldDef->getOptions(); # load value map
+          #   # SMELL: there's no api to get the mapped display value
+          #   $value = $fieldDef->{valueMap}{$value} if defined $fieldDef->{valueMap} && defined $fieldDef->{valueMap}{$value};
+          # } 
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
