@@ -1,0 +1,456 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/spanish/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+
+# A Spanish stop word list. Comments begin with #. Each stop
+# word is at the start of a line.
+
+
+# The following is a ranked list (commonest to rarest) of stopwords
+# deriving from a large sample of text.
+
+# Extra words have been added at the end.
+
+#  from, of
+de
+#  the, her
+la
+#  who, that
+que
+#  the
+el
+#  in
+en
+#  and
+y
+#  to
+a
+#  the, them
+los
+#  de + el
+del
+#  himself, from him etc
+se
+#  the, them
+las
+#  for, by, etc
+por
+#  a
+un
+#  for
+para
+#  with
+con
+#  no
+no
+#  a
+una
+#  his, her
+su
+#  a + el
+al
+# es         from SER
+#  him
+lo
+#  how
+como
+#  more
+más
+#  pero
+pero
+#  su plural
+sus
+#  to him, her
+le
+#  already
+ya
+#  or
+o
+# fue        from SER
+#  this
+este
+# ha         from HABER
+#  himself etc
+sí
+#  because
+porque
+#  this
+esta
+# son        from SER
+#  between
+entre
+# está     from ESTAR
+#  when
+cuando
+#  very
+muy
+#  without
+sin
+#  on
+sobre
+# ser        from SER
+# tiene      from TENER
+#  also
+también
+#  me
+me
+#  until
+hasta
+#  there is/are
+hay
+#  where
+donde
+# han        from HABER
+#  whom, that
+quien
+# están      from ESTAR
+# estado     from ESTAR
+#  from
+desde
+#  all
+todo
+#  us
+nos
+#  during
+durante
+# estados    from ESTAR
+#  all
+todos
+#  a
+uno
+#  to them
+les
+#  nor
+ni
+#  against
+contra
+#  other
+otros
+# fueron     from SER
+#  that
+ese
+#  that
+eso
+# había      from HABER
+#  before
+ante
+#  they
+ellos
+#  and (variant of y)
+e
+#  this
+esto
+#  me
+mí
+#  before
+antes
+#  some
+algunos
+#  what?
+qué
+#  a
+unos
+#  I
+yo
+#  other
+otro
+#  other
+otras
+#  other
+otra
+#  he
+él
+#  so much, many
+tanto
+#  that
+esa
+#  these
+estos
+#  much, many
+mucho
+#  who
+quienes
+#  nothing
+nada
+#  many
+muchos
+#  who
+cual
+# sea        from SER
+#  few
+poco
+#  she
+ella
+#  to be
+estar
+# haber      from HABER
+#  these
+estas
+# estaba     from ESTAR
+# estamos    from ESTAR
+#  some
+algunas
+#  something
+algo
+#  we
+nosotros
+
+# other forms
+
+#  me
+mi
+#  mi plural
+mis
+#  thou
+tú
+#  thee
+te
+#  thee
+ti
+#  thy
+tu
+#  tu plural
+tus
+#  they
+ellas
+#  we
+nosotras
+#  you
+vosotros
+#  you
+vosotras
+#  you
+os
+#  mine
+mío
+mía
+míos
+mías
+#  thine
+tuyo
+tuya
+tuyos
+tuyas
+#  his, hers, theirs
+suyo
+suya
+suyos
+suyas
+#  ours
+nuestro
+nuestra
+nuestros
+nuestras
+#  yours
+vuestro
+vuestra
+vuestros
+vuestras
+#  those
+esos
+#  those
+esas
+
+# forms of estar, to be (not including the infinitive):
+estoy
+estás
+está
+estamos
+estáis
+están
+esté
+estés
+estemos
+estéis
+estén
+estaré
+estarás
+estará
+estaremos
+estaréis
+estarán
+estaría
+estarías
+estaríamos
+estaríais
+estarían
+estaba
+estabas
+estábamos
+estabais
+estaban
+estuve
+estuviste
+estuvo
+estuvimos
+estuvisteis
+estuvieron
+estuviera
+estuvieras
+estuviéramos
+estuvierais
+estuvieran
+estuviese
+estuvieses
+estuviésemos
+estuvieseis
+estuviesen
+estando
+estado
+estada
+estados
+estadas
+estad
+
+# forms of haber, to have (not including the infinitive):
+he
+has
+ha
+hemos
+habéis
+han
+haya
+hayas
+hayamos
+hayáis
+hayan
+habré
+habrás
+habrá
+habremos
+habréis
+habrán
+habría
+habrías
+habríamos
+habríais
+habrían
+había
+habías
+habíamos
+habíais
+habían
+hube
+hubiste
+hubo
+hubimos
+hubisteis
+hubieron
+hubiera
+hubieras
+hubiéramos
+hubierais
+hubieran
+hubiese
+hubieses
+hubiésemos
+hubieseis
+hubiesen
+habiendo
+habido
+habida
+habidos
+habidas
+
+# forms of ser, to be (not including the infinitive):
+soy
+eres
+es
+somos
+sois
+son
+sea
+seas
+seamos
+seáis
+sean
+seré
+serás
+será
+seremos
+seréis
+serán
+sería
+serías
+seríamos
+seríais
+serían
+era
+eras
+éramos
+erais
+eran
+fui
+fuiste
+fue
+fuimos
+fuisteis
+fueron
+fuera
+fueras
+fuéramos
+fuerais
+fueran
+fuese
+fueses
+fuésemos
+fueseis
+fuesen
+siendo
+sido
+#  sed also means 'thirst'
+
+# forms of tener, to have (not including the infinitive):
+tengo
+tienes
+tiene
+tenemos
+tenéis
+tienen
+tenga
+tengas
+tengamos
+tengáis
+tengan
+tendré
+tendrás
+tendrá
+tendremos
+tendréis
+tendrán
+tendría
+tendrías
+tendríamos
+tendríais
+tendrían
+tenía
+tenías
+teníamos
+teníais
+tenían
+tuve
+tuviste
+tuvo
+tuvimos
+tuvisteis
+tuvieron
+tuviera
+tuvieras
+tuviéramos
+tuvierais
+tuvieran
+tuviese
+tuvieses
+tuviésemos
+tuvieseis
+tuviesen
+teniendo
+tenido
+tenida
+tenidos
+tenidas
+tened

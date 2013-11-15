@@ -1,0 +1,65 @@
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"SolrSearchBase"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::defaultweb"}%%BASEWEB%%TMPL:END%
+%TMPL:DEF{"solr::defaultrows"}%20%TMPL:END%
+%TMPL:DEF{"solr::defaultquerytype"}%standard%TMPL:END%
+%TMPL:DEF{"solr::defaultsort"}%date desc%TMPL:END%
+%TMPL:DEF{"solr::facets"}%%MAKETEXT{"Category"}%=category,tag%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%%IF{"defined 'SOLR_EXTRAFILTER'" then="%SOLR_EXTRAFILTER%" else="-field_TopicType_lst:Category"}% type:topic%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"DISsolr::input::checkboxes::inmycontribs"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::title"}%<h1>
+%IF{"$web = 'all' or '%TMPL:P{"solr::defaultweb"}%' = 'all'" 
+  then="%MAKETEXT{"Recent changes"}%"
+  else="%MAKETEXT{"Recent changes in [_1]" args="%TMPL:P{"baseweb"}%"}%"
+}%
+</h1>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"baseweb"}%%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::header"}%<div class='solrHeader'>
+%TMPL:P{"solr::searchform"}%
+%CLEAR%
+%SOLRFORMAT{"solr1" header="$pager"}%
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::searchform"}%<!-- searchform -->
+%TMPL:P{"solr::formstart"}%
+%TMPL:P{"solr::input::checkboxes"}%
+%TMPL:P{"solr::formend"}%
+<!-- //searchform -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::formstart"}%<!-- formstart -->
+<form name="searchform" class="solrSearchForm" action="%SCRIPTURLPATH{"view"}%/%BASEWEB%/%BASETOPIC%">
+<input type="hidden" name="sort" value="%URLPARAM{"sort" default="%TMPL:P{"solr::defaultsort"}%"}%" id="solrSortOption" />
+<input type="hidden" name="display" value="%URLPARAM{"display" default="%TMPL:P{"solr::defaultdisplay"}%"}%" id="solrDisplayOption" />
+<input type="hidden" name="rows" value="%URLPARAM{"rows" default="%TMPL:P{"solr::defaultrows"}%"}%" id="solrRowsOption" />
+<input type="hidden" name="origtopic" value="%URLPARAM{"origtopic" default="%BASEWEB%.%HOMETOPIC%"}%" />
+%FORMATLIST{
+  "%URLPARAM{"filter" multiple="on" separator=","}%" 
+  split=","
+  pattern="(.*):(.*)"
+  format="<input type='hidden' name='filter' value='$1:$2' class='solrFilter {facet:\"$1\", value:\"$2\"}' />"
+  separator="$n"
+}%<!-- //formstart -->%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::formend"}%</form>%TMPL:END%
+%{</verbatim>}%

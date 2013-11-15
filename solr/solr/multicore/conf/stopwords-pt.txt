@@ -1,0 +1,344 @@
+# From svn.tartarus.org/snowball/trunk/website/algorithms/portuguese/stop.txt
+# This file is distributed under the BSD License.
+# See http://snowball.tartarus.org/license.php
+# Also see http://www.opensource.org/licenses/bsd-license.html
+#  - Encoding was converted to UTF-8.
+#  - This notice was added.
+#  - The format was modified to the Solr stopwords format
+
+# A Portuguese stop word list. Comments begin with #. Each stop
+# word is at the start of a line.
+
+
+# The following is a ranked list (commonest to rarest) of stopwords
+# deriving from a large sample of text.
+
+# Extra words have been added at the end.
+
+#  of, from
+de
+#  the; to, at; her
+a
+#  the; him
+o
+#  who, that
+que
+#  and
+e
+#  de + o
+do
+#  de + a
+da
+#  in
+em
+#  a
+um
+#  for
+para
+# é          from SER
+#  with
+com
+#  not, no
+não
+#  a
+uma
+#  the; them
+os
+#  em + o
+no
+#  himself etc
+se
+#  em + a
+na
+#  for
+por
+#  more
+mais
+#  the; them
+as
+#  de + os
+dos
+#  as, like
+como
+#  but
+mas
+# foi        from SER
+#  a + o
+ao
+#  he
+ele
+#  de + as
+das
+# tem        from TER
+#  a + a
+à
+#  his
+seu
+#  her
+sua
+#  or
+ou
+# ser        from SER
+#  when
+quando
+#  much
+muito
+# há         from HAV
+#  em + os; us
+nos
+#  already, now
+já
+# está       from EST
+#  I
+eu
+#  also
+também
+#  only, just
+só
+#  per + o
+pelo
+#  per + a
+pela
+#  up to
+até
+#  that
+isso
+#  he
+ela
+#  between
+entre
+# era        from SER
+#  after
+depois
+#  without
+sem
+#  same
+mesmo
+#  a + os
+aos
+# ter        from TER
+#  his
+seus
+#  whom
+quem
+#  em + as
+nas
+#  me
+me
+#  that
+esse
+#  they
+eles
+# estão      from EST
+#  you
+você
+# tinha      from TER
+# foram      from SER
+#  that
+essa
+#  em + um
+num
+#  nor
+nem
+#  her
+suas
+#  my
+meu
+#  a + as
+às
+#  my
+minha
+# têm        from TER
+#  em + uma
+numa
+#  per + os
+pelos
+#  they
+elas
+# havia      from HAV
+# seja       from SER
+#  which
+qual
+# será       from SER
+#  we
+nós
+# tenho      from TER
+#  to him, her
+lhe
+#  of them
+deles
+#  those
+essas
+#  those
+esses
+#  per + as
+pelas
+#  this
+este
+# fosse      from SER
+#  of him
+dele
+
+# other words. There are many contractions such as naquele = em+aquele,
+# mo = me+o, but they are rare.
+# Indefinite article plural forms are also rare.
+
+#  thou
+tu
+#  thee
+te
+#  you (plural)
+vocês
+#  you
+vos
+#  to them
+lhes
+#  my
+meus
+minhas
+#  thy
+teu
+tua
+teus
+tuas
+# our
+nosso
+nossa
+nossos
+nossas
+
+#  of her
+dela
+#  of them
+delas
+
+#  this
+esta
+#  these
+estes
+#  these
+estas
+#  that
+aquele
+#  that
+aquela
+#  those
+aqueles
+#  those
+aquelas
+#  this
+isto
+#  that
+aquilo
+
+# forms of estar, to be (not including the infinitive):
+estou
+está
+estamos
+estão
+estive
+esteve
+estivemos
+estiveram
+estava
+estávamos
+estavam
+estivera
+estivéramos
+esteja
+estejamos
+estejam
+estivesse
+estivéssemos
+estivessem
+estiver
+estivermos
+estiverem
+
+# forms of haver, to have (not including the infinitive):
+hei
+há
+havemos
+hão
+houve
+houvemos
+houveram
+houvera
+houvéramos
+haja
+hajamos
+hajam
+houvesse
+houvéssemos
+houvessem
+houver
+houvermos
+houverem
+houverei
+houverá
+houveremos
+houverão
+houveria
+houveríamos
+houveriam
+
+# forms of ser, to be (not including the infinitive):
+sou
+somos
+são
+era
+éramos
+eram
+fui
+foi
+fomos
+foram
+fora
+fôramos
+seja
+sejamos
+sejam
+fosse
+fôssemos
+fossem
+for
+formos
+forem
+serei
+será
+seremos
+serão
+seria
+seríamos
+seriam
+
+# forms of ter, to have (not including the infinitive):
+tenho
+tem
+temos
+tém
+tinha
+tínhamos
+tinham
+tive
+teve
+tivemos
+tiveram
+tivera
+tivéramos
+tenha
+tenhamos
+tenham
+tivesse
+tivéssemos
+tivessem
+tiver
+tivermos
+tiverem
+terei
+terá
+teremos
+terão
+teria
+teríamos
+teriam

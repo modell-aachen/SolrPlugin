@@ -1,0 +1,20 @@
+%{<verbatim class="tml">}%
+%TMPL:INCLUDE{"WebChangesView"}%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"broadcastmessage"}%%TMPL:P{"solr::search"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"top:toolbarbuttons"}%%TMPL:END%
+%TMPL:DEF{"topicaction"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"styles:default"}%%TMPL:P{"styles:screen"}%%TMPL:P{"styles:print"}%%TMPL:P{"styles:solr"}%%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"styles:solr"}%<link rel='stylesheet' href='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/pattern.css' type='text/css' media='all' />%TMPL:END%
+%{</verbatim>}%
