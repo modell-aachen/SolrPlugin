@@ -642,6 +642,9 @@
               return "#solrHitTemplate_comment";
             } 
 
+            var other = 'script#solrHitTemplate_'+type;
+            if($(other).length) return other;
+
             return "#solrHitTemplate_misc";
           },
           renderList: function(fieldName, separator, limit) {
