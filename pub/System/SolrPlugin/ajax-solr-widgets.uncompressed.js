@@ -777,8 +777,9 @@
       var self = this,
           q = self.manager.store.get("q");
 
-      if (q && self.$input) {
-        self.$input.val(q.val());
+      if (q) {
+        if(self.$input) self.$input.val(q.val());
+        $('#quickSearchBox').val(q.val());
       }
     },
 
