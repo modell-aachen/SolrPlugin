@@ -575,6 +575,9 @@ sub restSOLRPROXY {
     $contentType = "text/plain";
   };
 
+  # escape html-lish characters in title field (the title "grep<solr" will drive SafeWikiPlugin mad)
+  $result =~ s#("title"\s*:\s*")((?:[^"\\]|\\"|\\\\)*")#(sub {my ($t,$s)=@_; $s=~s/</&lt;/g; $s=~s/>/&gt;/g; return "$t$s";})->($1,$2)#ge;
+
   $this->{session}->{response}->status($status);
   $this->{session}->{response}->header(-type=>$contentType);
 
