@@ -212,7 +212,7 @@ jQuery(function($) {
   extrafilter="%TMPL:P{"solr::extrafilter"}%"
   spellcheck="%TMPL:P{"solr::spellcheck"}%"
   highlight="on"
-  correction="%MAKETEXT{"Did you mean [_1]" args="<a href='$url' class='solrCorrection'>%ENCODE{"$correction" type="quote"}%</a>"}%"
+  correction="%MAKETEXT{"Did you mean [_1]" args="<a href='$url' class='solrCorrection'>%ENCODE{"$correction" type="safe"}%</a>"}%"
 }%%ADDTOZONE{
   "head" 
   tag="SOLRPLUGIN::MAPPING" 

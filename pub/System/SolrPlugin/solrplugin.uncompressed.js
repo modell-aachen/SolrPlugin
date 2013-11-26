@@ -155,6 +155,12 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
     var self = this;
     self.log("showSelection called");
 
+    var escapeMap = { '<': '&lt;', '>': '&gt;', '\'': '&#39;', '"': '&quot;', '&': '&amp;' };
+    var escapeRegex = /[<>&'"]/g;
+    var escapeEntities = function(html) {
+      return html.replace(escapeRegex, function(chr) { return escapeMap[chr]; });
+    }
+
     $(".solrYourSelection > ul > li:not(.solrNoSelection)").remove()
     if (self.selection.length) {
       var template = "<li>"+
@@ -186,10 +192,10 @@ var solr; /* last solr manager constructed; this is a singleton in most use case
           }
         }
         var item = template
-          .replace(/\$valuetitle/g, valueTitle)
-          .replace(/\$facettitle/g, facetTitle)
-          .replace(/\$value/g, fv.value)
-          .replace(/\$facet/g, fv.facet);
+          .replace(/\$valuetitle/g, escapeEntities(valueTitle))
+          .replace(/\$facettitle/g, escapeEntities(facetTitle))
+          .replace(/\$value/g, escapeEntities(fv.value))
+          .replace(/\$facet/g, escapeEntities(fv.facet));
         //self.log("item="+item);
         //self.log("template="+template);
         list.append(item);

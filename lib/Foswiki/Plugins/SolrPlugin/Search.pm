@@ -157,7 +157,7 @@ HERE
   my $theHeader = $params->{header} || '';
   my $theFooter = $params->{footer} || '';
   my $theCorrection = $params->{correction} || 
-    'Did you mean <a href=\'$url\' class=\'solrCorrection\'>%ENCODE{"$correction" type="quote"}%</a>';
+    'Did you mean <a href=\'$url\' class=\'solrCorrection\'>%ENCODE{"$correction" type="safe"}%</a>';
   my $theInterestingHeader = $params->{header_interesting} || '';
   my $theInterestingFormat = $params->{format_interesting} || '';
   my $theInterestingSeparator = $params->{separator_interesting} || '';
