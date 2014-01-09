@@ -55,7 +55,7 @@ msgstr "Kategorie"
 
 #: data/System/SolrSearchBaseTemplate.txt:623
 msgid "Clear"
-msgstr "Zur&&uuml;cksetzen"
+msgstr "Zurücksetzen"
 
 #: data/System/SolrSearchBaseTemplate.txt:330
 msgid "Did you mean %1?"
@@ -103,7 +103,7 @@ msgstr "Sprache"
 
 #: data/System/SolrSearchBaseTemplate.txt:647
 msgid "Last changed"
-msgstr "Letzte &&Auml;nderung"
+msgstr "Letzte Änderung"
 
 #: data/System/SolrWikiUsersViewTemplate.txt:33
 #: data/System/SolrWikiUsersViewTemplate.txt:65
@@ -120,7 +120,7 @@ msgstr "Name"
 
 #: data/System/SolrSearchBaseTemplate.txt:351
 msgid "Next"
-msgstr "n&&auml;chste"
+msgstr "nächste"
 
 #: data/System/SolrWikiUsersViewTemplate.txt:25
 msgid "Organisation"
@@ -132,7 +132,7 @@ msgstr "Populäre Schlüsselworte"
 
 #: data/System/SolrSearchBaseTemplate.txt:351
 msgid "Previous"
-msgstr "Zur&&uml;ck"
+msgstr "Zurück"
 
 #: data/System/SolrWikiUsersViewTemplate.txt:42
 #: data/System/SolrWikiUsersViewTemplate.txt:62
@@ -141,16 +141,16 @@ msgstr "Beruf"
 
 #: data/System/SolrSideBar.txt:68
 msgid "Recent Changes"
-msgstr "Letzte &&Auml;nderungen"
+msgstr "Letzte Änderungen"
 
 #: data/System/SolrSearchBaseTemplate.txt:447
 #: data/System/WebChangesViewTemplate.txt:22
 msgid "Recent changes"
-msgstr "Letzte &&Auml;nderungen"
+msgstr "Letzte Änderungen"
 
 #: data/System/WebChangesViewTemplate.txt:23
 msgid "Recent changes in %1"
-msgstr "Letze &&Auml;nderungen in %1"
+msgstr "Letze Änderungen in %1"
 
 #: data/System/SolrSearchBaseTemplate.txt:646
 msgid "Relevance"
@@ -173,7 +173,7 @@ msgstr "Suchen"
 
 #: data/System/SolrSideBar.txt:42
 msgid "Similar topics"
-msgstr "&&Auml;hnliche Topics"
+msgstr "Ähnliche Seiten"
 
 #: data/System/SolrSearchBaseTemplate.txt:643
 msgid "Sort by"
@@ -232,7 +232,7 @@ msgstr "Medium"
 
 #: data/System/SolrSearchBaseTemplate.txt:245
 msgid "next"
-msgstr "n&&auml;chste"
+msgstr "nächste"
 
 #: data/System/SolrSearchBaseTemplate.txt:302
 #: data/System/SolrWikiUsersViewTemplate.txt:103
@@ -241,15 +241,15 @@ msgstr "Keine Treffer"
 
 #: data/System/SolrSearchBaseTemplate.txt:457
 msgid "older"
-msgstr "&&auml;lter"
+msgstr "älter"
 
 #: data/System/SolrSearchBaseTemplate.txt:245
 msgid "prev"
-msgstr "zur&&uuml;ck"
+msgstr "zurück"
 
 #: data/System/SolrSearchBaseTemplate.txt:90
 msgid "recently"
-msgstr "&&Auml;nderung"
+msgstr "Änderung"
 
 #: data/System/SolrSideBar.txt:45
 msgid "score: %1"
