@@ -67,7 +67,6 @@ pub/System/SolrPlugin/jquery.autosuggest.uncompressed.css 0644
 pub/System/SolrPlugin/jquery.autosuggest.js 0644
 pub/System/SolrPlugin/jquery.autosuggest.js.gz 0644
 pub/System/SolrPlugin/jquery.autosuggest.uncompressed.js 0644
-pub/System/SolrPlugin/jquery.autosuggest.uncompressed.css 0644
 pub/System/SolrPlugin/Makefile 0644
 pub/System/SolrPlugin/pattern.css 0644
 pub/System/SolrPlugin/pattern.css.gz 0644
@@ -108,6 +107,7 @@ pub/System/SolrPlugin/wikiusers.uncompressed.js 0644
 solr/60solr.policy 0644
 solr/etc/jetty.xml 0644
 solr/etc/webdefault.xml 0644
+solr/contexts/solr-jetty-context.xml 0644
 solr/.htaccess 0644
 solr/logs/README 0644
 solr/multicore/conf/admin-extra.html 0644
