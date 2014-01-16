@@ -88,14 +88,16 @@ export TIME
     if test -n "$FILE"; then
       WEB=${FILE/*data\//};
       WEB="web=$(dirname $WEB)"
-      echo "WEB=$WEB" >&2
+      #echo "WEB=$WEB" >&2
     fi
     sleep $THROTTLE
 
     if test "$MODE" = "delta"; then
+      /bin/date >> $LOG 2>&1
       time nice $SOLRINDEX mode=delta $WEB $SOLRINDEX_ARGS >> $LOG 2>&1
     else
-      time nice $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS > $LOG 2>&1
+      /bin/date > $LOG 2>&1
+      time nice $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS >> $LOG 2>&1
     fi
   )
 ) 200>$LOCKFILE&

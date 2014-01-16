@@ -1,6 +1,11 @@
 var _ = function(key, id) {
-  id = id || 'default' 
-  return AjaxSolr.Dicts[id].get(key);
+  id = id || 'default'
+  var dict = AjaxSolr.Dicts[id];
+  if (typeof(dict) !== 'undefined') {
+    return dict.get(key);
+  } 
+  return key;
+
 };
 
 (function($) {

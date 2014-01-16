@@ -7,8 +7,6 @@
       loadingMessage: '',
       displayAs: '.solrDisplay',
       defaultDisplay: 'list',
-      smallSize: 64,
-      largeSize: 150,
       dateFormat: 'dddd, Do MMMM YYYY, HH:mm',
       dictionary: 'default'
     },
@@ -128,19 +126,28 @@
           getHilite: function(id) {
             var hilite;
             if (typeof(response.highlighting) === 'undefined') {
-              return self.getSnippet(this.data)
+              return '';//self.getSnippet(this.data)
             }
             hilite = response.highlighting[id];
             if (typeof(hilite) === 'undefined' || typeof(hilite.text) === 'undefined') {
-              return self.getSnippet(this.data);
+              return '';//self.getSnippet(this.data);
             } else {
               hilite = hilite.text.join(' ... ');
-              return hilite || self.getSnippet(this.data);
+              return hilite || '';//self.getSnippet(this.data);
             }
           },
           formatDate: function(dateString, dateFormat) {
-            if (dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "???";
+
+            // convert epoch seconds to iso date string
+            if (/^\d+$/.test(dateString)) {
+              if (dateString.length == 10) {
+                dateString += "000";
+              }
+              dateString = (new Date(parseInt(dateString))).toISOString();
+            }
+
+            if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
+              return "<span class='solrUnknownDate'>???</span>";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
@@ -149,19 +156,7 @@
         }
       ));
 
-      self.fixImageSize();
       self.$target.trigger("update");
-    },
-
-    fixImageSize: function() {
-      var self = this, 
-          elem = $(self.options.displayAs).filter(":checked"),
-          size = (elem.val() == 'list')?self.options.smallSize:self.options.largeSize;
-
-      self.$target.find(".solrImageFrame img").each(function() {
-        var $this = $(this), src = $this.attr("src");
-        $this.attr("src", src.replace(/size=(\d+)/, "size="+size)).attr("width", size);
-      });
     },
 
     update: function() {
@@ -174,7 +169,6 @@
       } else {
         self.$target.addClass("solrSearchHitsGrid");
       }
-      self.fixImageSize();
     },
 
     init: function() {

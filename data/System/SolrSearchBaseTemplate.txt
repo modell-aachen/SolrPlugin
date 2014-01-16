@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="micha" comment="autosave" date="1365071806" format="1.1" version="6"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1377183100" format="1.1" reprev="7" version="7"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -54,7 +54,7 @@
    solr::assets - css and js to be added to the html head
 }%
 %TMPL:DEF{"solr::assets"}%<!-- -->
-%JQREQUIRE{"livequery,focus, serialpager, scrollto, prettyphoto, tmpl, jqtwisty, moment, blockui"}%<!-- -->
+%JQREQUIRE{"livequery,focus, serialpager, scrollto, prettyphoto, tmpl, jqtwisty, moment, blockui, imagetooltip"}%<!-- -->
 %ADDTOZONE{"script"
   id="SOLRPLUGIN::AJAX"
   requires="JQUERYPLUGIN::LIVEQUERY, JQUERYPLUGIN::BLOCKUI, JQUERYPLUGIN::MOMENT"
@@ -92,7 +92,8 @@
   "de": "%MAKETEXT{"German"}%",
   "language": "%MAKETEXT{"language"}%",
   "keyword": "%MAKETEXT{"keyword"}%",
-  "tag": "%MAKETEXT{"tag"}%"
+  "tag": "%MAKETEXT{"tag"}%",
+  "webcat": "%MAKETEXT{"Category"}%"
 }
 </div>
 </literal>%TMPL:END%
@@ -108,6 +109,7 @@
 %TMPL:P{"solr::templates::currentselection"}%
 %TMPL:P{"solr::templates::togglefacet"}%
 %TMPL:P{"solr::templates::tagcloud"}%
+%TMPL:P{"solr::templates::hierarchy"}%
 %TMPL:P{"solr::templates::resultsperpage"}%
 %TMPL:P{"solr::templates::spellcorrection"}%
 <!-- -->%TMPL:END%
@@ -131,17 +133,32 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
+%TMPL:DEF{"solr::thumbnail"}%
+{{if thumbnail}}
+      <div class='solrThumbnail'>
+        <a class='imageHref imageSimple jqImageTooltip {web:"${web}", topic:"${topic}", image:"${thumbnail}"}' href='${url}' title='${name}'>
+          <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(thumbnail)};width=64>;crop=northwest' alt='${thumbnail}' />
+        </a>
+      </div>
+{{/if}}
+%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::ClassifiedTopic"}%<script id="solrHitTemplate_ClassifiedTopic" type="text/x-jquery-tmpl">
-  <div class='solrSearchHit solrTopicHit'>
-    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+  <div class='solrSearchHit solrTopicHit clearfix'>
+    %TMPL:P{"solr::thumbnail"}%
+    <h3>
+      <img src='{{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' />
       <a href='${url}'>${title}</a>
-      <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
+      <span class=' solrContainerLink foswikiGrayText foswikiSmallish'>
         %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
       </span>
     </h3>
-    <div class='foswikiGrayText'>
+    <div class='solrTopicInfo foswikiGrayText'>
       {{html $item.renderTopicInfo()}}
     </div>
+    <div class='solrTopicSummary foswikiGrayText'>${summary}</div>
     <div class='solrHilite'>
       {{html $item.getHilite(id)}}
     </div>
@@ -155,8 +172,10 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::topic"}%<script id="solrHitTemplate_topic" type="text/x-jquery-tmpl">
-  <div class='solrSearchHit solrTopicHit'>
-    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+  <div class='solrSearchHit solrTopicHit clearfix'>
+    %TMPL:P{"solr::thumbnail"}%
+    <h3>
+      <img src='{{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
       <a href='${url}'>${title}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
         %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
@@ -174,13 +193,14 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::image"}%<script id="solrHitTemplate_image" type="text/x-jquery-tmpl">
-  <div class='solrSearchHit solrImageHit'>
+  <div class='solrSearchHit solrImageHit clearfix'>
     <div class='solrImageFrame'>
-      <a class='imageHref imageSimple' href='${url}' title='${name}'>
-        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(name)};size=64>;crop=on' alt='${name}' />
+      <a class='imageHref imageSimple jqImageTooltip {web:"${web}", topic:"${topic}", image:"${name}"}' href='${url}' title='${name}'>
+        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(name)};size=64>;crop=northwest' alt='${name}' />
       </a>
     </div>
     <h3>
+      <img src='{{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
       <a href='${url}'>${name}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
         %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
@@ -203,7 +223,8 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::comment"}%<script id="solrHitTemplate_comment" type="text/x-jquery-tmpl">
   <div class='solrSearchHit solrCommentHit'>
-    <h3 style='background-image:url(%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/comment.png)'>
+    <h3>
+      <img src='%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/comment.png' width='16' height='16' class='solrHitIcon' />
       <a href='${url}'>${title}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
         %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
@@ -222,7 +243,8 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::misc"}%<script id="solrHitTemplate_misc" type="text/x-jquery-tmpl">
   <div class='solrSearchHit solrAttachmentHit'>
-    <h3 style='background-image:url({{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}})'>
+    <h3>
+      <img src='{{if icon}}${icon}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
       <a href='${url}'>${name}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink' >
         %MAKETEXT{"in [_1]" args="<a href='${container_url}'>${container_title}</a>"}%
@@ -292,6 +314,24 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::hierarchy"}%<script id="solrHierarchyTemplate" type="text/x-jquery-tmpl">
+<li><img src='${icon}' width='16' height='16' /> <a href='#' class='solrFacetFalue cat_${id}' data-value='${id}'>${title}</a> {{html $item.renderFacetCount(id)}}
+<div class='solrHierarchyChildren'>
+{{each(index, value) $item.getChildren}}
+  {{if index < 5}}
+    <a href='#' class='solrFacetValue cat='cat_${id}' data-value='${id}'>${title}</a>
+  {{/if}}
+{{/each}}
+{{if $item.getChildren().length >= 5}} 
+  <a href='#' class='solrFacetFalue cat_${id}' data-value='${id}'>...</a>
+{{/if}}
+</div>
+</li>
+</script>%TMPL:END%
+%{</verbatim>}%
+
+
+%{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::resultsperpage"}%<script id="solrResultsPerPageTemplate" type="text/x-jquery-tmpl">
 <table class='foswikiNullTable' width='100%'>
   <tr>
@@ -339,6 +379,7 @@
 }%
 %TMPL:DEF{"solr::header"}%<div class='solrHeader'>
 %TMPL:P{"solr::searchform"}%
+%TMPL:P{"DISsolr::hierarchystep"}%<!-- -->
 %TMPL:P{"solr::spellchecker"}%
 %TMPL:P{"solr::resultsperpage"}%
 %TMPL:P{"solr::pager"}%
@@ -348,7 +389,7 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::spellchecker"}%<div class='solrSpellchecking'></div>%TMPL:END%
 %TMPL:DEF{"solr::resultsperpage"}%<div class='solrResultsPerPage'></div>%TMPL:END%
-%TMPL:DEF{"solr::pager"}%<div class="solrPager" data-next-text="%MAKETEXT{"Next"}%" data-prev-text="%MAKETEXT{"Previous"}%" data-enable-scroll="%IF{"'%scroll%'=~'^(true|false)$'" then="%scroll%" else="false"}%" ></div>%TMPL:END%
+%TMPL:DEF{"solr::pager"}%<div class='solrPager' data-next-text="%MAKETEXT{"Next"}%" data-prev-text="%MAKETEXT{"Previous"}%" data-enable-scroll="%IF{"'%scroll%'=~'^(true|false)$'" then="%scroll%" else="false"}%" ></div>%TMPL:END%
 %TMPL:DEF{"solr::footer"}%<div class='solrFooter'>%TMPL:P{"solr::pager" scroll="true"}%</div>%TMPL:END%
 %{</verbatim>}%
 
@@ -361,7 +402,6 @@
 %TMPL:P{"solr::formstart"}%
 %TMPL:P{"solr::inputstep"}%
 %TMPL:P{"solr::tagcloudstep"}%<!-- -->
-%TMPL:P{"solr::hierarchystep"}%<!-- -->
 %TMPL:P{"solr::formend"}%
 <!-- -->%TMPL:END%
 %{</verbatim>}%
@@ -387,7 +427,7 @@
 <table class='foswikiNullTable'>
   <tr>
     <td>
-      <input type='text' autocomplete='off' class='foswikiInputField jqFocus solrSearchField' size='50' style='margin-right:8px;' value="%URLPARAM{"search"}%" />
+      <input type='text' autocomplete='off' class='foswikiInputField jqFocus solrSearchField' size='50' style='margin-right:8px;' />
     </td>
     <td>
       %BUTTON{"%MAKETEXT{"Search"}%" type="submit" title="%MAKETEXT{"submit the query"}%" icon="find" class="solrSubmitButton"}%
@@ -436,7 +476,7 @@
   exclusion="true" 
   sort="title" 
   limit="-1"
-}%
+}%<!-- -->
 %TMPL:P{"solr::facet"
   id="type"
   title="%MAKETEXT{"Media"}%"
@@ -657,7 +697,7 @@
 %{ ###########################################################################
    solr::displayas - render the display switcher
 }%
-%TMPL:DEF{"solr::displayas"}%<!-- -->
+%TMPL:DEF{"DISsolr::displayas"}%<!-- -->
 <table class='foswikiLayoutTable'>
   <tr>
     <th>%MAKETEXT{"Display as"}%:</th>
@@ -721,10 +761,25 @@
 }%
 %TMPL:DEF{"solr::tagcloudstep"}%<!-- -->
 <div class='foswikiFormStep solrTagCloud' data-field='tag' data-start-color="[%TAGCLOUD_START{default="111, 169, 255"}%]" data-end-color='[%TAGCLOUD_END{default="0, 89, 224"}%]'>
-  <div class='foswikiFormStep foswikiFormLast'>
+  <div class='foswikiFormStep'>
     <hr />
     <h3><a href='#' class='jqTwisty' data-target='.solrTagCloudContainer' data-open-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle-collapse.png' data-close-img='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/toggle.png'>%MAKETEXT{"Popular tags"}%</a></h3>
     <div class='solrTagCloudContainer tagCloud'></div>
   </div>
 </div>
 %{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%{ ###########################################################################
+   solr::hierarchystep - part of the solr::searchform. this contains the category list
+}%
+%TMPL:DEF{"solr::hierarchystep"}%<!-- -->
+<div class='solrHierarchy' data-field='webcat' data-facet-sort='title'>
+  <div class='solrHierarchyBreadcrumbs'>
+    <span class='solrHierarchyBreadcrumbsTitle'>%MAKETEXT{"You are here:"}%</span>
+    <span class='solrHierarchyBreadcrumbsContainer'></span>
+  </div>
+  <ul class='solrHierarchyContainer clearfix'></ul>
+</div>
+%{</verbatim>}%
+

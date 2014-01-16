@@ -10,8 +10,6 @@
 %TMPL:DEF{"topicactions"}%%TMPL:END%
 %TMPL:DEF{"revinfo"}%%TMPL:END%
 %TMPL:DEF{"form"}%%TMPL:END%
-%TMPL:DEF{"bottombar"}%%TMPL:END%
-%TMPL:DEF{"contentfooter"}%%TMPL:END%
 %TMPL:DEF{"bodyclass"}%natViewBody natSolrBody%TMPL:END%
 %{</verbatim>}%
 

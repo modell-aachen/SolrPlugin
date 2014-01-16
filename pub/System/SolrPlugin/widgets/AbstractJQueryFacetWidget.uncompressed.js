@@ -145,6 +145,11 @@
         self.ex = self.tag;
       }
 
+      if (typeof(self.options.defaultValue) !== 'undefined') {
+       var meth = self.multivalue ? (self.union ? 'append' : 'add') : 'set';
+       self[meth].call(self, self.options.defaultValue);
+      }
+
       self._super();
     },
 

@@ -95,7 +95,7 @@ sub startDaemon {
 sub connect {
   my ($this) = @_;
 
-  my $maxConnectRetries = 3;
+  my $maxConnectRetries = 1; # ... was 3 before;
   my $tries;
 
   for ($tries = 1; $tries <= $maxConnectRetries; $tries++) {

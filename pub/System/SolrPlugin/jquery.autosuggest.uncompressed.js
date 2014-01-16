@@ -12,12 +12,16 @@
 
   $.widget( "solr.autosuggest", $.ui.autocomplete, {
     options: {
-      thumbnailBase: foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=north",
+      thumbnailBase: null, /* set in _init */ 
       delay: 500,
       minLength: 3,
+      extraParams: {
+        limit: 3,
+        fields: "name,web,topic,container_title,title,type,thumbnail,url,field_Telephone_s,field_Phone_s,field_Mobile_s"
+      },
       position: {
         my: "right top",
-        at: "right bottom",
+        at: "right+5 bottom+11",
         collision: "none"
       },
 
@@ -29,9 +33,16 @@
       },
 
       templates: {
-        "persons": "<li class='ui-menu-item person'><a href='${url}'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${phoneNumber}</div></td></tr></table></a></li>",
-        "default": "<li class='ui-menu-item'><a href='${url}'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${container_title}</div></td></tr></table></a></li>",
-        "header": "<li class='ui-menu-item ui-widget-header ${group}'><span class='ui-autosuggest-pager'><a class='ui-autosuggest-prev ui-icon ui-icon-circle-triangle-w' title='prev' href='#'></a><a class='ui-autosuggest-next ui-icon ui-icon-circle-triangle-e' title='next' href='#'></a></span>${title}</li>"
+        "persons": "<li class='ui-autosuggest-item ${group} ${isFirst}'>{{html header}}"+
+            "{{if phoneNumber}}<a class='ui-autosuggest-phone-number' href='sip:${phoneNumber}'></a>{{/if}}"+
+            "<a href='${url}' class='ui-autosuggest-link'>"+
+              "<table class='foswikiNullTable'><tr>"+
+                "<th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th>"+
+                "<td>${title}<div class='foswikiGrayText'>${phoneNumber}</div></td>"+
+              "</tr></table></a>"+
+            "</li>",
+        "default": "<li class='ui-autosuggest-item ${group} ${isFirst}'>{{html header}}<a href='${url}' class='ui-autosuggest-link'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${container_title}</div></td></tr></table></a></li>",
+        "header": "<div class='ui-autosuggest-title ${group}'>${title}</div>"
       },
 
       focus: function() {
@@ -46,20 +57,27 @@
       },
 
       cache: true,
-      source: foswiki.getPreference("SCRIPTURL") + '/rest/SolrPlugin/autosuggest'
+      source: null,
+      menuClass: null
 
     },
 
     _init: function() {
       var elem = this.menu.element;
 
+      this.options.thumbnailBase = foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=north";
+
       elem.addClass("ui-autosuggest").removeClass("ui-autocomplete");
+      if (this.options.menuClass) {
+        elem.addClass(this.options.menuClass);
+      }
     },
 
     _initSource: function() {
       var self = this;
 
       self.cache = {};
+      self.options.source = self.options.source || foswiki.getPreference("SCRIPTURL") + '/rest/SolrPlugin/autosuggest';
 
       self.source = function(request, response) {
         var term = request.term.replace(/(^\s+)|(\s+$)/g, ""),
@@ -89,6 +107,8 @@
           self.xhr.abort();
         }
 
+        //console.log("request=",request);
+
         // get result from backend
         self.xhr = $.ajax({
           url: self.options.source, 
@@ -102,7 +122,7 @@
               response(data);
             }
           },
-          error: function() {
+          error: function(data) {
             response([]);
           }
         });
@@ -116,30 +136,21 @@
           var header;
 
           if (section.docs.length) {
-
-            header = $.tmpl(self.options.templates.header, {
+            header = $.tmpl("<div>"+self.options.templates.header+"</div>", {
               group: section.group,
-              title: self.options.locales[section.group] || key
-            }).data("ui-autocomplete-item", {value:''}).appendTo(ul);
-
-            header.find(".ui-autosuggest-pager a").css('visibility', 'hidden');
-
-            if (section.start + 5 < section.numFound) {
-              header.find(".ui-autosuggest-next").css('visibility', 'visible').click(function() {
-                console.log(section.group+" next clicked");
-                return false;
-              });
-            }
-
-            if (section.start > 0) {
-              header.find(".ui-autosuggest-prev").css('visibility','visible').click(function() {
-                console.log(section.group+" prev clicked");
-                return false;
-              });
-            }
+              title: self.options.locales[section.group] || section.group
+            });
 
             $.each(section.docs, function(index, item) {
+              item.phoneNumber = item.field_Telephone_s || item.field_Phone_s || item.field_Mobile_s;
               item.group = section.group;
+              if (index == 0) {
+                item.isFirst = 'ui-autosuggest-first-in-group';
+                item.header = header.html();
+              } else {
+                item.isFirst = '';
+                item.header = "";
+              }
               self._renderItemData(ul, item);
             });
           }
@@ -164,17 +175,6 @@
       },
       _normalize: function( items ) {
         return items; // don't normalize 
-      },
-      _move: function(direction, event) {
-        var elem;
-
-        this._super(direction, event);
-
-        elem = this.menu.active;
-
-        if ($(elem).is(".ui-widget-header")) {
-          this._super(direction, event);
-        }
       }
   });
 

@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1353165378" format="1.1" reprev="9" version="12"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1386087424" format="1.1" reprev="9" version="13"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -386,7 +386,7 @@ When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][
 SOLRSIMILAR allows to return a list of similar topics given the current one.
 
 | *Parameter* | *Description* | *Default* |
-| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC% | 
+| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC%= | 
 | like | list of fields used to compute similarity | category, tag |
 | fields | list of fields and their boost value to be included in result items | web, topic, title, score |
 | filter | restricts results to those matching this filter | type:topic |
@@ -655,6 +655,9 @@ specific search applications. The destination fields are then analysed using the
 
 ---+++ Creating custom search interfaces
 </verbatim>
+
+---++ Dependencies
+%$DEPENDENCIES%
 
 ---++ Plugin Info
 <!--

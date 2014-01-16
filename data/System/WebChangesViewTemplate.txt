@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278806" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1356278806" format="1.1" version="1"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchBase"}%
 %{</verbatim>}%
@@ -6,7 +6,7 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::searchform"}%%TMPL:END%
 %TMPL:DEF{"solr::resultsperpage"}%%TMPL:END%
-%TMPL:DEF{"solr::defaultweb"}%%BASEWEB%%TMPL:END%
+%TMPL:DEF{"solr::defaultweb"}%%FORMATLIST{"%BASEWEB%" split="/" separator="."}%%TMPL:END%
 %TMPL:DEF{"solr::defaultrows"}%20%TMPL:END%
 %TMPL:DEF{"solr::defaultquerytype"}%standard%TMPL:END%
 %TMPL:DEF{"solr::defaultsort"}%date desc%TMPL:END%
@@ -17,13 +17,9 @@
 %TMPL:DEF{"solr::title"}%<h1>
 %IF{"$web = 'all' or '%TMPL:P{"solr::defaultweb"}%' = 'all'" 
   then="%MAKETEXT{"Recent changes"}%"
-  else="%MAKETEXT{"Recent changes in [_1]" args="%TMPL:P{"baseweb"}%"}%"
+  else="%MAKETEXT{"Recent changes in [_1]" args="%TMPL:P{"solr::defaultweb"}%"}%"
 }%
 </h1>
 <input type="hidden" id='solrSorting' data-default-sort="%TMPL:P{"solr::defaultsort"}%" />
 %TMPL:END%
-%{</verbatim>}%
-
-%{<verbatim class="tml">}%
-%TMPL:DEF{"baseweb"}%%URLPARAM{"web" default="%TMPL:P{"solr::defaultweb"}%"}%%TMPL:END%
 %{</verbatim>}%

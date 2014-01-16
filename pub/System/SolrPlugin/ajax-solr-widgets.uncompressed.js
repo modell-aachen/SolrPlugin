@@ -158,6 +158,11 @@
         self.ex = self.tag;
       }
 
+      if (typeof(self.options.defaultValue) !== 'undefined') {
+       var meth = self.multivalue ? (self.union ? 'append' : 'add') : 'set';
+       self[meth].call(self, self.options.defaultValue);
+      }
+
       self._super();
     },
 
@@ -232,6 +237,9 @@
         checked: function(facet) {
           return (self.isSelected(facet))?"checked='checked'":"";
         },
+        selected: function(facet) {
+          return (self.isSelected(facet))?"selected='selected'":"";
+        },
         getFacetValue: function(facet) {
           return self.getFacetValue(facet);
         },
@@ -241,7 +249,7 @@
       }));
       self.$target.fadeIn();
 
-      self.container.find("input[type='"+self.inputType+"']").change(function() {
+      self.container.find("input[type='"+self.inputType+"'], select").change(function() {
         var $this = $(this), 
             title = $this.attr("title"),
             value = $this.val();
@@ -254,10 +262,15 @@
           value = '['+value+']';
         }
 
-        if ($this.is(":checked")) {
-          self.clickHandler(value).call(self);
+        if (value == '') {
+          self.clear();
+          self.doRequest(0);
         } else {
-          self.unclickHandler(value).call(self);
+          if ($this.is(":checked, select")) {
+            self.clickHandler(value).call(self);
+          } else {
+            self.unclickHandler(value).call(self);
+          }
         }
       });
     },
@@ -390,6 +403,7 @@
       prevText: 'Previous',
       nextText: 'Next',
       enableScroll: false,
+      scrollTarget: '.solrPager:first',
       scrollSpeed: 250
     },
 
@@ -401,7 +415,7 @@
         //self.manager.store.get('start').val(start);
         self.manager.doRequest(start);
         if (self.options.enableScroll) {
-          $.scrollTo(0, self.options.scrollSpeed);
+          $.scrollTo(self.options.scrollTarget, self.options.scrollSpeed);
         }
         return false;
       }
@@ -563,8 +577,6 @@
       loadingMessage: '',
       displayAs: '.solrDisplay',
       defaultDisplay: 'list',
-      smallSize: 64,
-      largeSize: 150,
       dateFormat: 'dddd, Do MMMM YYYY, HH:mm',
       dictionary: 'default'
     },
@@ -684,19 +696,28 @@
           getHilite: function(id) {
             var hilite;
             if (typeof(response.highlighting) === 'undefined') {
-              return self.getSnippet(this.data)
+              return '';//self.getSnippet(this.data)
             }
             hilite = response.highlighting[id];
             if (typeof(hilite) === 'undefined' || typeof(hilite.text) === 'undefined') {
-              return self.getSnippet(this.data);
+              return '';//self.getSnippet(this.data);
             } else {
               hilite = hilite.text.join(' ... ');
-              return hilite || self.getSnippet(this.data);
+              return hilite || '';//self.getSnippet(this.data);
             }
           },
           formatDate: function(dateString, dateFormat) {
-            if (dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "???";
+
+            // convert epoch seconds to iso date string
+            if (/^\d+$/.test(dateString)) {
+              if (dateString.length == 10) {
+                dateString += "000";
+              }
+              dateString = (new Date(parseInt(dateString))).toISOString();
+            }
+
+            if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
+              return "<span class='solrUnknownDate'>???</span>";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
@@ -705,19 +726,7 @@
         }
       ));
 
-      self.fixImageSize();
       self.$target.trigger("update");
-    },
-
-    fixImageSize: function() {
-      var self = this, 
-          elem = $(self.options.displayAs).filter(":checked"),
-          size = (elem.val() == 'list')?self.options.smallSize:self.options.largeSize;
-
-      self.$target.find(".solrImageFrame img").each(function() {
-        var $this = $(this), src = $this.attr("src");
-        $this.attr("src", src.replace(/size=(\d+)/, "size="+size)).attr("width", size);
-      });
     },
 
     update: function() {
@@ -730,7 +739,6 @@
       } else {
         self.$target.addClass("solrSearchHitsGrid");
       }
-      self.fixImageSize();
     },
 
     init: function() {
@@ -1127,6 +1135,164 @@
 
 })(jQuery);
 
+(function ($) {
+
+  AjaxSolr.HierarchyWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
+    defaults: {
+      templateName: '#solrHierarchyTemplate',
+      container: '.solrHierarchyContainer',
+      breadcrumbs: '.solrHierarchyBreadcrumbsContainer',
+      hideNullValues: false,
+      hideSingle: false,
+      name: null
+    },
+
+    updateHierarchy: function() {
+      var self = this, dict;
+
+      if (typeof(self.hierarchy) === 'undefined') {
+        $.ajax({
+          url: foswiki.getPreference('SCRIPTURL')+'/rest/SolrPlugin/webHierarchy',
+          async: false,
+          success: function(data) {
+            self.hierarchy = data;
+          }
+        });
+
+        dict = AjaxSolr.Dicts["default"];
+        $.each(self.hierarchy, function(i, entry) {
+          var id = entry.id, 
+              title = entry.title,
+              label = entry.id.split(/\s*\.\s*/).pop();
+          dict.set(id, title);
+          dict.set(label, title);
+        });
+      }
+
+      
+      return self.hierarchy;
+    },
+
+    getChildren: function(id) {
+      var self = this, children = [];
+
+      if (typeof(id) !== 'undefined') {
+        if (typeof(self.hierarchy[id].children) !== 'undefined') {
+          $.each(self.hierarchy[id].children, function(i, val) {
+            var entry = self.hierarchy[val];
+            if (self.facetCounts[val]) {// || entry.type == 'web') {
+              children.push(entry);
+            }
+          });
+        }
+      } else {
+        $.each(self.hierarchy, function(i, entry) {
+          if (typeof(entry['parent']) === 'undefined' && (self.facetCounts[entry.id] || entry.type == 'web')) {
+            children.push(entry);
+          }
+        });
+      }
+
+      if (children.length == 1) {
+        return self.getChildren(children[0].id);
+      }
+
+      return children.sort(function(a, b) {
+        return (a.title < b.title ? -1 : (a.title > b.title ? 1 : 0));
+      });
+    },
+
+    afterRequest: function () {
+      var self = this, currrent, children = [], facetCounts = {}, breadcrumbs = [], prefix = [];
+
+      self.$target.hide();
+      self.facetCounts = self.getFacetCounts();
+
+      if (typeof(self.facetCounts) === 'undefined' || self.facetCounts.length == 0) {
+        return;
+      } 
+
+      if (this.options.hideSingle && self.facetCounts.length == 1) {
+        return;
+      } 
+
+      $.each(self.facetCounts, function(i, entry) {
+        facetCounts[entry.facet] = entry.count;
+      });
+
+      self.facetCounts = facetCounts;
+
+      current = self.getQueryValues(self.getParams());
+      if (typeof(current) === 'undefined') {
+        return;
+      }
+
+      current = current[0];
+
+      self.breadcrumbs.empty();
+      breadcrumbs.push("<a href='#' class='solrFacetValue root' data-value='"+current+"'>"+_("Root")+"</a>");
+      if (typeof(current) !== 'undefined') {
+        $.each(current.split(/\s*\.\s*/), function(i, val) {
+          prefix.push(val);
+          breadcrumbs.push("<a href='#' class='solrFacetValue' data-value='"+prefix.join(".")+"'>"+_(val)+"</a>");
+        });
+      }
+      self.breadcrumbs.append(breadcrumbs.join("&nbsp;&#187; "));
+
+      children = self.getChildren(current);
+//      if (children.length == 0) {
+//        return;
+//      }
+
+      // okay lets do it
+      self.$target.show();
+      self.container.html($.tmpl(self.template, children, {
+        renderFacetCount: function(facet) {
+          var count = self.facetCounts[facet];
+          return count?"<span class='solrHierarchyFacetCount'>("+count+")</span>":""; 
+        },
+        getCategory: function(id) {
+          return self.hierarchy[id];
+        },
+        getChildren: function() {
+          return self.getChildren(this.data.id);
+        }
+      }));
+
+      if (typeof(current) !== 'undefined') {
+        self.container.find("a.cat_"+current.replace(/\./g, "\\.")).addClass("current");
+      }
+
+      self.container.parent().find("a").click(function() {
+        var $this = $(this),
+            value = $(this).data("value");
+        if ($this.is(".root")) {
+          self.unclickHandler(value).apply(self);
+        } else {
+          self.clickHandler(value).apply(self);
+        }
+        return false;
+      });
+
+    },
+
+    init: function() {
+      var self = this;
+
+      self._super();
+      self.template = $(self.options.templateName).template();
+      self.container = self.$target.find(self.options.container);
+      self.breadcrumbs = self.$target.find(self.options.breadcrumbs);
+      self.updateHierarchy();
+
+    }
+
+  });
+
+  AjaxSolr.Helpers.build("HierarchyWidget");
+
+
+})(jQuery);
 (function ($) {
   AjaxSolr.SpellcheckWidget = AjaxSolr.AbstractSpellcheckWidget.extend({
     defaults: {

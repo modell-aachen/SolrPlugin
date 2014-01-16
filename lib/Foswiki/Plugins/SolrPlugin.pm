@@ -20,22 +20,17 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
   
-use version; our $VERSION = version->declare("v2.0.0");
-our $RELEASE = '14 Jul 2013';
+our $VERSION = '2.00';
+our $RELEASE = '2.00';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
-our $baseWeb;
-our $baseTopic;
 our %searcher;
 our %indexer;
+our %hierarchy;
 our @knownIndexTopicHandler = ();
 our @knownIndexAttachmentHandler = ();
 
 sub initPlugin {
-  ($baseTopic, $baseWeb) = @_;
-
-  %searcher = ();
-  %indexer = ();
 
   Foswiki::Func::registerTagHandler('SOLRSEARCH', sub {
     my ($session, $params, $theTopic, $theWeb) = @_;
@@ -105,6 +100,11 @@ sub initPlugin {
     return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
   });
 
+  Foswiki::Func::registerRESTHandler('webHierarchy', sub {
+    my $session = shift;
+
+    return getWebHierarchy($session)->restWebHierarchy(@_);
+  });
 
   Foswiki::Func::registerRESTHandler('optimize', sub {
     my $session = shift;
@@ -136,6 +136,18 @@ sub registerIndexTopicHandler {
 sub registerIndexAttachmentHandler {
   push @knownIndexAttachmentHandler, shift;
 }
+
+sub getWebHierarchy {
+
+  my $handler = $hierarchy{$Foswiki::cfg{DefaultUrlHost}};
+  unless ($handler) {
+    require Foswiki::Plugins::SolrPlugin::WebHierarchy;
+    $handler = $hierarchy{$Foswiki::cfg{DefaultUrlHost}} = Foswiki::Plugins::SolrPlugin::WebHierarchy->new(@_);
+  }
+
+  return $handler;
+}
+
 
 sub getSearcher {
 
@@ -234,6 +246,7 @@ sub finishPlugin {
 
   undef $indexer{$Foswiki::cfg{DefaultUrlHost}};
   undef $searcher{$Foswiki::cfg{DefaultUrlHost}};
+  undef $hierarchy{$Foswiki::cfg{DefaultUrlHost}};
 }
 
 1;

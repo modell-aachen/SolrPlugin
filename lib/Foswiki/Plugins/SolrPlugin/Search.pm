@@ -205,19 +205,19 @@ sub formatResponse {
 
       my $theValueSep = $params->{valueseparator} || ', ';
       foreach my $name ($doc->field_names) {
+        next unless $line =~ /\$$name/g;
+
         my @values = $doc->values_for($name);
         my $value = join($theValueSep, @values);
 
-        $web = fromUtf8($value) if $name eq 'web';
-        $topic = fromUtf8($value) if $name eq 'topic';
-        $id = fromUtf8($value) if $name eq 'id';
-        $type = fromUtf8($value) if $name eq 'type';
-        $summary = fromUtf8($value) if $name eq 'summary';
+#        $name = fromUtf8($name);
+#        $value = fromUtf8($value);
 
-        next unless $line =~ /\$$name/g;
-
-	$name = fromUtf8($name);
-      	$value = fromUtf8($value);
+        $web = $value if $name eq 'web';
+        $topic = $value if $name eq 'topic';
+        $id = $value if $name eq 'id';
+        $type = $value if $name eq 'type';
+        $summary = $value if $name eq 'summary';
 
         $value = sprintf('%.02f', $value)
           if $name eq 'score';
@@ -343,7 +343,7 @@ sub formatResponse {
             my $key = $facet->[$i];
             my $count = $facet->[$i+1];
             next unless $count;
-            $key = fromUtf8($key);
+#            $key = fromUtf8($key);
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
             $facetTotal += $count;
@@ -379,7 +379,7 @@ sub formatResponse {
             next unless $key;
 
             my $count = $facet->[$i+1];
-            $key = fromUtf8($key);
+#            $key = fromUtf8($key);
 
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
@@ -409,8 +409,8 @@ sub formatResponse {
     my @interestingRows = ();
     while (my $termSpec = shift @$interestingTerms) {
       next unless $termSpec =~ /^(.*):(.*)$/g;
-      my $field = fromUtf8($1);
-      my $term = fromUtf8($2);
+      my $field = $1; #fromUtf8($1);
+      my $term = $2; #fromUtf8($2);
       my $score = shift @$interestingTerms;
 
       next if $theInterestingExclude && $term =~ /$theInterestingExclude/;
@@ -697,7 +697,7 @@ sub restSOLRAUTOSUGGEST {
   my %filter = (
     persons => "form:$userForm",
     topics => "-form:$userForm type:topic",
-    attachments => "-type:topic",
+    attachments => "-type:topic -type:comment",
   );
 
   my @groupQuery = ();
@@ -754,6 +754,26 @@ sub restSOLRAUTOSUGGEST {
   if ($status == 200 && !$theRaw) {
     my @autoSuggestions = ();
     my $group;
+
+    if (Foswiki::Func::getContext()->{"PiwikPluginEnabled"}) {
+      my $count = 0;
+      foreach my $groupId (keys %{$result->{grouped}}) {
+        $count += $result->{grouped}{$groupId}{doclist}{numFound};
+      }
+      require Foswiki::Plugins::PiwikPlugin;
+      try {
+        $theQuery =~ s/^\s+|\s+$//g;
+        $theQuery =~ s/\s*\*//;
+        Foswiki::Plugins::PiwikPlugin::tracker->doTrackSiteSearch(
+          $theQuery,
+          $theWeb, # hm, there's no single category that makes sense here
+          $count
+        );
+      } catch Error::Simple with {
+        # report but ignore
+        print STDERR "PiwikiPlugin::Tracker - ".shift."\n";
+      };
+    }
 
     # person topics
     $group = $result->{grouped}{$filter{persons}};
@@ -1597,7 +1617,7 @@ sub getAjaxScriptUrl {
   my %isMultiValue = map {$_=>1} split(/\s*,\s*/, $params->{multivalue} || '');
 
   foreach my $key (sort keys %$params) {
-    next if $key =~ /^(date|start|sort|_RAW|union|multivalue|separator|topic)$/;
+    next if $key =~ /^(date|start|sort|_RAW|union|multivalue|separator|topic|_DEFAULT|search)$/;
 
     my $val  = $params->{$key};
 
@@ -1624,7 +1644,8 @@ sub getAjaxScriptUrl {
   my $theSort = $params->{sort};
   push @anchors, 'sort='.$theSort if $theSort;
 
-  my @urlParams = ();
+  my $theSearch = $params->{_DEFAULT} || $params->{search};
+  push @anchors, 'q='.$theSearch if defined $theSearch;
 
   my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{topic} || 'WebSearch');;
 

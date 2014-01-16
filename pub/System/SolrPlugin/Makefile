@@ -42,6 +42,7 @@ AJAX_SOLR_WIDGETS_SOURCE=\
   widgets/CurrentSelectionWidget.uncompressed.js \
   widgets/SortWidget.uncompressed.js \
   widgets/TagCloudWidget.uncompressed.js \
+  widgets/HierarchyWidget.uncompressed.js \
   widgets/SpellcheckWidget.uncompressed.js
 
 ajax-solr:

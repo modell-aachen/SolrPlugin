@@ -34,7 +34,7 @@ $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
 # **BOOLEAN**
 # Update the index whenever a topic is renamed or deleted.
 # If this flag is disabled, you will have to install a cronjob to update the index regularly.
-$Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 0;
+$Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 
 # **PERL H**
 # This setting is required to enable executing the solrsearch script from the bin directory
@@ -115,6 +115,10 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
   'pl' => 'detect',
   'uk' => 'detect',
 };
+
+# **STRING**
+# Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
+$Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
 
 # ---++ JQueryPlugin
 # ---+++ Extra plugins

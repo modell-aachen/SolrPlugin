@@ -190,7 +190,11 @@ sub update {
   if (!defined($web) || $web eq 'all') {
     @webs = Foswiki::Func::getListOfWebs("user");
   } else {
-    @webs = split(/\s*,\s*/, $web);
+    @webs = ();
+    foreach my $item (split(/\s*,\s*/, $web)) {
+      push @webs, $item;
+      push @webs, Foswiki::Func::getListOfWebs("user", $item);
+    }
   }
 
   # TODO: check the list of webs we had the last time we did a full index
@@ -350,6 +354,14 @@ sub indexTopic {
   my $containerTitle = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
   $containerTitle = $web if $containerTitle eq $Foswiki::cfg{HomeTopicName};
 
+  # gather all webs and parent webs
+  my @webCats = ();
+  my @prefix = ();
+  foreach my $component (split(/\./, $web)) {
+    push @prefix, $component;
+    push @webCats, join(".", @prefix);
+  }
+
   $doc->add_fields(
 
     # common fields
@@ -358,6 +370,7 @@ sub indexTopic {
     url => $url,
     topic => $topic,
     web => $web,
+    webcat => [@webCats],
     webtopic => "$web.$topic",
     title => $topicTitle,
     text => $text,
@@ -560,7 +573,7 @@ sub indexTopic {
       $doc->add_fields('attachment' => $name);
 
       # decide on thumbnail
-      if (!defined $thumbnail && $attachment->{isthumbnail}) {
+      if (!defined $thumbnail && $attachment->{attr} && $attachment->{attr} =~ /t/) {
         $thumbnail = $name;
       }
       if (!defined $firstImage && $name =~ /\.(png|jpe?g|gif|bmp|svg)$/i) {
@@ -743,6 +756,14 @@ sub indexAttachment {
   my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
   my $icon = $this->mapToIconFileName($extension);
 
+  # gather all webs and parent webs
+  my @webCats = ();
+  my @prefix = ();
+  foreach my $component (split(/\./, $web)) {
+    push @prefix, $component;
+    push @webCats, join(".", @prefix);
+  }
+
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
 
@@ -751,6 +772,7 @@ sub indexAttachment {
     collection => $collection,
     url => $url,
     web => $web,
+    webcat => [@webCats],
     topic => $topic,
     webtopic => "$web.$topic",
     title => $title,
@@ -768,8 +790,6 @@ sub indexAttachment {
     container_id => $web . '.' . $topic,
     container_url => $this->getScriptUrlPath($web, $topic, "view"),
     container_title => $this->getTopicTitle($web, $topic),
-
-    # TODO: thumbnails
   );
 
   # tag and analyze language

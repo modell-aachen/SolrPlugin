@@ -67,6 +67,9 @@
         checked: function(facet) {
           return (self.isSelected(facet))?"checked='checked'":"";
         },
+        selected: function(facet) {
+          return (self.isSelected(facet))?"selected='selected'":"";
+        },
         getFacetValue: function(facet) {
           return self.getFacetValue(facet);
         },
@@ -76,7 +79,7 @@
       }));
       self.$target.fadeIn();
 
-      self.container.find("input[type='"+self.inputType+"']").change(function() {
+      self.container.find("input[type='"+self.inputType+"'], select").change(function() {
         var $this = $(this), 
             title = $this.attr("title"),
             value = $this.val();
@@ -89,10 +92,15 @@
           value = '['+value+']';
         }
 
-        if ($this.is(":checked")) {
-          self.clickHandler(value).call(self);
+        if (value == '') {
+          self.clear();
+          self.doRequest(0);
         } else {
-          self.unclickHandler(value).call(self);
+          if ($this.is(":checked, select")) {
+            self.clickHandler(value).call(self);
+          } else {
+            self.unclickHandler(value).call(self);
+          }
         }
       });
     },

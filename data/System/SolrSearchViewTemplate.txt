@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="BaseUserMapping_999" comment="autosave" date="1356278780" format="1.1" version="2"}%
+%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1356278780" format="1.1" version="2"}%
 %META:TOPICPARENT{name="SolrSearchBase"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchBase"}%

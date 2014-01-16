@@ -5,6 +5,7 @@
       prevText: 'Previous',
       nextText: 'Next',
       enableScroll: false,
+      scrollTarget: '.solrPager:first',
       scrollSpeed: 250
     },
 
@@ -16,7 +17,7 @@
         //self.manager.store.get('start').val(start);
         self.manager.doRequest(start);
         if (self.options.enableScroll) {
-          $.scrollTo(0, self.options.scrollSpeed);
+          $.scrollTo(self.options.scrollTarget, self.options.scrollSpeed);
         }
         return false;
       }

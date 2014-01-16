@@ -1,12 +1,57 @@
 .ui-autosuggest { 
-  max-height:445px;
-  max-width:400px;
-  border-top:0;
+  /*max-height:445px;*/
+  /*overflow:hidden;*/
+  max-width:39em; 
   position: absolute; 
   cursor: default; 
-  overflow-y:auto;
-  overflow-x:hidden;
 }	
+.ui-autosuggest:before {
+  content: "";
+  position: absolute;
+  top: -21px;
+  right: 25px;
+  border-style: solid;
+  border-width: 10px;
+  border-color: transparent transparent #bcbcbc transparent;
+  display: block;
+  width: 0;
+  z-index: 0;
+}
+.ui-autosuggest:after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  right: 25px;
+  border-style: solid;
+  border-width: 10px;
+  border-color: transparent transparent #ffffff transparent;
+  display: block;
+  width: 0;
+  z-index: 1;
+}
+
+.ui-widget-content.ui-autosuggest { 
+  border-radius: 5px;
+
+  /* http://colorzilla.com/gradient-editor/#ffffff+0,f0f0f0+100;Custom */
+  background-color:#f0f0f0;
+  background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2ZmZmZmZiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNmMGYwZjAiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+); /* IE9*/
+  background: -moz-linear-gradient(top, #ffffff 0%, #f0f0f0 100%); 
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#f0f0f0)); 
+  background: -webkit-linear-gradient(top, #ffffff 0%,#f0f0f0 100%); 
+  background: -o-linear-gradient(top, #ffffff 0%,#f0f0f0 100%); 
+  background: -ms-linear-gradient(top, #ffffff 0%,#f0f0f0 100%); 
+  background: linear-gradient(top, #ffffff 0%,#f0f0f0 100%); /* W3C */
+  background: linear-gradient(top, #ffffff 0%,#f0f0f0 100%); /* W3C */
+}
+.ui-autosuggest .ui-menu-item:first-child {
+  overflow:hidden;
+  border-top-right-radius:5px;
+}
+.ui-autosuggest .ui-menu-item:last-child {
+  overflow:hidden;
+  border-bottom-right-radius:5px;
+}
 .ui-autosuggest-loading {
   background-image:url(../JQueryPlugin/images/spinner.gif) !important;
   background-position:right center !important;
@@ -20,47 +65,56 @@
 .ui-autosuggest .ui-menu-item th {
   width:48px;
 }
-.ui-autosuggest .ui-menu-item th div {
+.ui-autosuggest .ui-menu-item table th div {
   height:48px;
   overflow:hidden;
 }
-.ui-autosuggest .ui-menu-item.ui-widget-header {
-  border-top:1px solid #ddd;
+
+.ui-autosuggest .ui-autosuggest-first-in-group {
+  border-top:1px solid #bcbcbc;
+}
+.ui-autosuggest .ui-autosuggest-first-in-group .ui-autosuggest-link {
+  padding-top:5px;
+}
+.ui-autosuggest .ui-autosuggest-first-in-group:first-child {
+  border-top:0;
+}
+.ui-autosuggest .ui-autosuggest-first-in-group:first-child .ui-autosuggest-link {
+  margin-top:0px;
+}
+.ui-autosuggest .ui-autosuggest-title {
+  text-align:right;
+  width:8em;
+  float:left;
   font-weight:bold;
-  padding:0.2em 0.5em;
+  margin-top:3px;
+}
+.ui-autosuggest .ui-autosuggest-link {
+  margin-left:9em;
+  background-color:#fff;
 }
 
-.ui-autosuggest .ui-widget-header .ui-autosuggest-pager {
-  float:right;
-  position:relative;
-  margin:0.2em 0.5em;
-  width:45px;
-  height:10px;
-}
-.ui-autosuggest .ui-widget-header .ui-autosuggest-pager a {
-  display:inline-block;
-  width:16px;
-  height:16px;
-  overflow:hidden;
-  margin:0;
-  padding:0;
-  position:initial;
-}
-.ui-autosuggest .ui-widget-header a.ui-autosuggest-prev {
-  margin-right:5px;
-  visibility:hidden;
-}
-.ui-autosuggest .ui-widget-header .ui-autosuggest-pager a:hover {
-  text-decoration:none;
-  background-color:transparent;
-}
 .ui-autosuggest .ui-menu-item .thumbnail.dummy {
   background-color:#f8f8f8;
-  border:1px solid #ddd;
+  border:1px solid #bcbcbc;
 }
+
 .ui-autosuggest .ui-menu-item td {
   padding:0px 5px 0px 10px;
   overflow:hidden;
   white-space:nowrap;
 }
-
+.ui-autosuggest .ui-menu-item {
+  position:relative;
+}
+.ui-autosuggest .ui-autosuggest-phone-number {
+  position:absolute;
+  top:50%;
+  right:20px;
+  background:url(../FamFamFamSilkIcons/telephone.png) no-repeat transparent !important;
+  width:16px;
+  height:16px;
+  padding:0 !important;
+  margin:-8px 0 0 0;
+  z-index:1;
+}

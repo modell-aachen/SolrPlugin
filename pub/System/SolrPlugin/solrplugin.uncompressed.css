@@ -13,11 +13,7 @@
   margin:0px;
   font-size:100%;
   line-height:1.3864em; 
-  background-repeat:no-repeat;
   padding:0px;
-}
-.solrSearchHitsList h3 {
-  padding:0px 0px 0px 23px;
 }
 
 .solrSearchHits h3 a {
@@ -120,18 +116,18 @@
   color:#fff;
   opacity:1.0;
 }
+.solrSearchHitsList .solrThumbnail,
 .solrSearchHitsList .solrImageFrame {
   float:left;
-  border:1px solid #ddd;
-  padding:2px;
-  background-color:#fff;
   margin-right:1em;
 }
+.solrThumbnail .imageSimple,
 .solrImageFrame .imageSimple {
-  float:left;
+  float:right;
 }
+.solrSearchHitsList .solrThumbnail .imageSimple,
 .solrSearchHitsList .solrImageFrame .imageSimple {
-  max-height:64px;
+  max-height:70px;
   overflow:hidden;
 }
 
@@ -206,16 +202,11 @@
   font-weight:bold;
 }
 
-.solrHierarchy .clsBrowser {
-  border:0px;
-  padding:0px;
-  margin:0px;
-}
-
 .solrHierarchy a.current,
 .solrTagCloud a.current {
   background:#06c !important;
   color:white !important;
+  text-decoration:none;
 }
 
 .tagCloud {
@@ -258,4 +249,37 @@
 .solrFacetField,
 .solrWebFacetField {
   display:none; /* switched on by javascript */
+}
+
+.solrHierarchy {
+  border-bottom:1px solid #ddd;
+  margin:1em 0;
+}
+.solrHierarchyContainer {
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.solrHierarchyContainer li:first-child {
+  margin-left:0;
+}
+.solrHierarchyContainer li {
+  float:left;
+  margin:0 0em 1em 1em;
+  width:32%;
+  overflow:hidden;
+}
+.solrHierarchyContainer li:nth-child(3n+1) {
+  clear:both;
+  margin-left:0;
+}
+.solrHierarchyContainer .solrHierarchyChildren {
+  margin-left:20px;
+}
+.solrHierarchyBreadcrumbs {
+  color:#808080;
+  margin-bottom:1em;
+}
+.solrHierarchyBreadcrumbs a {
+  text-decoration:none;
 }

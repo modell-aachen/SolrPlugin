@@ -21,5 +21,5 @@ cd $SOLRHOME || {
   exit 2
 }
 
-nohup java -Dsolr.solr.home=multicore -jar start.jar >/dev/null &
-#java -Dsolr.solr.home=multicore -jar start.jar 
+#nohup java -Dsolr.solr.home=multicore -jar start.jar >/dev/null &
+java -Dsolr.solr.home=multicore -jar start.jar &
