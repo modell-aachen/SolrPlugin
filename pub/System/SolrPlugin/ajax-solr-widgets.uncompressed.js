@@ -164,7 +164,7 @@
       }
 
       self._super();
-    },
+    }
 
   });
 })(jQuery);
@@ -500,7 +500,7 @@
       } else {
         self.$target.append("<span class='solrPagerNext foswikiGrayText'>"+self.options.nextText+"</span>");
       }
-    },
+    }
   });
 
   // integrate into jQuery 
