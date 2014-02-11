@@ -794,7 +794,12 @@ sub restSOLRAUTOSUGGEST {
         "group" => "persons",
         "start" => $group->{doclist}{start},
         "numFound" => $group->{doclist}{numFound},
-        "docs" => \@docs
+        "docs" => \@docs,
+        "moreUrl" => $this->getAjaxScriptUrl($Foswiki::cfg{UsersWebName}, $Foswiki::cfg{UsersTopicName}, {
+          topic => $Foswiki::cfg{UsersTopicName},
+          #fq => $filter{persons},
+          search => fromSiteCharSet($theQuery)
+        })
       } if @docs;
     }
 
@@ -812,7 +817,12 @@ sub restSOLRAUTOSUGGEST {
         "group" => "topics",
         "start" => $group->{doclist}{start},
         "numFound" => $group->{doclist}{numFound},
-        "docs" => \@docs
+        "docs" => \@docs,
+        "moreUrl" => $this->getAjaxScriptUrl($this->{session}{webName}, 'WebSearch', {
+          topic => 'WebSearch',
+          fq => $filter{topics},
+          search => fromSiteCharSet($theQuery)
+        })
       } if @docs;
     }
 
@@ -837,7 +847,12 @@ sub restSOLRAUTOSUGGEST {
         "group" => "attachments",
         "start" => $group->{doclist}{start},
         "numFound" => $group->{doclist}{numFound},
-        "docs" => \@docs
+        "docs" => \@docs,
+        "moreUrl" => $this->getAjaxScriptUrl($this->{session}{webName}, 'WebSearch', {
+          topic => 'WebSearch',
+          fq => $filter{attachments},
+          search => fromSiteCharSet($theQuery)
+        })
       } if @docs;
     }
 
@@ -1623,6 +1638,11 @@ sub getAjaxScriptUrl {
 
     next if !defined($val) || $val eq '';
 
+    if ($key eq 'fq') {
+      push @anchors, 'fq='.$val;
+      next;
+    }
+
     my @locals = ();
     my $locals = '';
     push @locals, "tag=".$key if $isUnion{$key} || $isMultiValue{$key};
@@ -1647,7 +1667,7 @@ sub getAjaxScriptUrl {
   my $theSearch = $params->{_DEFAULT} || $params->{search};
   push @anchors, 'q='.$theSearch if defined $theSearch;
 
-  my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{topic} || 'WebSearch');;
+  my ($webSearchWeb, $webSearchTopic) = Foswiki::Func::normalizeWebTopicName($web, $params->{topic} || 'WebSearch');
 
   my $url = Foswiki::Func::getScriptUrlPath($webSearchWeb, $webSearchTopic, 'view');
   # not using getScriptUrl() for anchors due to encoding problems
@@ -1794,6 +1814,11 @@ sub getListOfWebs {
   }
 
   return @webs;
+}
+
+##############################################################################
+sub fromSiteCharSet {
+  return Encode::decode($Foswiki::cfg{Site}{CharSet}, $_[0]);
 }
 
 ##############################################################################

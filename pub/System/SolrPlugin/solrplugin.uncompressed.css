@@ -265,7 +265,7 @@
 }
 .solrHierarchyContainer li {
   float:left;
-  margin:0 0em 1em 1em;
+  margin:0 0em 1em 1%;
   width:32%;
   overflow:hidden;
 }

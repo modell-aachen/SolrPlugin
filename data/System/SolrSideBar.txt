@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1356278780" format="1.1" version="15"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1390989066" format="1.1" reprev="16" version="16"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -42,7 +42,11 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
    footer="</ul>"
    format="<li>
        <a href='%SCRIPTURLPATH{"view"}%/$web/$topic' title='%MAKETEXT{"score: [_1]" args="$score"}%'>
-         $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" SIZE=\"40x40>\" TYPE=\"plain\"}$percnt <!-- -->
+         $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" 
+            SIZE=\"40x40>\" 
+            TYPE=\"plain\"
+            CROP=\"west\"
+         }$percnt <!-- -->
          <!-- -->$title<br />
          <span class='foswikiGrayText'>$summary</span>
          %CLEAR%
@@ -68,7 +72,11 @@ Renders a list of the five most recent changes in the current web.
   footer="</ul>"
   format="<li>
       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic'>
-        $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" SIZE=\"40x40>\" TYPE=\"plain\"}$percnt<!-- -->$title
+        $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" 
+           SIZE=\"40x40>\" 
+           TYPE=\"plain\"
+           CROP=\"west\"
+        }$percnt<!-- -->$title
         <div class='foswikiGrayText'>$summary</div>
         %CLEAR%
       </a>

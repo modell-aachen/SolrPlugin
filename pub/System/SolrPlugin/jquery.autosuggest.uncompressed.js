@@ -29,20 +29,28 @@
         persons: 'Persons',
         topics: 'Topics',
         attachments: 'Attachments',
-        loading: "Loading ..."
+        loading: "Loading ...",
+        more: "... more"
       },
 
       templates: {
-        "persons": "<li class='ui-autosuggest-item ${group} ${isFirst}'>{{html header}}"+
+        "persons": "<li class='ui-autosuggest-item ${group} ${isFirst} ${isLast}'>{{html header}}"+
             "{{if phoneNumber}}<a class='ui-autosuggest-phone-number' href='sip:${phoneNumber}'></a>{{/if}}"+
             "<a href='${url}' class='ui-autosuggest-link'>"+
               "<table class='foswikiNullTable'><tr>"+
                 "<th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th>"+
                 "<td>${title}<div class='foswikiGrayText'>${phoneNumber}</div></td>"+
               "</tr></table></a>"+
-            "</li>",
-        "default": "<li class='ui-autosuggest-item ${group} ${isFirst}'>{{html header}}<a href='${url}' class='ui-autosuggest-link'><table class='foswikiNullTable'><tr><th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th><td>${title}<div class='foswikiGrayText'>${container_title}</div></td></tr></table></a></li>",
-        "header": "<div class='ui-autosuggest-title ${group}'>${title}</div>"
+            "</li>{{html footer}}",
+        "default": "<li class='ui-autosuggest-item ${group} ${isFirst} ${isLast}'>{{html header}}"+
+            "<a href='${url}' class='ui-autosuggest-link'>"+
+              "<table class='foswikiNullTable'><tr>"+
+                "<th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th>"+
+                "<td>${title}<div class='foswikiGrayText'>${container_title}</div></td>"+
+              "</tr></table>"+
+            "</a></li>{{html footer}}",
+        "header": "<div class='ui-autosuggest-title ${group}'>${title}</div>",
+        "footer": "<li class='ui-autosuggest-item ui-autosuggest-more'><a class='ui-autosuggest-link' href='${moreUrl}'>${title}</a></li>"
       },
 
       focus: function() {
@@ -63,13 +71,14 @@
     },
 
     _init: function() {
-      var elem = this.menu.element;
+      var self = this,
+          elem = self.menu.element;
 
-      this.options.thumbnailBase = foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=north";
+      self.options.thumbnailBase = foswiki.getPreference("SCRIPTURL") + "/rest/ImagePlugin/resize?size=48&crop=on";
 
       elem.addClass("ui-autosuggest").removeClass("ui-autocomplete");
-      if (this.options.menuClass) {
-        elem.addClass(this.options.menuClass);
+      if (self.options.menuClass) {
+        elem.addClass(self.options.menuClass);
       }
     },
 
@@ -94,6 +103,9 @@
             cacheKey += ';' + key + '=' + val;
           });
         }
+
+        // add foswiki location
+        request.topic = foswiki.getPreference("WEB") + "." + foswiki.getPreference("TOPIC");
 
         // check cache
         if (self.options.cache && cacheKey in self.cache) {
@@ -130,30 +142,53 @@
     },
 
     _renderMenu: function(ul, items) {
-        var self = this;
+        var self = this, 
+            term = self.element.val();
 
         $.each(items, function(key, section) {
-          var header;
+          var header, footer, numDocs = section.docs.length
 
-          if (section.docs.length) {
-            header = $.tmpl("<div>"+self.options.templates.header+"</div>", {
-              group: section.group,
-              title: self.options.locales[section.group] || section.group
-            });
-
-            $.each(section.docs, function(index, item) {
-              item.phoneNumber = item.field_Telephone_s || item.field_Phone_s || item.field_Mobile_s;
-              item.group = section.group;
-              if (index == 0) {
-                item.isFirst = 'ui-autosuggest-first-in-group';
-                item.header = header.html();
-              } else {
-                item.isFirst = '';
-                item.header = "";
-              }
-              self._renderItemData(ul, item);
-            });
+          if (!numDocs) {
+            return
           }
+              
+          header = $.tmpl("<div>"+self.options.templates.header+"</div>", {
+            group: section.group,
+            title: self.options.locales[section.group] || section.group
+          });
+
+          footer = $.tmpl("<div>"+self.options.templates.footer+"</div>", {
+            moreUrl: section.moreUrl,
+            title: self.options.locales['more'] || 'more'
+          });
+
+          $.each(section.docs, function(index, item) {
+
+            item.phoneNumber = item.field_Telephone_s || item.field_Phone_s || item.field_Mobile_s;
+            item.group = section.group;
+
+            if (index == 0) {
+              item.isFirst = 'ui-autosuggest-first-in-group';
+              item.header = header.html();
+            } else {
+              item.isFirst = '';
+              item.header = '';
+            }
+
+            if (index == self.options.extraParams.limit - 1 || index == numDocs - 1) {
+              item.isLast = 'ui-autosuggest-last-in-group';
+              if (numDocs < self.options.extraParams.limit) {
+                item.footer = '';
+              } else {
+                item.footer = footer.html();
+              }
+            } else {
+              item.isLast = '';
+              item.footer = '';
+            }
+
+            self._renderItemData(ul, item);
+          });
         });
       },
 

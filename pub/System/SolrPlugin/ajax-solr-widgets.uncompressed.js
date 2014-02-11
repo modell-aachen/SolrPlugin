@@ -1154,6 +1154,10 @@
         $.ajax({
           url: foswiki.getPreference('SCRIPTURL')+'/rest/SolrPlugin/webHierarchy',
           async: false,
+	  data: {
+	    //root:self.options.root, SMELL
+	    web:self.options.web
+	  },
           success: function(data) {
             self.hierarchy = data;
           }
@@ -1177,24 +1181,20 @@
       var self = this, children = [];
 
       if (typeof(id) !== 'undefined') {
-        if (typeof(self.hierarchy[id].children) !== 'undefined') {
+        if (typeof(self.hierarchy[id].children) !== 'undefined' && typeof(self.hierarchy[id]) !== 'undefined') {
           $.each(self.hierarchy[id].children, function(i, val) {
             var entry = self.hierarchy[val];
-            if (self.facetCounts[val]) {// || entry.type == 'web') {
+            if (!self.options.hideNullValues || self.facetCounts[val]) {// || entry.type == 'web') {
               children.push(entry);
             }
           });
         }
       } else {
         $.each(self.hierarchy, function(i, entry) {
-          if (typeof(entry['parent']) === 'undefined' && (self.facetCounts[entry.id] || entry.type == 'web')) {
+          if (typeof(entry['parent']) === 'undefined' && (!self.options.hideNullValues || self.facetCounts[entry.id] || entry.type == 'web')) {
             children.push(entry);
           }
         });
-      }
-
-      if (children.length == 1) {
-        return self.getChildren(children[0].id);
       }
 
       return children.sort(function(a, b) {
@@ -1212,15 +1212,17 @@
         return;
       } 
 
-      if (this.options.hideSingle && self.facetCounts.length == 1) {
-        return;
-      } 
-
       $.each(self.facetCounts, function(i, entry) {
         facetCounts[entry.facet] = entry.count;
       });
 
       self.facetCounts = facetCounts;
+
+      //console.log("facetCounts=",facetCounts);
+
+      if (this.options.hideSingle && self.facetCounts.length == 1) {
+        return;
+      } 
 
       current = self.getQueryValues(self.getParams());
       if (typeof(current) === 'undefined') {
@@ -1228,21 +1230,31 @@
       }
 
       current = current[0];
+      if (typeof(current) === 'undefined') {
+        if (typeof(self.options.web) !== 'undefined') {
+          current = self.options.web;
+        }
+        if (typeof(self.options.root) !== 'undefined') {
+          current += '.' + self.options.root;
+        }
+      }
 
       self.breadcrumbs.empty();
       breadcrumbs.push("<a href='#' class='solrFacetValue root' data-value='"+current+"'>"+_("Root")+"</a>");
       if (typeof(current) !== 'undefined') {
         $.each(current.split(/\s*\.\s*/), function(i, val) {
-          prefix.push(val);
+	  prefix.push(val);
           breadcrumbs.push("<a href='#' class='solrFacetValue' data-value='"+prefix.join(".")+"'>"+_(val)+"</a>");
         });
       }
       self.breadcrumbs.append(breadcrumbs.join("&nbsp;&#187; "));
 
       children = self.getChildren(current);
-//      if (children.length == 0) {
-//        return;
-//      }
+/*
+      if (children.length == 0) {
+        return;
+      }
+*/
 
       // okay lets do it
       self.$target.show();

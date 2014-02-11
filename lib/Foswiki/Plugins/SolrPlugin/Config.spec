@@ -3,7 +3,7 @@
 
 # **STRING**
 # Comma seperated list of webs to skip
-$Foswiki::cfg{SolrPlugin}{SkipWebs} = 'Trash, TWiki, TestCases';
+$Foswiki::cfg{SolrPlugin}{SkipWebs} = 'TWiki, TestCases';
 
 # **STRING**
 # List of topics to skip.

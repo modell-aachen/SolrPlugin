@@ -89,6 +89,10 @@
   font-weight:bold;
   margin-top:3px;
 }
+.ui-autosuggest .ui-autosuggest-more {
+  text-align:right;
+  color:#bcbcbc;
+}
 .ui-autosuggest .ui-autosuggest-link {
   margin-left:9em;
   background-color:#fff;

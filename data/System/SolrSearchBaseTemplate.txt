@@ -137,7 +137,7 @@
 {{if thumbnail}}
       <div class='solrThumbnail'>
         <a class='imageHref imageSimple jqImageTooltip {web:"${web}", topic:"${topic}", image:"${thumbnail}"}' href='${url}' title='${name}'>
-          <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(thumbnail)};width=64>;crop=northwest' alt='${thumbnail}' />
+          <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(thumbnail)};size=70>;crop=center' alt='${thumbnail}' />
         </a>
       </div>
 {{/if}}
@@ -196,7 +196,7 @@
   <div class='solrSearchHit solrImageHit clearfix'>
     <div class='solrImageFrame'>
       <a class='imageHref imageSimple jqImageTooltip {web:"${web}", topic:"${topic}", image:"${name}"}' href='${url}' title='${name}'>
-        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(name)};size=64>;crop=northwest' alt='${name}' />
+        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(name)};size=70>;crop=center' alt='${name}' />
       </a>
     </div>
     <h3>
@@ -319,7 +319,7 @@
 <div class='solrHierarchyChildren'>
 {{each(index, value) $item.getChildren}}
   {{if index < 5}}
-    <a href='#' class='solrFacetValue cat='cat_${id}' data-value='${id}'>${title}</a>
+    <a href='#' class='solrFacetValue' data-cat='cat_${id}' data-value='${id}'>${title}</a>
   {{/if}}
 {{/each}}
 {{if $item.getChildren().length >= 5}} 

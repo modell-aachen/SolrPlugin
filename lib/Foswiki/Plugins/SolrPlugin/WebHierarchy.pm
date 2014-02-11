@@ -51,6 +51,7 @@ sub restWebHierarchy {
   my $theInclude = $request->param('include');
   my $theExclude = $request->param('exclude');
   my $theRoot = $request->param('root');
+  my $theWeb = $request->param('web');
   my $theType = $request->param('type');
 
   $theExclude = $Foswiki::cfg{TrashWebName} unless defined $theExclude;
@@ -58,7 +59,7 @@ sub restWebHierarchy {
   my $hash = {};
 
   my $rootWeb;
-  $rootWeb = $theRoot if $theRoot && Foswiki::Func::webExists($theRoot);
+  $rootWeb = $theWeb if $theWeb && Foswiki::Func::webExists($theWeb);
 
   my @webs = Foswiki::Func::getListOfWebs('user', $rootWeb); 
   push @webs, $rootWeb if defined $rootWeb;
@@ -103,8 +104,18 @@ sub restWebHierarchy {
       foreach my $web (@webs) {
         $web =~ s/\//./g;
         my $hierarchy = Foswiki::Plugins::ClassificationPlugin::getHierarchy($web);
-
-        foreach my $cat ($hierarchy->getCategories) {
+	my @cats = ();
+	if ($theRoot) {
+	  my $rootCat = $hierarchy->getCategory($theRoot);
+          if ($rootCat) {
+            @cats = $rootCat->getSubCategories();
+            push @cats,$rootCat;
+          }
+	} else {
+	  @cats = $hierarchy->getCategories;
+	}
+	
+        foreach my $cat (@cats) {
           next if $cat->{name} =~ /^(TopCategory|BottomCategory)$/;
           my $id = $web.'.'.$cat->getBreadCrumbs;
           $hash->{$id} = {

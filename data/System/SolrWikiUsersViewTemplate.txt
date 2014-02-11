@@ -13,7 +13,7 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::defaultrows"}%18%TMPL:END%
 %TMPL:DEF{"solr::defaultsort"}%title_sort asc%TMPL:END%
-%TMPL:DEF{"solr::extrafilter"}%form:*.%QUERY{"{Ldap}{PersonDataForm}"}% web:%USERSWEB%%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%form:%QUERY{"{SolrPlugin}{PersonDataForm}"}% web:%USERSWEB%%TMPL:END%
 %TMPL:DEF{"solr::fields"}%field_Location_s, field_Profession_s, field_Email_s, field_LoginName_s, field_Telephone_s, web, topic, title, thumbnail%TMPL:END%
 %{</verbatim>}%
 
