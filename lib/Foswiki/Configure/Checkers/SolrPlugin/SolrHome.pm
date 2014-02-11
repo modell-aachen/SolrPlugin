@@ -15,7 +15,7 @@ sub check {
     if (
         $Foswiki::cfg{SolrPlugin}{AutoStartDaemon}
         && (  !$Foswiki::cfg{SolrPlugin}{SolrHome}
-            || $Foswiki::cfg{SolrPlugin}{SolrHome} ne 'NOT SET' )
+            || $Foswiki::cfg{SolrPlugin}{SolrHome} eq 'NOT SET' )
       )
     {
         my ( $vol, $dir ) =
