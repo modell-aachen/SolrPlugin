@@ -462,8 +462,8 @@ content as well. Different kinds of content are distinguished using the =collect
 ---+++ Field types
 
 This is the list of the most common field types used in the default schema.
-See the =schema.xml= for more exotic field types like =point= and =location=
-useful for spacial search.
+See the =schema.xml= for more exotic field types like =point= and =location=,
+useful for spatial search.
 
 | *Type* | *Description* |
 | string | not analyzed, but indexed/stored verbatim |
