@@ -21,8 +21,8 @@ First follow the normal plugin instructions as follows.
 
 !SolrPlugin is distributed in two parts:
 
-   1 =!SolrPlugin= - the Foswiki specific part and 
-   2 =!SolrPlugin-bin= - java binary package containing the latest stable Solr release, Jetty, and other required jar packages
+   1 =SolrPlugin= - the Foswiki specific part and 
+   2 =SolrPlugin-bin= - java binary package containing the latest stable Solr release, Jetty, and other required jar packages
 
 Both have to be downloaded and installed. They are available at Foswiki:Extensions/SolrPlugin.
 After downloading both packages must be unpacked in your Foswiki installation directory (&lt;foswiki-dir>).
@@ -55,8 +55,6 @@ cd $FOSWIKI_ROOT/solr
 ../tools/solrstart
 </verbatim>
 You should see a number of output messages indicating that the server has started. You can check that the service is running by visiting =http://localhost:8983/solr/= on the server.
-
-%H% If you see an error message like this: =Can't find resource 'solrconfig.xml' in classpath or 'multicore/foswiki/conf/'...= then you probably need to create a soft-link thus <br> =cd $FOSWIKI_ROOT/solr/multicore/foswiki && ln -s ../conf= <br> and restart the Solr server.
 
 Make sure that Foswiki is configured to connect to the Solr server at
 the correct URL in [[%SCRIPTURL{"configure"}%][configure]]. 

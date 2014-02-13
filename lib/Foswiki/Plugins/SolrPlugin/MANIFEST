@@ -169,6 +169,8 @@ solr/multicore/conf/xslt/example_atom.xsl 0644
 solr/multicore/conf/xslt/example_rss.xsl 0644
 solr/multicore/conf/xslt/example.xsl 0644
 solr/multicore/conf/xslt/luke.xsl 0644
+solr/multicore/foswiki/conf 0644
+solr/multicore/foswiki/data 0644
 solr/multicore/solr.xml 0644
 tools/etc-defaults-jetty 0755
 tools/solrdelete 0755
