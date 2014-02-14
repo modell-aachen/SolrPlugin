@@ -3,7 +3,7 @@
 
 # **STRING**
 # Comma seperated list of webs to skip
-$Foswiki::cfg{SolrPlugin}{SkipWebs} = 'Trash, TWiki, TestCases';
+$Foswiki::cfg{SolrPlugin}{SkipWebs} = 'TWiki, TestCases';
 
 # **STRING**
 # List of topics to skip.
@@ -13,14 +13,7 @@ $Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTo
 
 # **STRING**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
-$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
-
-# **BOOLEAN**
-# Normally, only users that already have a user topic will be included in Solr's access check.
-# This means that restricted webs/topics will not appear to other users (e.g. from LDAP).
-# If you activate this option, all users will get added to Solr's access rules, even if they
-# don't have a user topic (yet).
-$Foswiki::cfg{SolrPlugin}{IndexAllUsers} = 1;
+$Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
 # **STRING**
 # List of attachments to skip                                                                                         
@@ -39,7 +32,7 @@ $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates} = 0;
 $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
 
 # **BOOLEAN**
-# Update the index whenever a topic is renamed.
+# Update the index whenever a topic is renamed or deleted.
 # If this flag is disabled, you will have to install a cronjob to update the index regularly.
 $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 
@@ -53,6 +46,17 @@ $Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexC
 # **STRING**
 # Url where to find the solr server
 $Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr';
+
+# **NUMBER**
+# default timeout in seconds for an HTTP transaction to the SOLR server 
+$Foswiki::cfg{SolrPlugin}{Timeout} = 180;
+
+# **NUMBER**
+# timeout in seconds for an HTTP transaction to the SOLR server issuing an "optimize" 
+# action. This normally takes a lot longer than a normal request as all of the SOLR database
+# is restructured with a lot of IO on the disk. 
+$Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
+
 
 # **STRING** 
 # Url of the server to send updates to. Note, you will only need this setting
@@ -71,14 +75,14 @@ $Foswiki::cfg{SolrPlugin}{SearchUrl} = '';
 # Enable this flag to automatically start a solr instance coming with this plugin
 $Foswiki::cfg{SolrPlugin}{AutoStartDaemon} = 0;
 
-# **COMMAND**
+# **COMMAND DISPLAY_IF {SolrPlugin}{AutoStartDaemon}**
 # Command used to start the solr instance. Note that <code>solrstart</code> is a shell script wrapping
 # around the actual startup routine
 $Foswiki::cfg{SolrPlugin}{SolrStartCmd} = '$Foswiki::cfg{ToolsDir}/solrstart %SOLRHOME|F%';
 
-# **PATH**
+# **PATH DISPLAY_IF {SolrPlugin}{AutoStartDaemon}** 
 # Path to the directory containing the <code>start.jar</code> file. That's where the jetty engine is 
-# located and where solr puts its data further down the directory structure
+# located and where solr puts its data further down the directory structure. 
 $Foswiki::cfg{SolrPlugin}{SolrHome} = '';
 
 # **STRING**
@@ -93,8 +97,8 @@ $Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
 # Entries in the list below are key =&gt; value pairs mapping a cleartext language label to the used locale ID
 # used in the schema.
 $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
-  'en' => 'en', 'english' => 'en',
-  'cjk' => 'cjk', 'chinese' => 'cjk', 'japanese' => 'cjk', 'korean' => 'cjk', 
+  'en' => 'en', 'en-us' => 'en', 'en-gb' => 'en', 'english' => 'en', 
+  'cjk' => 'cjk', 'zh-cn' => 'cjk', 'zh-tw' => 'cjk', 'ja' => 'cjk', 'ko' => 'cjk', 'chinese' => 'cjk', 'japanese' => 'cjk', 'korean' => 'cjk', 
   'da' => 'da', 'danish' => 'da', 
   'de' => 'de', 'german' => 'de', 
   'es' => 'es', 'spanish' => 'es', 
@@ -102,10 +106,26 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
   'fr' => 'fr', 'french' => 'fr', 
   'it' => 'it', 'italian' => 'it', 
   'nl' => 'nl', 'dutch' => 'nl', 
-  'pt' => 'pt', 'portuguese' => 'pt', 
+  'pt' => 'pt', 'pt-br' => 'pt', 'portuguese' => 'pt', 
   'ru' => 'ru', 'russian' => 'ru', 
-  'se' => 'se', 'swedish' => 'se', 
-  'tr' => 'tr', 'turkish' => 'tr'
+  'sv' => 'sv', 'swedish' => 'sv', 
+  'tr' => 'tr', 'turkish' => 'tr',
+  'cs' => 'detect', 
+  'no' => 'detect',
+  'pl' => 'detect',
+  'uk' => 'detect',
 };
+
+# **STRING**
+# Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
+$Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
+
+# ---++ JQueryPlugin
+# ---+++ Extra plugins
+# **STRING**
+$Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Module} = 'Foswiki::Plugins::SolrPlugin::Autosuggest';
+
+# **BOOLEAN**
+$Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Enabled} = 1;
 
 1;

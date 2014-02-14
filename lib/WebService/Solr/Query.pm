@@ -1,6 +1,6 @@
 package WebService::Solr::Query;
 
-use Moose;
+use Any::Moose;
 
 use overload q("") => 'stringify';
 
@@ -46,7 +46,7 @@ sub _struct_HASH {
 
     my @clauses;
 
-    for my $k ( keys %$struct ) {
+    for my $k ( sort keys %$struct ) {
         my $v = $struct->{ $k };
 
         D && $self->___log( "Key => $k, value => " . Dumper( $v ) );
@@ -165,7 +165,7 @@ sub _value_HASH {
 
     my @clauses;
 
-    for my $op ( keys %$v ) {
+    for my $op ( sort keys %$v ) {
         my $struct = $v->{ $op };
         $op =~ s{^-(.+)}{_op_$1};
 
@@ -270,7 +270,7 @@ sub ___log {
     print "# $who: $msg\n";
 }
 
-no Moose;
+no Any::Moose;
 
 __PACKAGE__->meta->make_immutable;
 
@@ -375,11 +375,6 @@ C<-range_inc>.
     my $q = WebService::Solr::Query->new( { foo => { -fuzzy => [ 'bar', '0.8' ] } } );
     # RESULT: (foo:bar~0.8)
 
-=head2 Boost
-
-    my $q = WebService::Solr::Query->new( { foo => { -boost => [ 'bar', '2.0' ] } } );
-    # RESULT: (foo:"bar"^2.0)
-
 =head2 Literal Queries
 
 Specifying a scalar ref as a value in a key-value pair will allow arbitrary
@@ -446,9 +441,9 @@ Jos Boumans E<lt>kane@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2011 National Adult Literacy Database
+Copyright 2008-2013 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut

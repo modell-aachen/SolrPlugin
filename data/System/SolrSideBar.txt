@@ -1,0 +1,88 @@
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1390989066" format="1.1" reprev="16" version="16"}%
+---+!! %TOPIC%
+
+This is a set of widgets to be used in a sidebar navigation. This is used like this:
+
+<verbatim class="tml">
+%INCLUDE{"%SYSTEMWEB%.SolrSideBar"}%
+</verbatim>
+
+You can also pick individual components using
+
+<verbatim class="tml">
+%INCLUDE{"%SYSTEMWEB%.SolrSideBar" section="solrsimilar"}%
+</verbatim>
+
+Note: all components make use of Foswiki:Extensions/DBCachePlugin for greater flexibility and performance.
+
+---++ Implementation
+Default sidebar implementation that includes all of the components listed below.
+
+<verbatim class="tml">
+%STARTINCLUDE%<noautolink>
+%INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%<!-- -->
+%INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%<!-- -->
+</noautolink>%STOPINCLUDE%
+</verbatim>
+
+---++ Component: "solrsimilar"
+Renders a list of topics similar to the current one. This can be customized
+using the =%<nop>SOLRSIMILAR_LIKE%= preference variable set in your web's <nop>WebPreferences
+or on  the current topic the sidebar is rendered for. See the documentation of =%<nop>SOLRSIMILAR{}%=
+part of the %SYSTEMWEB%.SolrPlugin documentation.
+
+<verbatim class="tml">
+%STARTSECTION{"solrsimilar"}%<!-- -->
+%SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%" 
+   filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
+   %IF{"defined SOLRSIMILAR_LIKE" then="like=\"%SOLRSIMILAR_LIKE%\""}%
+   fields="web,topic,title,score,summary"
+   rows="5"
+   header="<h2 >%MAKETEXT{"Similar topics"}%</h2>$n<ul>" 
+   footer="</ul>"
+   format="<li>
+       <a href='%SCRIPTURLPATH{"view"}%/$web/$topic' title='%MAKETEXT{"score: [_1]" args="$score"}%'>
+         $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" 
+            SIZE=\"40x40>\" 
+            TYPE=\"plain\"
+            CROP=\"west\"
+         }$percnt <!-- -->
+         <!-- -->$title<br />
+         <span class='foswikiGrayText'>$summary</span>
+         %CLEAR%
+       </a>
+     </li>"
+   separator="$n"
+}%%ENDSECTION{"solrsimilar"}%
+</verbatim>
+
+---++ Component: "recentchanges"
+
+Renders a list of the five most recent changes in the current web.
+
+<verbatim class="tml">
+%STARTSECTION{"recentchanges"}%<!-- -->
+%SOLRSEARCH{
+  "web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
+  sort="date desc" 
+  limit="5"
+  fields="web,topic,title,summary"
+  exclude="WebHome|WebLinks|WebSideBar|WebPreferences|WebStatistics|WebTopicList|WebSearch|WebIndex|WebAdvancedSearch"
+  header="<h2 >%MAKETEXT{"Recent Changes"}%</h2>$n<ul>"
+  footer="</ul>"
+  format="<li>
+      <a href='%SCRIPTURLPATH{"view"}%/$web/$topic'>
+        $percntDBCALL{\"$web.$topic->Applications.RenderTopicThumbnail\" 
+           SIZE=\"40x40>\" 
+           TYPE=\"plain\"
+           CROP=\"west\"
+        }$percnt<!-- -->$title
+        <div class='foswikiGrayText'>$summary</div>
+        %CLEAR%
+      </a>
+    </li>"
+}%%ENDSECTION{"recentchanges"}%
+</verbatim>
+
+%META:PREFERENCE{name="DENYTOPICVIEW" title="DENYTOPICVIEW" type="Set" value=" "}%
+%META:PREFERENCE{name="PERMSET_VIEW" title="PERMSET_VIEW" type="Local" value="everybody"}%

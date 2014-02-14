@@ -1,0 +1,4 @@
+grant codeBase "file:${catalina.base}/webapps/solr/-" {
+	permission java.security.AllPermission;
+};
+
