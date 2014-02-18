@@ -63,7 +63,7 @@ sub handleSOLRSEARCH {
   return '' if defined $theId && defined $this->{cache}{$theId};
 
   my $theQuery = $params->{_DEFAULT} || $params->{search} || '';;
-  $theQuery = $this->entityDecode($theQuery);
+  $theQuery = $this->entityDecode($theQuery, 1);
   $params->{search} = $theQuery;
 
   #$theQuery = toUtf8($theQuery);
@@ -163,17 +163,20 @@ sub formatResponse {
   my $hilites;
   if ($theFormat =~ /\$hilite/ || $theHeader =~ /\$hilite/ || $theFooter =~ /\$hilite/) {
     $hilites = $this->getHighlights($response);
+    $hilites = toSiteCharSet($hilites);
   }
 
   my $moreLikeThis;
   if ($theFormat =~ /\$morelikethis/ || $theHeader =~ /\$morelikethis/ || $theFooter =~ /\$morelikethis/) {
     $moreLikeThis = $this->getMoreLikeThis($response);
+    $moreLikeThis = toSiteCharSet($moreLikeThis);
   }
 
   my $spellcheck = '';
   if ($theFormat =~ /\$spellcheck/ || $theHeader =~ /\$spellcheck/ || $theFooter =~ /\$spellcheck/) {
     my $correction = $this->getCorrection($response);
     if ($correction) {
+      $correction = toSiteCharSet($correction);
       my $tmp = $params->{search};
       $params->{search} = toSiteCharSet($correction);
       my $scriptUrl = $this->getScriptUrl($theWeb, $theTopic, $params, $response);
@@ -205,10 +208,12 @@ sub formatResponse {
 
       my $theValueSep = $params->{valueseparator} || ', ';
       foreach my $name ($doc->field_names) {
+        $name = toSiteCharSet($name);
         next unless $line =~ /\$$name/g;
 
         my @values = $doc->values_for($name);
         my $value = join($theValueSep, @values);
+        $value = toSiteCharSet($value);
 
 #        $name = fromUtf8($name);
 #        $value = fromUtf8($value);
@@ -460,7 +465,7 @@ sub formatResponse {
 
   #$this->log("result=$result");
 
-  return toSiteCharSet($result);
+  return $result;
 }
 
 ##############################################################################
@@ -1499,7 +1504,7 @@ sub getHighlights {
       # bit of cleanup in case we only get half the comment
       $hilite =~ s/<!--//g;
       $hilite =~ s/-->//g;
-      $hilites{$id} = fromUtf8($hilite);
+      $hilites{$id} = $hilite;
     }
   }
 
@@ -1543,8 +1548,7 @@ sub getCorrection {
   my $correction = $struct->{collation};
   return '' unless $correction;
 
-  #return $correction;
-  return fromUtf8($correction);
+  return $correction;
 }
 
 ##############################################################################
