@@ -19,6 +19,12 @@
 <schema name="foswiki" version="1.5">
 
   <types>
+    <fieldType name="webtopic" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+         <analyzer>
+             <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="/" replacement="."/>
+             <tokenizer class="solr.KeywordTokenizerFactory"/>
+         </analyzer>
+    </fieldType>
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 
@@ -372,6 +378,7 @@
 
     <fieldType name="text_wikiword" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="/" replacement="."/>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.WordDelimiterFilterFactory" 
           splitOnCaseChange="1" 
@@ -387,6 +394,7 @@
         <filter class="solr.ReversedWildcardFilterFactory" withOriginal="true" maxPosAsterisk="3" maxPosQuestion="2" maxFractionAsterisk="0.33"/>
       </analyzer>
       <analyzer type="query">
+        <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="/" replacement="."/>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
         <filter class="solr.WordDelimiterFilterFactory" 
           splitOnCaseChange="1" 
@@ -1128,10 +1136,10 @@
 
    <!-- type: topic, gif, jpg, png, ... all kind of extensions -->
    <field name="type" type="type" required="true" termVectors="true" />
-   <field name="web" type="string" />
+   <field name="web" type="webtopic" />
    <field name="webcat" type="string" multiValued="true" termVectors="true" />
    <field name="topic" type="string" />
-   <field name="webtopic" type="string" /> <!-- useful for autocompletion in a jump box -->
+   <field name="webtopic" type="webtopic" /> <!-- useful for autocompletion in a jump box -->
 
    <!-- renditions -->
    <field name="icon" type="string" indexed="false" /> <!-- url -->
