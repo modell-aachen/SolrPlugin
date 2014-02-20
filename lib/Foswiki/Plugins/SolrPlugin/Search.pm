@@ -207,11 +207,11 @@ sub formatResponse {
       my $summary = '';
 
       my $theValueSep = $params->{valueseparator} || ', ';
-      foreach my $name ($doc->field_names) {
-        $name = toSiteCharSet($name);
+      foreach my $nameKey ($doc->field_names) {
+        my $name = toSiteCharSet($nameKey);
         next unless $line =~ /\$$name/g;
 
-        my @values = $doc->values_for($name);
+        my @values = $doc->values_for($nameKey);
         my $value = join($theValueSep, @values);
         $value = toSiteCharSet($value);
 
@@ -373,6 +373,7 @@ sub formatResponse {
         for (my $i = 0; $i < $nrFacetValues; $i+=2) {
           my $key = $facet->[$i];
           next unless $key;
+          $key = toSiteCharSet($key);
           next if $theFacetExclude && $key =~ /$theFacetExclude/;
           next if $theFacetInclude && $key !~ /$theFacetInclude/;
           $len++;
@@ -384,7 +385,7 @@ sub formatResponse {
             next unless $key;
 
             my $count = $facet->[$i+1];
-#            $key = fromUtf8($key);
+            $key = toSiteCharSet($key);
 
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
