@@ -578,7 +578,7 @@ sub indexTopic {
       $doc->add_fields('attachment' => $name);
 
       # decide on thumbnail
-      if (!defined $thumbnail && $attachment->{attr} && $attachment->{attr} =~ /t/) {
+      if (!defined $thumbnail && (($attachment->{attr} && $attachment->{attr} =~ /t/) || $attachment->{extraattr} && $attachment->{extraattr} =~ /t/)) {
         $thumbnail = $name;
       }
       if (!defined $firstImage && $name =~ /\.(png|jpe?g|gif|bmp|svg)$/i) {
