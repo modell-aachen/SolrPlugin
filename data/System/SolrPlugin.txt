@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1309416307" format="1.1" reprev="9" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1386087424" format="1.1" reprev="9" version="13"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -6,81 +6,78 @@
 %TOC%
 
 ---++ About Solr
-Solr is an open source enterprise search server based on the Lucene Java search
+Solr is an open source enterprise search server based on the [[http://lucene.apache.org][Lucene]] Java search
 library, with XML/HTTP and JSON APIs, hit highlighting, faceted search,
 caching, replication, and a web administration interface. It runs in a Java
-servlet container such as Tomcat. 
+servlet container such as [[http://tomcat.apache.org/][Tomcat]] or [[http://jetty.codehaus.org/jetty/][Jetty]]. 
 
-This extension comes with a preconfigured jetty configurd to run a Solr webapp
-right away.
+This extension comes with a Jetty configured to run a Solr webapp right away.
 
 ---++ Installation
 First follow the normal plugin instructions as follows.
-You do not need to install anything in the browser to use this extension. The following instructions are for the administrator who installs the extension on the server.
-
-Open configure, and open the "Extensions" section. Use "Find More Extensions" to get a list of available extensions. Select "Install".
-
-If you have any problems, or if the extension isn't available in =configure=, then you can still install manually from the command-line. See http://foswiki.org/Support/ManuallyInstallingExtensions for more help.
-
+%$INSTALL_INSTRUCTIONS%
 
 ---+++ Downloading !SolrPlugin-bin
 
 !SolrPlugin is distributed in two parts:
 
-   1 !SolrPlugin: the Foswiki specific part and 
-   2 !SolrPlugin-bin: java binary package containing the latest stable solr, jetty and other required jar packages
+   1 =SolrPlugin= - the Foswiki specific part and 
+   2 =SolrPlugin-bin= - java binary package containing the latest stable Solr release, Jetty, and other required jar packages
 
 Both have to be downloaded and installed. They are available at Foswiki:Extensions/SolrPlugin.
-After downloading both have to be unpacked in your Foswiki installation directory (&lt;foswiki-dir>).
-The reason for this split is to provide one light-weighted Foswiki plugin in terms of download size, whereas the
-!SolrPlugin-bin part comprises the most current stable release of solr. The bin part will most likely only
-change when there is a new release of the solr software itself, whereas the Foswiki part might change more often.
-So you won't need to download !SolrPlugin-bin yet again when upgrading !SolrPlugin.
+After downloading both packages must be unpacked in your Foswiki installation directory (&lt;foswiki-dir>).
+
+%H% *Experts Note:* If there are pre-existing installations of Solr and Jetty (or Tomcat) already on the server, you may be able to re-use them by configuring them so they are aware of Foswiki content. In this case, the !SolrPlugin-bin package may not be required.
 
 ---+++ Starting the Solr webservice
-The !SolrPlugin will send all content to be indexed to a Solr webservice via HTTP.
-So you will need to install a Solr webservice in a servlet container
-of your choice, e.g. [[http://tomcat.apache.org/][tomcat]] or [[http://jetdfty.codehaus.org/jetty/][jetty]]. 
+The !SolrPlugin will send all content to be indexed to the Solr webservice via HTTP. This webservice must be installed in a servlet container
+of your choice, e.g. Tomcat or Jetty, and can be hosted anywhere on your network. 
 
-!SolrPlugin comes with a ready-to use jetty engine configured
-to start a Solr server on the host the Foswiki engine is running. 
-This can be either started manually using the =solrstart= tool or be launched automatically
-if !SolrPlugin can't ping the server. 
+---++++ Preconfigured Jetty
+!SolrPlugin comes with a ready-to use Jetty engine, configured
+to start a Solr server on the same host where the Foswiki engine is running. 
+This can be either started manually using the included =solrstart= tool,
+or be launched automatically if !SolrPlugin can't contact the server. 
 
-By default Solr listens to port 8983 on the localhost and is configured to only
-allow connections from localhost for security reasons. You can change these
-settings in
+First ensure that the =FOSWIKI_ROOT= environment variable points to the
+root of your Foswiki installation.
 
+By default this Solr server listens to port 8983 on the localhost,
+and is configured to only allow connections from localhost for
+security reasons. You can change these settings in:
 <verbatim>
-<foswiki-dir>/solr/etc/jetty.xml
+$FOSWIKI_ROOT/solr/etc/jetty.xml
 </verbatim>
-
-After checking these settings start the Solr daemon in the background using
-
+Once you are happy with these settings you can start the Solr daemon in
+the background using:
 <verbatim>
-<foswiki-dir>/tools/solrstart
+cd $FOSWIKI_ROOT/solr
+../tools/solrstart
 </verbatim>
+You should see a number of output messages indicating that the server has started. You can check that the service is running by visiting =http://localhost:8983/solr/= on the server.
 
-Make sure that Foswiki is configured to contact the Solr server at the correct 
-url in [[%SCRIPTURL{"configure"}%][configure]]. 
+Make sure that Foswiki is configured to connect to the Solr server at
+the correct URL in [[%SCRIPTURL{"configure"}%][configure]]. 
 
-Now test that SolrSearch is working fine. Note that it won't show any search results
-by now as we didn't index any content yet.
+Before you can do any searches, you will have to add some context as described [[#Indexing_existing_content_offline][below.]]
 
 ---+++ Setting up separate cores for virtual hosting
 
 !SolrPlugin supports virtual hosting using Foswiki:Extensions/VirtualHostingContrib by assigning a separate "core" to each
-virtual host. This ensures that indexes are created for each virtual host separately and content from one host does not leak to another while still using a single solr service answering queries for all virtual hosts installed.
+virtual host. This ensures that indexes are created for each virtual host separately and content from one host does not leak to another, while still using a single Solr service answering queries for all virtual hosts.
 
 Multiple cores are located in sub-directories under =../solr/multicore/=. By default !SolrPlugin comes with a predefined 
-core named "foswiki". All data of this core is thus stored in the =.../solr/multicore/foswiki/= directory. All cores
-have got separate URLs to access them:
+core named =foswiki=. All data for this core is stored in the =.../solr/multicore/foswiki/= directory. All cores
+have separate URLs to access them:
 
 <verbatim>
 http://<server-name>:<port>/solr/<core-name>
 </verbatim>
 
-To create a new core, copy the =.../solr/multicore/_template= directory to a new directory under the multicore directory, e.g. =../solr/multicore/mydomain.com= All known cores are listed in the =../solr/multicore/solr.xml= file. So adding
+To create a new core for =mydomain.com=, copy the =$FOSWIKI_ROOT/solr/multicore/_template= directory to a new directory, =$FOSWIKI_ROOT/solr/multicore/mydomain.com=.
+Manually create a soft-link to the shared configuration =cd $FOSWIKI_ROOT/solr/multicore/mydomain.com && ln -s ../conf=.
+
+All known cores are listed in the =../solr/multicore/solr.xml= file. So adding
 your new =mydomain.com= core alter this file to:
 
 <verbatim class="xml">
@@ -94,18 +91,17 @@ your new =mydomain.com= core alter this file to:
 </solr>
 </verbatim>
 
-You are required to restart the solr server when you make any changes to the =solr.xml= file. Test if your new core is available by accessing the admin
-console.
+You must restart the Solr server when you make any changes to the =solr.xml= file. Test if your new core is available by accessing the admin console:
 
 <verbatim>
 http://<server-name>:<port>/solr/<core-name>/admin
 </verbatim>
 
-Note: depending on your tomcat or jetty configuration access to this port might be restricted.
-In this case use the =..&lt;foswiki-dir>/tools/virtualhost-solrsearch= tool to make a basic query.
+Note: depending on your Tomcat or Jetty configuration access to this port might be restricted.
+In this case use the =$FOSWIKI_ROOT/tools/virtualhost-solrsearch= tool to make a basic query.
 
 <verbatim>
-cd ..<foswiki-dir>/tools
+cd $FOSWIKI_ROOT/tools
 ./virtualhost-solrsearch host=mydomain.com
 </verbatim>
 
@@ -113,52 +109,47 @@ Use the =host= parameter to access other virtual hosts.
 
 There is a set of additional tools that have a variation for a virtual host setup:
 
-   * virtualhost-solrsearch
-   * virtualhost-solrindex
-   * virtualhost-solrdelete
+   * =virtualhost-solrsearch= instead of =solrsearch=
+   * =virtualhost-solrindex= instead of =solrindex=
+   * =virtualhost-solrdelete= instead of =solrdelete=
 
-The =solrjob= tool itself is a wrapper around the =solrindex= and will either use =solrindex= or =virtualhost-solrindex=
+The =solrjob= tool is a wrapper around =solrindex= and will use either =solrindex= or =virtualhost-solrindex=
 depending on the =host= commandline parameter.
 
 ---+++ Indexing existing content offline
-Before using SolrSearch you will need to index your content completely. Afterwards
-Foswiki will keep the index up-to-date whenever you change a topic or upload another attachment.
-
-Let's first test if the indexer is working fine by indexing a single topic:
+Before using SolrSearch you will need to index your content completely.
+Let's first make sure the indexer is working by indexing a single topic (use =virtualhost-solrindex= is you are using virtual hosting):
 
 <verbatim>
-<foswiki-dir>/tools/virtualhost-solrindex topic=Main.WebHome
+perl $FOSWIKI_ROOT/tools/solrindex topic=Main.WebHome
 </verbatim>
 
-Now check if this topic shows up in SolrSearch.
+Now make sure this topic shows up in SolrSearch.
 
-If that worked out fine go for the complete thing:
+If that worked, you can index the whole wiki.
 
 <verbatim>
-<foswiki-dir>/tools/virtualhost-solrindex host=<core-name> mode=full optimize=on
+perl $FOSWIKI_ROOT/tools/solrindex host=foswiki mode=full optimize=on
 </verbatim>
 
-Replace &lt;core-mame> with the name of your virtual host, or with "foswiki" to access the pre-defined default
-core.
+Replace =foswiki= with the name of your virtual host if you are using virtual hosting.
 
-This will crawl all webs, topics and attachment and submit them to the Solr server which in turn
-will build up the search index. This can take a while depending on the amount of content and number of users
-registered to your site already. During this process attachments are "stringified" using the StringifierContrib, that is
-they are converted into a plain text format that Solr can read. !SolrPlugin will cache
-the stringified version of all attachments and only process them again if the corresponding
-binary version has changed. Thus a next full index run will process significant faster.
+This will crawl all webs, topics and attachment and submit them to the Solr server, which will build up the search index. This can take a while depending on the amount of content and number of users registered to your site, so you may prefer to do it at a quiet time.
 
-!SolrPlugin does read the access rights of all users to a document while indexing it.
-This access control information is indexed together with the document to secure entries
-in the database. Any request will take these under consideration so that only users with
-view rights to a document can retrieve it using !SolrSearch.
+During this process attachments are "stringified" using the StringifierContrib. "Stringification" is the process of converting binary files into a plain text format that Solr can read. !SolrPlugin will cache
+the stringified version of all attachments, and will only process them again if the corresponding
+binary version has changed. Thus the next full index run will be significantly faster.
+
+!SolrPlugin reads the access control information for a document while indexing it.
+This is indexed together with the document, and any request will take these under consideration so that only users with
+VIEW rights to a document can retrieve it using !SolrSearch.
 
 ---+++ Setting up immediate indexing
-Whenever a topic or attachment in Foswiki changes, solr has to read the changed documents and update
-its index. This can either be done immediately when a topic is saved, an attachment is uploaded or moved
-to a different location. This can be configured to your needs:
+Whenever a topic or attachment in Foswiki changes, Solr has to read the changed documents and update
+the index. This can either be done immediately when a topic is saved, an attachment is uploaded, or something is moved
+to a different location. the following settings are accessible through =configure= and control how =SolrPlugin= behaves:
 
-Enable/disable updates on save:
+To enable/disable updates on every save:
 <verbatim>
 $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates} = 0;
 </verbatim>
@@ -173,33 +164,35 @@ Enable/disable updates when a topic or attachment has been moved or deleted:
 $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 </verbatim>
 
-All but the latter are disabled by default. That's because updating solr's index might take a noticable amount of time
-when clicking on "save" in the wiki editor, even more when the saved topic has got a lot of attachments as when the topic updates all of its attachments are reindexed as well.
+All but the last are disabled by default. That's because updating Solr's index might take a noticeable amount of time
+when clicking on "save" in the wiki editor, even more so when the saved topic has a lot of attachments.
 
-The =EnableOnRenameUpdates= is _enabled_ by default as this does influence the solr index and the way it displays search results significantly. 
+The =EnableOnRenameUpdates= is _enabled_ by default as this is a relatively infrequent operation.
 
 ---+++ Setting up offline indexing
-In any case it is strongly recommended to *fully reindex* all of your documents regularly, presumably every 24h at night.
-To achieve this install a cron-job like this one:
+It is strongly recommended to *fully reindex* all of your documents regularly. Every 24 hours is a good interval.
+This can be done using a =cron= job like this one:
 
 <verbatim>
-0 0 * * * <foswiki-dir>/tools/solrjob --mode full --hosts all
+0 0 * * * <foswiki-dir>/tools/solrjob --mode full
 </verbatim>
 
-%RED%host=all for vhost, else normal%ENDCOLOR%
+%H% Add =--host all= to index all virtual hosts, or =--host &lt;hostname>= to index a single virtual host.
 
-This will read all existing webs one by one and re-index all topics and attachments. Afterwards the index is optimized for size and performance.
+This will read all existing webs one by one and re-index the topics and attachments. Afterwards the index is optimized for size and performance.
 
-In addition you'd like to set up *delta indexing* in a rather short term, by reindexing all documents that changed since
-the last time the delta indexing was performed. This is set up using a cron job like this:
+You can also choose to *delta index* more frequently, by reindexing all documents that changed since
+the last time the delta indexing was performed. The simplest way to do this is to set up a =cron= job like this:
 
 <verbatim>
 0-59/5 * * * * <foswiki-dir>/tools/solrjob --mode delta --hosts all
 </verbatim>
 
-This will start =solrindex= in delta mode every 5 minutes. You could even think about shortening this interval even more. However 5 minutes seems to be a good tradeoff of wasting resources vs. having all content updated in a timely manner. 
+This will start =solrindex= in delta mode every 5 minutes, which is a good tradeoff of wasting resources vs. having all content updated in a timely manner. 
 
-Instead of waiting for cron to trigger the delta indexing job, [[http://iwatch.sourceforge.net/][iwatch]] is a much better alternative giving you near-realtime indexing. Iwatch is available on linux systems that implement the inotify kernel service. That way the underlying operating system will trigger the =solrjob= script as soon as a file has changed. An example of an =iwatch.xml= file triggering a delta index job looks like this:
+%H% If you delta-index regularly, you probably don't need to =EnableOnSaveUpdates=, and vice-versa.
+
+Instead of waiting for =cron= to trigger the delta indexing job, you can use [[http://iwatch.sourceforge.net/][iwatch]] for near-realtime indexing. =iwatch= is available on linux systems that implement the =inotify= kernel service. This uses the underlying operating system to trigger the =solrjob= script as soon as a file has changed. An example of an =iwatch.xml= file triggering a delta index job looks like this:
 
 <verbatim>
 <?xml version="1.0" ?>
@@ -212,18 +205,16 @@ Instead of waiting for cron to trigger the delta indexing job, [[http://iwatch.s
     <contactpoint email="root@localhost" name="Administrator"/>
     <path type="recursive" alert="off" syslog="on" exec="su www-data -c '<foswiki-dir>/tools/solrjob --host mydomain.com'"><vhosts-dir>/mydomain.com/data</path>
     <!-- add other virtual hosts here -->
-    <path type="regexception">\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]</path>
+    <path type="regexception">\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]|^log</path>
   </watchlist>
 </config>
 </verbatim>
 
 Make sure to replace =&lt;foswiki-dir>=, =&lt;httpd-user>= and =&lt;vhosts-dir>= with the appropriate values on your platform.
 
-Note that delta indexing is strongly recommended when one of the settings =EnableOnSaveUpdates=, =EnableOnUploadUpdates= or =EnableOnRenameUpdates= is disabled.
-
 ---++ Usage
 
-In general it is recommended to replace Foswiki's default !AutoViewTemplatePlugin with Foswiki:Extensions/AutoTemplatePlugin. This will allow you to replace the default WebSearch, WebSearchAdvanced, WebChanges and %SYSTEMWEB%.SiteChanges with a solr-driven interface for better usability and performance.
+We recommend that you replace Foswiki's default !AutoViewTemplatePlugin with Foswiki:Extensions/AutoTemplatePlugin. This will allow you to replace the default WebSearch, WebSearchAdvanced, WebChanges and %SYSTEMWEB%.SiteChanges with a Solr-driven interface for better usability and performance.
 
 Configure !AutoTemplatePlugin by adding the following ={ViewTemplateRules}=
 
@@ -258,15 +249,14 @@ You might also override the !WebSearch of an individual web using a rule along t
 
 ---+++ Macros
 
-SolrPlugin comes with a set of search macros tailored to the extensive capabilities of solr's responses to search queries.
+SolrPlugin comes with a set of search macros tailored to the extensive capabilities of Solr's responses to search queries.
 All of them make use of the same set of options to render a response as listed in [[#SOLRSEARCH][SOLRSEARCH]].
 
 <a name="SOLRSEARCH"></a>
 ---++++ SOLRSEARCH
 
-This is the most central macro of SolrPlugin. It allows to interact with the solr search server and display results within wiki applications. 
-An example search looks like
-
+This is the most important macro. It allows you to interact with the Solr server and display results within wiki applications. 
+An example search looks like this:
 <verbatim class="tml">
 %SOLRSEARCH{"test"
   format="   1 $web.$topic$n"
@@ -275,8 +265,8 @@ An example search looks like
 </verbatim>
 
 This will list the 10 most recently changed topics that match the string "test".
-To list the 20 most recently changed topics topics that have the string "test" in their name use
 
+To list the 20 most recently changed topics topics that have the string "test" in their name use:
 <verbatim class="tml">
 %SOLRSEARCH{"topic_search:test"
   format="   1 $web.$topic$n"
@@ -285,16 +275,11 @@ To list the 20 most recently changed topics topics that have the string "test" i
 }%
 </verbatim>
 
-SOLRSEARCH allows you to use the full power of the lucene query language.
-Consult the [[http://lucene.apache.org/java/3_1_0/queryparsersyntax.html][Lucene Query Syntax]] 
-guide to learn more about how to form more complicated queries.
+SOLRSEARCH allows you to use the full power of the Lucene query language. This
+works with syntactically correct boolean queries like ="title:foo OR body:foo"=.
+Consult the [[http://lucene.apache.org/java/3_1_0/queryparsersyntax.html][Lucene Query Syntax]] guide to learn more about how to form more complicated queries.
 
-In addition to the full featured lucene query language SOLRSEARCH allows you to
-run a query in "dismax" mode. The dismax query handler is a maximum tolerant
-query processor that is robust against any sorts of user input to be fed to the
-search engine. While the default lucene query handler comes will a quite
-complex query language of itself, the dismax handler sacrifices this by aiming
-for more robustness. 
+SOLRSEARCH also allows you to run a query in [[https://wiki.apache.org/solr/DisMaxQParserPlugin][dismax]] mode. The dismax query parser only supports a subset of the Lucene syntax, but is highly tolerant of all sorts of strange user input. The query syntax is uses is familiar to many search engine users, and supports +/- and quotes for groupings words. The =edismax= mode adds several more powerful features, though still short of what is offered by the full Lucene syntax.
 
 | *Parameter* | *Description* | *Default* |
 | id | a search can be cached optionally for the time of the current request, for example using id="solr1". further calls to %SOLRFORMAT can make use of the cached solr response to render it independent from the location of the %SOLRSEARCH call on the wiki page | |
@@ -321,7 +306,7 @@ for more robustness.
 | queryfields | list of fields and their boosts giving each field a significance when a term was found in them. the format supported is fieldOne^2.3 fieldTwo fieldThree^0.4, which indicates that fieldOne has a boost of 2.3, fieldTwo has the default boost, and fieldThree has a boost of 0.4 ... this indicates that matches in fieldOne are much more significant than matches in fieldTwo, which are more significant than matches in fieldThree | see solrconfig.xml and %SYSTEMWEB%.SolrSearchBaseTemplate |
 | phrasefields | list of fields and their boosts similar to =queryfields=. this parameter may contain fields and boosts that _pharses_ (specified in quotes) are matched against. boosting those fields higher than their counterpart in =queryfields= allows you to prefer phrase matches over separate word matches | see solrconfig.xml and %SYSTEMWEB%.SolrSearchBaseTemplate |
 | *Faceting:* |||
-| facets | list of facets to be rendered during search; each facet can be a =title=name= pair specifying the facet name and the title label used to display it in the result; example: %BR% =%MAKETEXT<nop>{"Webs"}%=web, %MAKETEXT<nop>{"Applications"}%=field_TopicType_lst= | |
+| facets | list of facets to be rendered during search; each facet can be a =title=name= pair specifying the facet name and the title label used to display it in the result; example: %BR% =%MAKETEXT<nop>{"Webs"}%=web, %MAKETEXT<nop>{"Topic type"}%=field_TopicType_lst= | |
 | facetquery | query to be used for a facet query | |
 | facetoffset | used to page through a list of facets being returned by a search | |
 | facetlimit | maximum number of values to be displayed per facet; this is a list of pairs =name=integer= specifying a per-facet limit; example: =50, tag=100, contributor=10, category=10= will constraint the global limit of facet values to be returned to 50, tags to 100, list the top 10 contributors in the hit set as well as the 10 most used categories | 100 |
@@ -391,7 +376,7 @@ When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][
 SOLRSIMILAR allows to return a list of similar topics given the current one.
 
 | *Parameter* | *Description* | *Default* |
-| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC% | 
+| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC%= | 
 | like | list of fields used to compute similarity | category, tag |
 | fields | list of fields and their boost value to be included in result items | web, topic, title, score |
 | filter | restricts results to those matching this filter | type:topic |
@@ -402,7 +387,6 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 | mindocumentfrequency | | |
 | mindwordlength | | |
 | maxdwordlength | | |
-
 
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%"
    filter="web:%BASEWEB% type:topic"
@@ -429,6 +413,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
    rows="5"
 }%<!-- solrsimilar -->
 
+<verbatim class="foswikiHidden">
 ---++++ SOLRSCRIPTURL
 
 ---+++ Rest inteface
@@ -454,6 +439,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 ---++++ registerIndexTopicHandler()
 
 ---++++ registerIndexAttachmentHandler()
+</verbatim>
 
 ---++ Solr indexing schema
 
@@ -474,8 +460,8 @@ content as well. Different kinds of content are distinguished using the =collect
 ---+++ Field types
 
 This is the list of the most common field types used in the default schema.
-See the =schema.xml= for more exotic field types like =point= and =location=
-useful for spacial search.
+See the =schema.xml= for more exotic field types like =point= and =location=,
+useful for spatial search.
 
 | *Type* | *Description* |
 | string | not analyzed, but indexed/stored verbatim |
@@ -510,7 +496,7 @@ useful for spacial search.
 | spell | text_spell | multivalued | | used for spellchecking |
 | id | string | | stored | unique identifier for each document; this is the _external_ id usable in applications; there's an internal solr document id not related to this field |
 | collection | string | | stored | identifies a set of documents comming from the same content collection; by default all content stored in Foswiki (topics and attachments) is gathered in the =wiki= collection set in =Foswiki::cfg{SolrPlugin}{DefaultCollection}= |
-| language | string | | stored | language of the current document; this is derived from  =Foswiki::cfg{Site}{Locale}= but may be overwritten using the =CONTENT_LANGUAGE= preference |
+| language | string | | stored | language of the current document; this may be specified explicitly using the =CONTENT_LANGUAGE= preference, or set to "detect" to let the solr update chain detect the language automatically |
 | url | string | | stored | url used to  access the document being indexed |
 | type | type | | stored | holds the type facet of the document; this is "image" for all kinds of images, "video" for all kinds of videos, "topic" for Foswiki topics and the verbatim file extension for everything else; note: plugins like Foswiki:Extensions/MetaCommentPlugin might use specific types as well (like "comment" in this case) |
 | web | string | | stored | name of the web this document is located in |
@@ -572,7 +558,6 @@ field type for the lucene field. That way !DataForm fields although untyped by F
 can be indexed type-specific nevertheless.
 
 Similarly topic preferences are indexed using a =preference_*= prefix.
-
 
 | *Name* | *Type* | *Multivalued* | *Stored* | *Description* |
 | *_i | tint | | stored | fields with a _i suffix are indexed as an integer number |
@@ -651,6 +636,7 @@ specific search applications. The destination fields are then analysed using the
 | topic | spell |
 | web | spell |
 
+<verbatim class="foswikiHidden">
 ---++ Templates
 
 ---+++ Structure of !SolrSearchBaseTemplate
@@ -658,21 +644,28 @@ specific search applications. The destination fields are then analysed using the
 ---+++ Replacing !WebSearch and !WebChanges
 
 ---+++ Creating custom search interfaces
+</verbatim>
 
-
+---++ Dependencies
+%$DEPENDENCIES%
 
 ---++ Plugin Info
 <!--
    * Set SHORTDESCRIPTION = Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]
 -->
 |  Author: | Foswiki:Main.MichaelDaum|
-|  Copyright: | &copy; 2009-2011, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2013, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
-|  Release: | 1.10 |
-|  Version: | 20120206 (2012-02-06) |
+|  Release: | %$RELEASE% |
+|  Version: | %$VERSION% |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  14 Jul 2013: | added support for [[Foswiki:Extensions/PiwikPlugin][PiwikPlugin]] |
+|  14 Mar 2013: | improved indexing performance; \
+                  added configurable http timeouts takling to the solr backend; \
+                  fixed language mappings for multilingual content; \
+                  fixes due to latest changes in jquery.moment |
 |  17 Oct 2011: | fixed WebServices::Solr to only encode to utf8 if needed; \
                   fixed handling character encoding on a pure utf8 foswiki; \
                   fixed schema for spell correction |

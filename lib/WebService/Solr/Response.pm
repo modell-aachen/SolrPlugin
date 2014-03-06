@@ -1,6 +1,6 @@
 package WebService::Solr::Response;
 
-use Moose;
+use Any::Moose;
 
 use WebService::Solr::Document;
 ## disabled too buggy
@@ -137,7 +137,7 @@ sub ok {
     return defined $status && $status == 0;
 }
 
-no Moose;
+no Any::Moose;
 
 __PACKAGE__->meta->make_immutable;
 
@@ -214,10 +214,10 @@ Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2011 National Adult Literacy Database
+Copyright 2008-2013 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
 

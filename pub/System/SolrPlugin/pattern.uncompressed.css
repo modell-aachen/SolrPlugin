@@ -13,6 +13,7 @@
 .patternRevInfo {
   display:none; 
 }
+/*
 .foswikiFormSteps {
   border-top:1px solid #ddd;
 }
@@ -22,6 +23,7 @@
 .foswikiFormSteps hr { 
   display:none; 
 }
+*/
 .foswikiLayoutTable {
   border-collapse:collapse;
   border-spacing:0;
@@ -64,10 +66,4 @@
 .solrPager a:link:hover,
 .solrPager a:visited:hover {
   text-decoration:none;
-}
-.solrFacetContainer label {
-  padding:0;
-}
-.solrFacetContainer ul {
-  list-style-image:none;
 }

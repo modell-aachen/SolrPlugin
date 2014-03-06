@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2011 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -14,16 +14,26 @@
 package Foswiki::Plugins::SolrPlugin::Base;
 
 use strict;
+use warnings;
+
 use Foswiki::Func ();
 use Foswiki::Plugins ();
+use Foswiki::Plugins::SolrPlugin ();
 use WebService::Solr ();
 use Error qw( :try );
 use Encode ();
+use HTML::Entities ();
+
+our $STARTWW = qr/^|(?<=[\s\(])/m;
+our $ENDWW = qr/$|(?=[\s,.;:!?)])/m;
+
 
 BEGIN {
   if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
-    $WebService::Solr::ENCODE = 0; # don't encode to utf8 in WebService::Solr
+    $WebService::Solr::ENCODE = 0;    # don't encode to utf8 in WebService::Solr
   }
+
+  #print STDERR "Any::Moose prefers $Any::Moose::PREFERRED\n"
 }
 
 ##############################################################################
@@ -35,10 +45,15 @@ sub new {
 
   my $this = {
     session => $session,
-    url => $Foswiki::cfg{SolrPlugin}{Url}, # || 'http://localhost:8983',
+    url => $Foswiki::cfg{SolrPlugin}{Url},    # || 'http://localhost:8983',
+    timeout => $Foswiki::cfg{SolrPlugin}{Timeout},
+    optimizeTimeout => $Foswiki::cfg{SolrPlugin}{OptimizeTimeout},
     @_
   };
   bless($this, $class);
+
+  $this->{timeout} = 180 unless defined $this->{timeout};
+  $this->{optimizeTimeout} = 600 unless defined $this->{optimizeTimeout};
 
   return $this;
 }
@@ -49,24 +64,21 @@ sub startDaemon {
 
   my $maxStartRetries = 3;
 
-  my $toolsDir = $Foswiki::cfg{ToolsDir} || $Foswiki::cfg{WorkingDir}."/../tools"; # try to cope with old foswikis w/o a ToolsDir setting
-  my $autoStartCmd = $Foswiki::cfg{SolrPlugin}{SolrStartCmd} || $toolsDir.'/solrstart %SOLRHOME|F%';
-  my $solrHome = $Foswiki::cfg{SolrPlugin}{SolrHome} || $Foswiki::cfg{WorkingDir}."/../solr";
+  my $toolsDir = $Foswiki::cfg{ToolsDir} || $Foswiki::cfg{WorkingDir} . "/../tools";    # try to cope with old foswikis w/o a ToolsDir setting
+  my $autoStartCmd = $Foswiki::cfg{SolrPlugin}{SolrStartCmd} || $toolsDir . '/solrstart %SOLRHOME|F%';
+  my $solrHome = $Foswiki::cfg{SolrPlugin}{SolrHome} || $Foswiki::cfg{WorkingDir} . "/../solr";
 
   for (my $tries = 1; $tries <= $maxStartRetries; $tries++) {
 
     # trying to autostart
     $this->log("autostarting solr at $solrHome");
 
-    unless (-f $solrHome."/start.jar") {
+    unless (-f $solrHome . "/start.jar") {
       $this->log("ERROR: start.jar not found ... aborting autostart");
       last;
     }
 
-    my ($stdout, $exit, $stderr) = Foswiki::Sandbox::sysCommand(undef,
-      $autoStartCmd,
-      SOLRHOME => $solrHome
-    );
+    my ($stdout, $exit, $stderr) = Foswiki::Sandbox::sysCommand(undef, $autoStartCmd, SOLRHOME => $solrHome);
 
     if ($exit) {
       $this->log("ERROR: $stderr");
@@ -83,17 +95,23 @@ sub startDaemon {
 sub connect {
   my ($this) = @_;
 
-  my $maxConnectRetries = 3;
+  my $maxConnectRetries = 1; # ... was 3 before;
   my $tries;
 
   for ($tries = 1; $tries <= $maxConnectRetries; $tries++) {
     eval {
-      $this->{solr} = WebService::Solr->new($this->{url}, {
-        autocommit=>0,
-      }); 
+      $this->{solr} = WebService::Solr->new($this->{url}, { 
+        agent => LWP::UserAgent->new( 
+          agent => "Foswiki-SolrPlugin/$Foswiki::Plugins::SolrPlugin::VERSION",
+          timeout => $this->{timeout}, 
+          keep_alive => 1 
+        ), 
+        autocommit => 0, 
+      });
 
       # SMELL: WebServices::Solr somehow does not degrade nicely
       if ($this->{solr}->ping()) {
+
         #$this->log("got ping reply");
       } else {
         $this->log("WARNING: can't ping solr");
@@ -104,12 +122,11 @@ sub connect {
     if ($@) {
       $this->log("ERROR: can't contact solr server: $@");
       $this->{solr} = undef;
-    };
+    }
 
     last if $this->{solr};
     sleep 2;
   }
-
 
   return $this->{solr};
 }
@@ -118,7 +135,8 @@ sub connect {
 sub log {
   my ($this, $logString, $noNewLine) = @_;
 
-  print STDERR "$logString".($noNewLine?'':"\n");
+  print STDERR "$logString" . ($noNewLine ? '' : "\n");
+
   #Foswiki::Func::writeDebug($logString);
 }
 
@@ -126,7 +144,7 @@ sub log {
 sub isDateField {
   my ($this, $name) = @_;
 
-  return ($name =~ /^((.*_dt)|createdate|date|timestamp)$/)?1:0;
+  return ($name =~ /^((.*_dt)|createdate|date|timestamp)$/) ? 1 : 0;
 }
 
 ##############################################################################
@@ -157,23 +175,23 @@ sub isSkippedTopic {
 ##############################################################################
 sub isSkippedAttachment {
   my ($this, $web, $topic, $attachment) = @_;
- 
+
   return 1 if $web && $this->isSkippedWeb($web);
   return 1 if $topic && $this->isSkippedTopic($web, $topic);
- 
+
   my $skipattachments = $this->skipAttachments;
- 
+
   return 1 if $skipattachments->{"$attachment"};
   return 1 if $topic && $skipattachments->{"$topic.$attachment"};
   return 1 if $web && $topic && $skipattachments->{"$web.$topic.$attachment"};
- 
+
   return 0;
 }
 
 ##############################################################################
 sub isSkippedExtension {
   my ($this, $fileName) = @_;
- 
+
   my $indexExtensions = $this->indexExtensions;
 
   my $extension = '';
@@ -186,7 +204,6 @@ sub isSkippedExtension {
   return 1;
 }
 
-
 ##############################################################################
 # List of webs that shall not be indexed
 sub skipWebs {
@@ -196,10 +213,14 @@ sub skipWebs {
 
   unless (defined $skipwebs) {
     $skipwebs = {};
-    my $to_skip = $Foswiki::cfg{SolrPlugin}{SkipWebs} || "Trash, Sandbox";
+
+    my $to_skip = $Foswiki::cfg{SolrPlugin}{SkipWebs}
+      || "Trash, TWiki, TestCases";
+
     foreach my $tmpweb (split(/\s*,\s*/, $to_skip)) {
       $skipwebs->{$tmpweb} = 1;
     }
+
     $this->{_skipwebs} = $skipwebs;
   }
 
@@ -215,10 +236,13 @@ sub skipAttachments {
 
   unless (defined $skipattachments) {
     $skipattachments = {};
+
     my $to_skip = $Foswiki::cfg{SolrPlugin}{SkipAttachments} || '';
+
     foreach my $tmpattachment (split(/\s*,\s*/, $to_skip)) {
       $skipattachments->{$tmpattachment} = 1;
     }
+
     $this->{_skipattachments} = $skipattachments;
   }
 
@@ -234,7 +258,8 @@ sub skipTopics {
 
   unless (defined $skiptopics) {
     $skiptopics = {};
-    my $to_skip = $Foswiki::cfg{SolrPlugin}{SkipTopics} || '';
+    my $to_skip = $Foswiki::cfg{SolrPlugin}{SkipTopics}
+      || 'WebRss, WebSearch, WebStatistics, WebTopicList, WebLeftBar, WebPreferences, WebSearchAdvanced, WebIndex, WebAtom, WebChanges, WebCreateNewTopic, WebNotify';
     foreach my $t (split(/\s*,\s*/, $to_skip)) {
       $skiptopics->{$t} = 1;
     }
@@ -253,8 +278,8 @@ sub indexExtensions {
 
   unless (defined $indexextensions) {
     $indexextensions = {};
-    my $extensions = $Foswiki::cfg{SolrPlugin}{IndexExtensions} || 
-      "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt";
+    my $extensions = $Foswiki::cfg{SolrPlugin}{IndexExtensions}
+      || "txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt";
     foreach my $tmpextension (split(/\s*,\s*/, $extensions)) {
       $indexextensions->{$tmpextension} = 1;
     }
@@ -272,41 +297,13 @@ sub inlineError {
 }
 
 ##############################################################################
-sub fromUtf8 {
-  my ($this, $string) = @_;
-
-  return $string if Encode::is_utf8($string);
-  return Encode::decode_utf8($string);
-}
-
-##############################################################################
-sub toUtf8 {
-  my ($this, $string) = @_;
+sub entityDecode {
+  my ($this, $text, $skipDecode) = @_;
 
   my $charset = $Foswiki::cfg{Site}{CharSet};
-  return $string if $charset =~ /^utf-?8$/i;
-
-
-  my $octets = Encode::decode($charset, $string);
-  $octets = Encode::encode('utf-8', $octets);
-  return $octets;
-}
-
-##############################################################################
-sub toSiteCharSet {
-  my ($this, $string) = @_;
-
-  return Encode::encode($Foswiki::cfg{Site}{CharSet}, $string);
-}
-
-
-##############################################################################
-sub entityDecode {
-  my ($this, $text) = @_;
-
-  # SMELL: not utf8-safe
-  # a Encode::_utf8_on($text); does help but thats boo
-  $text =~ s/&#(\d+);/chr($1)/ge;
+  $text = Encode::decode($charset, $text) unless $skipDecode;
+  $text = HTML::Entities::decode_entities($text);
+  $text = Encode::encode($charset, $text) unless $skipDecode;
 
   return $text;
 }
@@ -331,13 +328,13 @@ sub normalizeWebTopicName {
 
   ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
 
-  $web =~ s/\//\./g; # normalize web using dots all the way
+  $web =~ s/\//\./g;    # normalize web using dots all the way
 
   return ($web, $topic);
 }
 
 ###############################################################################
-# compatibility wrapper 
+# compatibility wrapper
 sub takeOutBlocks {
   my $this = shift;
 
@@ -346,7 +343,7 @@ sub takeOutBlocks {
 }
 
 ###############################################################################
-# compatibility wrapper 
+# compatibility wrapper
 sub putBackBlocks {
   my $this = shift;
 
@@ -354,6 +351,207 @@ sub putBackBlocks {
   return $this->{session}->renderer->putBackBlocks(@_);
 }
 
+##############################################################################
+sub mapToIconFileName {
+  my ($this, $type, $size) = @_;
 
+  $size ||= 16;
+
+  my $pubUrlPath = $Foswiki::cfg{PubUrlPath}.'/'.$Foswiki::cfg{SystemWebName}.'/FamFamFamSilkIcons/';
+
+  # some specific icons
+  return $pubUrlPath.'page_white_edit.png' if $type =~ /topic/i;
+  return $pubUrlPath.'comment.png' if $type =~ /comment/i;
+
+  if (Foswiki::Func::getContext()->{MimeIconPluginEnabled}) {
+    require Foswiki::Plugins::MimeIconPlugin;
+    my ($iconName, $iconPath) = Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", $size);
+    return $iconPath;
+  } 
+
+  return $pubUrlPath.'picture.png' if $type =~ /(jpe?g)|gif|png/i;
+  return $pubUrlPath.'compress.png' if $type =~ /zip|tar|tar|rar/i;
+  return $pubUrlPath.'page_white_acrobat.png' if $type =~ /pdf/i;
+  return $pubUrlPath.'page_excel.png' if $type =~ /xlsx?/i;
+  return $pubUrlPath.'page_word.png' if $type =~ /docx?/i;
+  return $pubUrlPath.'page_white_powerpoint.png' if $type =~ /pptx?/i;
+  return $pubUrlPath.'page_white_flash.png' if $type =~ /flv|swf/i;
+
+  return $pubUrlPath.'page_white.png';
+}
+
+##############################################################################
+sub getTopicTitle {
+  my ($this, $web, $topic, $meta) = @_;
+
+  my $topicTitle = '';
+
+  unless ($meta) {
+    ($meta) = Foswiki::Func::readTopic($web, $topic);
+  }
+
+  my $field = $meta->get('FIELD', 'TopicTitle');
+  $topicTitle = $field->{value} if $field && $field->{value};
+
+  unless ($topicTitle) {
+    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
+    $topicTitle = $field->{value} if $field && $field->{value};
+  }
+
+  $topicTitle ||= $topic;
+
+  # bit of cleanup
+  $topicTitle =~ s/<!--.*?-->//g;
+
+  return $topicTitle;
+}
+
+##############################################################################
+sub getTopicSummary {
+  my ($this, $web, $topic, $meta, $text) = @_;
+
+  my $summary = '';
+
+  unless ($meta) {
+    ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+  }
+  
+  my $field = $meta->get('FIELD', 'Summary');
+  $summary = $field->{value} if $field && $field->{value};
+
+  unless ($summary) {
+    $field = $meta->get('FIELD', 'Teaser');
+    $summary = $field->{value} if $field && $field->{value};
+  }
+
+  unless ($summary) {
+    $field = $meta->get('PREFERENCE', 'SUMMARY');
+    $summary = $field->{value} if $field && $field->{value};
+  }
+
+  return '' unless defined $summary;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  $summary = Encode::decode($charset, $summary);
+  $summary = $this->plainify($summary, $web, $topic, 1);
+  $summary =~ s/\n/ /g;
+  $summary = Encode::encode($charset, $summary);
+
+  return $summary;
+}
+
+################################################################################
+# wrapper around Foswiki::Func::getScriptUrlPath 
+# that really, _really_, __really__ returns a relative path even when
+# called from the command line
+sub getScriptUrlPath {
+  my $this = shift;
+
+  my $url = Foswiki::Func::getScriptUrlPath(@_);
+
+  $url =~ s/^$this->{session}{urlHost}//;
+
+  return $url;
+}
+
+################################################################################
+sub plainify {
+  my ($this, $text, $web, $topic, $skipDecode) = @_;
+
+  return '' unless defined $text;
+
+  my $wtn = Foswiki::Func::getPreferencesValue('WIKITOOLNAME') || '';
+
+  # from Foswiki:Extensions/GluePlugin
+  $text =~ s/^#~~(.*?)$//gom;    # #~~
+  $text =~ s/%~~\s+([A-Z]+[{%])/%$1/gos;    # %~~
+  $text =~ s/\s*[\n\r]+~~~\s+/ /gos;        # ~~~
+  $text =~ s/\s*[\n\r]+\*~~\s+//gos;        # *~~
+
+  # from Fosiki::Render
+  $text =~ s/\r//g;                         # SMELL, what about OS10?
+  $text =~ s/%META:[A-Z].*?}%//g;
+
+  $text =~ s/%WEB%/$web/g;
+  $text =~ s/%TOPIC%/$topic/g;
+  $text =~ s/%WIKITOOLNAME%/$wtn/g;
+  $text =~ s/%$Foswiki::regex{tagNameRegex}({.*?})?%//g;    # remove
+
+  # Format e-mail to add spam padding (HTML tags removed later)
+  $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
+  $text =~ s/<!--.*?-->//gs;                                # remove all HTML comments
+  $text =~ s/<(?!nop)[^>]*>/ /g;                            # remove all HTML tags except <nop>
+
+  # SMELL: these should have been processed by entityDecode() before
+  $text =~ s/&#\d+;/ /g;                                    # remove html entities
+  $text =~ s/&[a-z]+;/ /g;                                  # remove entities
+
+  # keep only link text of legacy [[prot://uri.tld/ link text]]
+  $text =~ s/
+          \[
+              \[$Foswiki::regex{linkProtocolPattern}\:
+                  ([^\s<>"\]]+[^\s*.,!?;:)<|\]])
+                      \s+([^\[\]]*?)
+              \]
+          \]/$3/gx;
+
+  # remove brackets from [[][]] links
+  $text =~ s/\[\[([^\]]*\]\[)(.*?)\]\]/$1 $2/g;
+
+  # remove "Web." prefix from "Web.TopicName" link
+  $text =~ s/$STARTWW(($Foswiki::regex{webNameRegex})\.($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex}))/$3/g;
+  $text =~ s/[\[\]\*\|=_\&\<\>]/ /g;    # remove Wiki formatting chars
+  $text =~ s/^\-\-\-+\+*\s*\!*/ /gm;    # remove heading formatting and hbar
+  $text =~ s/[\+\-]+/ /g;               # remove special chars
+  $text =~ s/^\s+//;                    # remove leading whitespace
+  $text =~ s/\s+$//;                    # remove trailing whitespace
+  $text =~ s/!(\w+)/$1/gs;              # remove all nop exclamation marks before words
+  $text =~ s/[\r\n]+/\n/s;
+  $text =~ s/[ \t]+/ /s;
+
+  # remove/escape special chars
+  $text =~ s/\\//g;
+  $text =~ s/"//g;
+  $text =~ s/%{//g;
+  $text =~ s/}%//g;
+  $text =~ s/%//g;
+  $text =~ s/{\s*}//g;
+  $text =~ s/#+//g;
+  $text =~ s/\$perce?nt//g;
+  $text =~ s/\$dollar//g;
+  $text =~ s/~~~/ /g;
+  $text =~ s/^$//gs;
+
+  return $this->discardIllegalChars($text, $skipDecode);
+}
+
+
+################################################################################
+sub substr {
+  my ($this, $string, $offset, $length, $skipDecode) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+
+  $string = Encode::decode($charset, $string) unless $skipDecode;
+  $string = substr($string, $offset, $length);
+  $string = Encode::encode($charset, $string) unless $skipDecode;
+
+  return $string;
+}
+
+################################################################################
+sub discardIllegalChars {
+  my ($this, $string, $skipDecode) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  $string = Encode::decode($charset, $string) unless $skipDecode;
+
+  # remove illegal characters
+  $string =~ s/\p{C}/ /g;
+
+  $string = Encode::encode($charset, $string) unless $skipDecode;
+
+  return $string;
+}
 
 1;

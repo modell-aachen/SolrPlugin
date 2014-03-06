@@ -1,6 +1,6 @@
 package WebService::Solr;
 
-use Moose;
+use Any::Moose;
 
 use Encode ();
 use URI;
@@ -32,7 +32,12 @@ has 'default_params' => (
     default    => sub { { wt => 'json' } }
 );
 
-our $VERSION = '0.14';
+has 'last_response' => (
+    is  => 'rw',
+    isa => 'Maybe[WebService::Solr::Response]',
+);
+
+our $VERSION = '0.22';
 
 sub BUILDARGS {
     my ( $self, $url, $options ) = @_;
@@ -134,15 +139,15 @@ sub delete_by_query {
 
 sub ping {
     my ( $self ) = @_;
-    my $response = WebService::Solr::Response->new(
-        $self->agent->get( $self->_gen_url( 'admin/ping' ) ) );
-    return $response->is_success;
+    $self->last_response( WebService::Solr::Response->new(
+        $self->agent->get( $self->_gen_url( 'admin/ping' ) ) ) );
+    return $self->last_response->is_success;
 }
 
 sub search {
     my ( $self, $query, $params ) = @_;
     $params ||= {};
-    $params->{ 'q' } = $query if $query;
+    $params->{ 'q' } = $query;
     return $self->generic_solr_request( 'select', $params );
 }
 
@@ -153,18 +158,19 @@ sub auto_suggest {
 sub generic_solr_request {
     my ( $self, $path, $params ) = @_;
     $params ||= {};
-    my $response = WebService::Solr::Response->new(
-        $self->agent->get( $self->_gen_url( $path, $params ) ) );
-    return $response;
+    return $self->last_response(
+        WebService::Solr::Response->new(
+            $self->agent->post(
+                $self->_gen_url( $path ),
+                Content_Type => 'application/x-www-form-urlencoded; charset=utf-8',
+                Content => { $self->default_params, %$params } ) ) );
 }
 
 sub _gen_url {
-    my ( $self, $handler, $params ) = @_;
-    $params ||= {};
+    my ( $self, $handler ) = @_;
 
     my $url = $self->url->clone;
     $url->path( $url->path . "/$handler" );
-    $url->query_form( { $self->default_params, %$params } );
     return $url;
 }
 
@@ -174,7 +180,10 @@ sub _send_update {
 
     $xml= Encode::encode('utf-8', $xml) if $ENCODE;
 
-    my $url = $self->_gen_url( 'update', $params );
+    $params ||= {};
+    my $url = $self->_gen_url( 'update' );
+    $url->query_form( { $self->default_params, %$params } );
+
     my $req = HTTP::Request->new(
         POST => $url,
         HTTP::Headers->new( Content_Type => 'text/xml; charset=utf-8' ),
@@ -186,14 +195,14 @@ sub _send_update {
         confess $http_response->status_line . ': ' . $http_response->content;
     }
 
-    my $res = WebService::Solr::Response->new( $http_response );
+    $self->last_response( WebService::Solr::Response->new( $http_response ) );
 
     $self->commit if $autocommit;
 
-    return $res;
+    return $self->last_response;
 }
 
-no Moose;
+no Any::Moose;
 
 __PACKAGE__->meta->make_immutable;
 
@@ -209,7 +218,7 @@ WebService::Solr - Module to interface with the Solr (Lucene) webservice
 
     my $solr = WebService::Solr->new;
     $solr->add( @docs );
-        
+
     my $response = $solr->search( $query );
     for my $doc ( $response->docs ) {
         print $doc->value_for( $id );
@@ -231,6 +240,8 @@ enterprise-grade indexing and searching platform.
 =item * autocommit - a boolean value for automatic commit() after add/update/delete (default: enabled)
 
 =item * default_params - a hashref of parameters to send on every request
+
+=item * last_response - stores a WebService::Solr::Response for the last request
 
 =back
 
@@ -305,6 +316,24 @@ Searches the index given a C<$query>. Returns a L<WebService::Solr::Response>
 object. All key-value pairs supplied in C<\%options> are serialzied in the
 request URL.
 
+If filter queries are needed, create WebService::Solr::Query objects
+and pass them into the C<%options>.  For example, if you were searching
+a database of books for a subject of "Perl", but wanted only paperbacks
+and a copyright year of 2011 or 2012:
+
+    my $query = WebService::Solr::Query->new( { subject => 'Perl' } );
+    my %options = (
+        fq => [
+            WebService::Solr::Query->new( { binding => 'Paperback' } ),
+            WebService::Solr::Query->new( { year => [ 2011, 2012 ] } ),
+        ],
+    );
+
+    my $response = $solr->search( $query, \%options );
+
+The filter queries are typically added when drilling down into search
+results and selecting a facet to drill into.
+
 =head2 auto_suggest( \%options )
 
 Get suggestions from a list of terms for a given field. The Solr wiki has
@@ -373,10 +402,10 @@ Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2011 National Adult Literacy Database
+Copyright 2008-2013 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself. 
+it under the same terms as Perl itself.
 
 =cut
 

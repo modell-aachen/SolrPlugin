@@ -1,0 +1,75 @@
+Only in WebService-0.22/: .exists
+diff -ru WebService-0.22/Solr/Response.pm WebService/Solr/Response.pm
+--- WebService-0.22/Solr/Response.pm	2013-03-04 17:09:29.000000000 +0100
++++ WebService/Solr/Response.pm	2013-06-05 10:03:29.137839295 +0200
+@@ -3,8 +3,9 @@
+ use Any::Moose;
+ 
+ use WebService::Solr::Document;
+-use Data::Page;
+-use Data::Pageset;
++## disabled too buggy
++#use Data::Page;
++#use Data::Pageset;
+ use JSON::XS ();
+ 
+ has 'raw_response' => (
+@@ -23,12 +24,12 @@
+ has 'docs' =>
+     ( is => 'rw', isa => 'ArrayRef', auto_deref => 1, lazy_build => 1 );
+ 
+-has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
++#has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
+ 
+-has '_pageset_slide' =>
+-    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
+-has '_pageset_fixed' =>
+-    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
++#has '_pageset_slide' =>
++#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
++#has '_pageset_fixed' =>
++#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
+ 
+ sub BUILDARGS {
+     my ( $self, $res ) = @_;
+Only in WebService/Solr: .svn
+diff -ru WebService-0.22/Solr.pm WebService/Solr.pm
+--- WebService-0.22/Solr.pm	2013-04-03 00:01:32.000000000 +0200
++++ WebService/Solr.pm	2013-06-05 10:12:25.493845629 +0200
+@@ -2,7 +2,7 @@
+ 
+ use Any::Moose;
+ 
+-use Encode qw(encode);
++use Encode ();
+ use URI;
+ use LWP::UserAgent;
+ use WebService::Solr::Response;
+@@ -12,6 +12,8 @@
+ use XML::Easy::Content;
+ use XML::Easy::Text ();
+ 
++our $ENCODE = 1;
++
+ has 'url' => (
+     is      => 'ro',
+     isa     => 'URI',
+@@ -176,13 +178,16 @@
+     my ( $self, $xml, $params, $autocommit ) = @_;
+     $autocommit = $self->autocommit unless defined $autocommit;
+ 
++    $xml= Encode::encode('utf-8', $xml) if $ENCODE;
++
+     $params ||= {};
+     my $url = $self->_gen_url( 'update' );
+     $url->query_form( { $self->default_params, %$params } );
++
+     my $req = HTTP::Request->new(
+         POST => $url,
+         HTTP::Headers->new( Content_Type => 'text/xml; charset=utf-8' ),
+-        '<?xml version="1.0" encoding="UTF-8"?>' . encode( 'utf8', "$xml" )
++        '<?xml version="1.0" encoding="UTF-8"?>' . $xml
+     );
+ 
+     my $http_response = $self->agent->request( $req );
+Only in WebService: .svn
