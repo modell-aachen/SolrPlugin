@@ -87,6 +87,11 @@ sub finish {
   undef $this->{_webACLCache};
 }
 
+sub clearWebACLs {
+  my $this = shift;
+  undef $this->{_webACLCache};
+}
+
 ################################################################################
 # entry point to either update one topic or a complete web
 sub index {
