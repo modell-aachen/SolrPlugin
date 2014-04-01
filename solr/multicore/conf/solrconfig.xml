@@ -1545,7 +1545,6 @@
 
       <!-- Configure the single fragListBuilder -->
       <fragListBuilder name="single" 
-                       default="true"
                        class="solr.highlight.SingleFragListBuilder"/>
 
       <!-- default tag FragmentsBuilder -->
