@@ -454,7 +454,7 @@ sub indexTopic {
           #   $fieldDef->getOptions(); # load value map
           #   # SMELL: there's no api to get the mapped display value
           #   $value = $fieldDef->{valueMap}{$value} if defined $fieldDef->{valueMap} && defined $fieldDef->{valueMap}{$value};
-          # } 
+          # }
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
@@ -577,6 +577,17 @@ sub indexTopic {
       if ($this->isSkippedAttachment($web, $topic, $name)) {
         $this->log("Skipping attachment $web.$topic.$name");
         next;
+      }
+
+      # check whether the current attachment is a provis diagram.
+      # if so, skip indexing if there's no according %PROCESS% macro present.
+      if ( $attachment->{comment} eq 'ProVisPlugin Upload' || $attachment->{name} =~ m/^__provis_.*/ ) {
+        my @arr = split( '\.', $attachment->{name} );
+        my $name = @arr[0];
+        my $pattern = "%PROCESS{.*name=\"$name\".*}%";
+        if ( $origText !~ m/$pattern/ ) {
+          next;
+        }
       }
 
       # add attachment names to the topic doc
@@ -863,7 +874,7 @@ sub optimize {
   my $agent = $this->{solr}->agent();
   my $oldTimeout = $agent->timeout();
 
-  $agent->timeout($this->{optimizeTimeout});  
+  $agent->timeout($this->{optimizeTimeout});
 
   $this->{solr}->commit();
   $this->log("Optimizing index");
@@ -1265,7 +1276,7 @@ sub getGrantedUsers {
     $this->log("webDeny=@$webDeny") if defined $webDeny;
   }
 
-  # Check DENYWEB, but only if DENYTOPIC is not set 
+  # Check DENYWEB, but only if DENYTOPIC is not set
   if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
     push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
   }
@@ -1301,7 +1312,7 @@ sub getGrantedUsers {
 
   @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
 
-  # can't cache when there are topic-level perms 
+  # can't cache when there are topic-level perms
   $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
 
   $this->log("(2) granting access for ".join(", ", sort @grantedUsers)) if DEBUG;

@@ -100,13 +100,13 @@ sub connect {
 
   for ($tries = 1; $tries <= $maxConnectRetries; $tries++) {
     eval {
-      $this->{solr} = WebService::Solr->new($this->{url}, { 
-        agent => LWP::UserAgent->new( 
+      $this->{solr} = WebService::Solr->new($this->{url}, {
+        agent => LWP::UserAgent->new(
           agent => "Foswiki-SolrPlugin/$Foswiki::Plugins::SolrPlugin::VERSION",
-          timeout => $this->{timeout}, 
-          keep_alive => 1 
-        ), 
-        autocommit => 0, 
+          timeout => $this->{timeout},
+          keep_alive => 1
+        ),
+        autocommit => 0,
       });
 
       # SMELL: WebServices::Solr somehow does not degrade nicely
@@ -367,7 +367,7 @@ sub mapToIconFileName {
     require Foswiki::Plugins::MimeIconPlugin;
     my ($iconName, $iconPath) = Foswiki::Plugins::MimeIconPlugin::getIcon($type, "oxygen", $size);
     return $iconPath;
-  } 
+  }
 
   return $pubUrlPath.'picture.png' if $type =~ /(jpe?g)|gif|png/i;
   return $pubUrlPath.'compress.png' if $type =~ /zip|tar|tar|rar/i;
@@ -415,7 +415,7 @@ sub getTopicSummary {
   unless ($meta) {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
   }
-  
+
   my $field = $meta->get('FIELD', 'Summary');
   $summary = $field->{value} if $field && $field->{value};
 
@@ -441,7 +441,7 @@ sub getTopicSummary {
 }
 
 ################################################################################
-# wrapper around Foswiki::Func::getScriptUrlPath 
+# wrapper around Foswiki::Func::getScriptUrlPath
 # that really, _really_, __really__ returns a relative path even when
 # called from the command line
 sub getScriptUrlPath {

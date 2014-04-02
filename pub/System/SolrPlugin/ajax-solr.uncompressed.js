@@ -465,8 +465,8 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    */
   exposed: [],
 
-  /** 
-   * The parameters to be hidden. This list consists of those parameter values 
+  /**
+   * The parameters to be hidden. This list consists of those parameter values
    * that should not be exposed even though their field is exposed.
    *
    * @field
@@ -518,7 +518,7 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
     return name.match(/^(?:bf|bq|facet\.date|facet\.date\.other|facet\.date\.include|facet\.field|facet\.pivot|facet\.range|facet\.range\.other|facet\.range\.include|facet\.query|fq|group\.field|group\.func|group\.query|pf|qf)$/);
   },
 
-  /** 
+  /**
    * Tests if the parameter is listed in @hidden.
    *
    * @param {AjaxSolr.Parameter|String} The parameter.
@@ -803,7 +803,7 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
     }
     this.parseString(this.storedString());
   },
-  
+
   /**
    * An abstract hook for child implementations.
    *
@@ -840,7 +840,7 @@ AjaxSolr.ParameterHashStore = AjaxSolr.ParameterStore.extend(
   {
   /**
    * The interval in milliseconds to use in <tt>setInterval()</tt>. Do not set
-   * the interval too low as you may set up a race condition. 
+   * the interval too low as you may set up a race condition.
    *
    * @field
    * @public
@@ -979,7 +979,7 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
    */
   response: {},
 
-  /** 
+  /**
    * A collection of all registered widgets. For internal use only.
    *
    * @field
@@ -1035,22 +1035,22 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
    *
    * @param {AjaxSolr.ParameterStore} store
    */
-  setStore: function (store) { 
+  setStore: function (store) {
     store.manager = this;
     this.store = store;
   },
 
-  /** 
+  /**
    * Adds a widget to the manager.
    *
    * @param {AjaxSolr.AbstractWidget} widget
    */
-  addWidget: function (widget) { 
+  addWidget: function (widget) {
     widget.manager = this;
     this.widgets[widget.id] = widget;
   },
 
-  /** 
+  /**
    * Stores the Solr parameters to be sent to Solr and sends a request to Solr.
    *
    * @param {Boolean} [start] The Solr start offset parameter.
@@ -1111,8 +1111,8 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
 // $Id$
 
 /**
- * Baseclass for all widgets. 
- * 
+ * Baseclass for all widgets.
+ *
  * Provides abstract hooks for child classes.
  *
  * @param properties A map of fields to set. May be new or public fields.
@@ -1121,21 +1121,21 @@ AjaxSolr.AbstractManager = AjaxSolr.Class.extend(
 AjaxSolr.AbstractWidget = AjaxSolr.Class.extend(
   /** @lends AjaxSolr.AbstractWidget.prototype */
   {
-  /** 
+  /**
    * A unique identifier of this widget.
    *
-   * @field 
+   * @field
    * @public
    * @type String
    */
   id: null,
 
-  /** 
+  /**
    * The CSS selector for this widget's target HTML element, e.g. a specific
    * <tt>div</tt> or <tt>ul</tt>. A Widget is usually implemented to perform
    * all its UI changes relative to its target HTML element.
-   * 
-   * @field 
+   *
+   * @field
    * @public
    * @type String
    */
@@ -1178,7 +1178,7 @@ AjaxSolr.AbstractWidget = AjaxSolr.Class.extend(
    */
   init: function () {},
 
-  /** 
+  /**
    * An abstract hook for child implementations.
    *
    * <p>This method is executed before the Solr request is sent.</p>
@@ -1241,7 +1241,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    * Set to <tt>true</tt> to have a facet query that returns a union (or).
    */
   union : false,
-  
+
   /**
    * Set a tag for the fq parameter like fq={!tag=mytag}field.
    */
@@ -1258,7 +1258,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    */
   ex : null,
 
-  /** 
+  /**
    * Set to one of <tt>facet_fields</tt>, <tt>facet_dates</tt>, <tt>facet_queries</tt>, <tt>facet_ranges</tt>
    *
    * @field
@@ -1269,7 +1269,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
   facetType: null,
 
   /** A list of queries to be used in facet queries
-   * 
+   *
    * @field
    * @public
    * @type Array
@@ -1403,7 +1403,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
 
   /**
    * Append to the filter query.
-   * 
+   *
    * @returns {Boolean} Whether the selection changed.
    */
   append: function(value) {
@@ -1540,7 +1540,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    * <tt>count</tt>, e.g <tt>{ facet: 'facet', count: 1 }</tt>.
    */
   getFacetCountsMap: function (type) {
-    var counts = [], 
+    var counts = [],
         facet_counts = (type != 'facet_queries' && this.field)?this.manager.response.facet_counts[type][this.field]:this.manager.response.facet_counts[type];
 
     for (var facet in facet_counts) {
@@ -1560,7 +1560,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    * <tt>count</tt>, e.g <tt>{ facet: 'facet', count: 1 }</tt>.
    */
   getFacetCountsArrarr: function (type) {
-    var counts = [], 
+    var counts = [],
         facet_counts = (this.field)?this.manager.response.facet_counts[type][this.field]:this.manager.response.facet_counts[type];
 
     for (var i = 0, l = facet_counts.length; i < l; i++) {
@@ -1580,12 +1580,12 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    * <tt>count</tt>, e.g <tt>{ facet: 'facet', count: 1 }</tt>.
    */
   getFacetCountsFlat: function (type) {
-    var counts = [], 
+    var counts = [],
         facet_counts = this.manager.response.facet_counts;
 
-    if(facet_counts !== undefined && 
-       facet_counts[type] !== undefined && 
-       facet_counts[type][this.field] !== undefined 
+    if(facet_counts !== undefined &&
+       facet_counts[type] !== undefined &&
+       facet_counts[type][this.field] !== undefined
       ) {
       facet_counts = facet_counts[type][this.field];
       for (var i = 0, l = facet_counts.length; i < l; i += 2) {
@@ -1606,13 +1606,13 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
    * <tt>count</tt>, e.g <tt>{ facet: 'facet', count: 1 }</tt>.
    */
   getFacetCountsRange: function (type) {
-    var counts = [], 
+    var counts = [],
         facet_counts = this.manager.response.facet_counts;
 
-    if(facet_counts !== undefined && 
-       facet_counts[type] !== undefined && 
+    if(facet_counts !== undefined &&
+       facet_counts[type] !== undefined &&
        facet_counts[type][this.field] !== undefined &&
-       facet_counts[type][this.field].counts !== undefined 
+       facet_counts[type][this.field].counts !== undefined
       ) {
       facet_counts = facet_counts[type][this.field].counts;
       for (var i = 0, l = facet_counts.length; i < l; i += 2) {
@@ -1670,7 +1670,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
 
   /**
    * Retrieve all fq parameters of this widget
-   * 
+   *
    * @returns
    */
   getParams: function() {
@@ -1685,7 +1685,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
 
   /**
    * Return an array of the selected facet values.
-   * 
+   *
    * @param params
    * @returns {Array}
    */
@@ -1710,12 +1710,12 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
   /**
    * Return the position of the given value in the array of selected facet
    * values. -1 if not selected.
-   * 
+   *
    * @param value
    * @returns
    */
   inQuery: function(value) {
-    return AjaxSolr.inArray(AjaxSolr.Parameter.escapeValue(value), 
+    return AjaxSolr.inArray(AjaxSolr.Parameter.escapeValue(value),
       this.getQueryValues(this.getParams()));
   }
 });
