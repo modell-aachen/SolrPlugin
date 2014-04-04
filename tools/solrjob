@@ -75,29 +75,31 @@ export TIME
     cd $FOSWIKI_ROOT/tools 
     SOLRINDEX=./solrindex
     SOLRINDEX_ARGS=
-    WEB=
     if test -n "$VHOST"; then
       SOLRINDEX=./virtualhosts-solrindex
       SOLRINDEX_ARGS="host=$VHOST"
     fi
 
-    #echo -n "indexing " >&2
-    #test -n "$VHOST" && echo -n "$VHOST " >&2
-    #test -n "$FILE" && echo -n "triggered by $FILE" >&2
-    #echo "in $THROTTLE seconds" >&2
+    #test -n "$VHOST" && echo "$VHOST " >&2
+
     if test -n "$FILE"; then
       WEB=${FILE/*data\//};
-      WEB="web=$(dirname $WEB)"
-      #echo "WEB=$WEB" >&2
-    fi
-    sleep $THROTTLE
+      WEB=$(dirname $WEB)
+      TOPIC=$(basename $FILE);
+      TOPIC=${TOPIC/.txt/};
 
-    if test "$MODE" = "delta"; then
-      /bin/date >> $LOG 2>&1
-      time nice $SOLRINDEX mode=delta $WEB $SOLRINDEX_ARGS >> $LOG 2>&1
-    else
-      /bin/date > $LOG 2>&1
-      time nice $SOLRINDEX mode=full optimize=on $SOLRINDEX_ARGS >> $LOG 2>&1
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS topic=$WEB.$TOPIC"
+      MODE=delta
     fi
+
+    if test "$MODE" = "full"; then
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS mode=full optimize=on"
+    else
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS mode=delta"
+    fi
+
+    sleep $THROTTLE
+    /bin/date > $LOG 2>&1
+    time nice $SOLRINDEX $SOLRINDEX_ARGS >> $LOG 2>&1
   )
 ) 200>$LOCKFILE&
