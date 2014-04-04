@@ -1,5 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1356278780" format="1.1" version="1"}%
-
+%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1392283513" format="1.1" version="2"}%
 %META:TOPICPARENT{name="WebHome"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchView"}%
@@ -122,3 +121,6 @@
 </table>
 </script>%TMPL:END%
 %{</verbatim>}%
+
+%META:PREFERENCE{name="DENYTOPICVIEW" title="DENYTOPICVIEW" type="Set" value=" "}%
+%META:PREFERENCE{name="PERMSET_VIEW" title="PERMSET_VIEW" type="Local" value="everybody"}%
