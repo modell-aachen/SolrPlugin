@@ -12,6 +12,7 @@ Foswiki::Plugins::ImagePlugin,>=3.0,perl,Required.
 Foswiki::Plugins::MimeIconPlugin,>=0,perl,Optional.
 Foswiki::Plugins::TagCloudPlugin,>=1.0,perl,Required.
 Foswiki::Plugins::WebLinkPlugin,>=0,perl,Optional.
+Foswiki::Plugins::FlexWebListPlugin,>=1.70,perl,Optional.
 JSON::XS,>=2.231,cpan,Required.
 LWP::UserAgent,>=5.820,cpan,Required.
 Any::Moose,>=0.17,cpan,Required.

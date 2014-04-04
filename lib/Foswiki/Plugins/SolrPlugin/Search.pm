@@ -649,7 +649,7 @@ sub restSOLRSEARCH {
   }
 
   $this->{session}->{response}->status($status);
-  $this->{session}->{response}->header(type => $contentType);
+  $this->{session}->{response}->header(-type => $contentType);
 
   return $result;
 }
@@ -711,7 +711,8 @@ sub restSOLRAUTOSUGGEST {
 
   my @filter = ();
 
-  push @filter, "-web:_*"; # SMELL
+  my $trashWeb = $Foswiki::cfg{TrashWebName} || 'Trash';
+  push @filter, "-web:_* -web:$trashWeb"; # exclude some webs 
 
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);

@@ -117,6 +117,22 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
 };
 
 # **STRING**
+# Configuration info for the database to be used to store timestamps.
+$Foswiki::cfg{SolrPlugin}{Database}{DSN} = 'dbi:SQLite:dbname=$Foswiki::cfg{WorkingDir}/work_areas/SolrPlugin/timestamps.db';
+
+# **STRING 80 **
+# Prefix used naming tables and indexes generated in the database.
+$Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} = 'foswiki_';
+
+# **STRING 80 **
+# Username to access the database
+$Foswiki::cfg{SolrPlugin}{Database}{{UserName} = '';
+
+# **PASSWORD 80 **
+# Credentials for the user accessing the database
+$Foswiki::cfg{SolrPlugin}{Database}{Password} = '';
+
+# **STRING**
 # Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
 $Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
 

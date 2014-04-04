@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2014 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@ our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );
 
 use Error qw( :try );
 use Fcntl qw( :flock );
+use DBI ();
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Foswiki::Plugins::SolrPlugin ();
@@ -70,7 +71,120 @@ sub new {
   # let the indexer run for a maximum timespan, then flag a signal for it
   # to bail out from work done so far
 
+  $this->{dsn} = $Foswiki::cfg{SolrPlugin}{Database}{DSN} || 'dbi:SQLite:dbname=' . Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps.db',
+  $this->{username} = $Foswiki::cfg{SolrPlugin}{Database}{UserName},
+  $this->{password} = $Foswiki::cfg{SolrPlugin}{Database}{Password},
+  $this->{tablePrefix} = $Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} || 'foswiki_',
+
+  $this->initTimestampsDB;
+
   return $this;
+}
+
+################################################################################
+sub initTimestampsDB {
+  my $this = shift;
+
+  unless (defined $this->{dbh}) {
+    $this->{dbh} = DBI->connect(
+      $this->{dsn},
+      $this->{username},
+      $this->{password},
+      {
+        PrintError => 0,
+        RaiseError => 1,
+        AutoCommit => 1
+      }
+    );
+
+    throw Error::Simple("Can't open database $this->{dsn}: " . $DBI::errstr)
+      unless defined $this->{dbh};
+
+    my $timestampsTable = $this->{tablePrefix}.'timestamps';
+    my $timestampsIndex = $this->{tablePrefix}.'timestamps_index';
+
+
+    # test whether the table exists
+    eval { $this->{dbh}->do("select * from $timestampsTable limit 1"); };
+
+    if ($@) {
+      $this->log("creating database") if DEBUG;
+
+      $this->{dbh}->do(<<HERE);
+      create table $timestampsTable (
+        web char(255),
+        topic char(255),
+        epoch int
+  )
+HERE
+
+      $this->{dbh}->do("create unique index $timestampsIndex on $timestampsTable (web, topic)");
+    } else {
+      $this->log("found database") if DEBUG;
+    }
+  }
+
+  # migrate 
+  $this->migrateTimestamps;
+
+  return $this->{dbh};
+}
+
+################################################################################
+sub migrateTimestamps {
+  my ($this, $dir) = @_;
+
+  my $baseDir = Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps';
+  unless ($dir) {
+    $dir = $baseDir;
+    return unless -d $dir;
+  }
+
+  my $dh;
+  opendir($dh, $dir) || die "can't open directory $dir: $!\n";
+
+  while (my $file = readdir($dh)) {
+    next if $file eq '.' or $file eq '..';
+    my $path = "$dir/$file";
+    if (-d $path) {
+      $this->migrateTimestamps($path);
+      next;
+    }
+
+    my $web = $dir;
+    $web =~ s/^$baseDir\/?//;
+
+    my $epoch = Foswiki::Func::readFile($path);
+
+    if ($web) {
+      my $topic = $file;
+      $topic =~ s/\.timestamp$//;
+      if (Foswiki::Func::topicExists($web, $topic)) {
+        $this->log("importing web=$web, topic=$topic, epoch=$epoch") if DEBUG;
+        $this->setTimestamp($web, $topic, $epoch);
+      } else {
+        $this->log("found dangling topic timestamp for web=$web, topic=$topic") if DEBUG;
+      }
+    } else {
+      $web = $file;
+      $web =~ s/\.timestamp$//;
+  
+      $this->log("Migrating timestaps database for $web") if VERBOSE;
+
+      if (Foswiki::Func::webExists($web)) {
+        $this->log("importing web=$web epoch=$epoch") if DEBUG;
+        $this->setTimestamp($web, undef, $epoch);
+      } else {
+        $this->log("found dangling web timestamp for web=$web") if DEBUG;
+      }
+    }
+
+    unlink $path;
+  }
+
+  closedir($dh);
+
+  rmdir $dir;
 }
 
 ################################################################################
@@ -82,6 +196,14 @@ sub finish {
       || $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates}
       || $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
 
+  $this->{_insert_timestamp}->finish if defined $this->{_insert_timestamp};
+  $this->{_select_timestamp}->finish if defined $this->{_select_timestamp};
+  $this->{dbh}->disconnect if defined $this->{dbh};
+
+  undef $this->{_insert_timestamp};
+  undef $this->{_select_timestamp};
+  undef $this->{dbh};
+  undef $this->{dsn};
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
   undef $this->{_webACLCache};
@@ -108,11 +230,11 @@ sub index {
     if ($topic) {
       $web = $this->{session}->{webName} if !$web || $web eq 'all';
 
-      #$this->log("doing a topic index $web.$topic");
+      $this->log("doing a topic index $web.$topic") if DEBUG;
       $this->updateTopic($web, $topic);
     } else {
 
-      #$this->log("doing a web index in $mode mode");
+      $this->log("doing a web index in $mode mode") if DEBUG;
       $this->update($web, $mode);
     }
 
@@ -254,7 +376,7 @@ sub update {
       }
     }
     last if $this->{_trappedSignal};
-    $this->setTimestamp($web) if $found;
+    $this->setTimestamp($web);# if $found;
   }
 }
 
@@ -271,6 +393,7 @@ sub updateTopic {
   $this->deleteTopic($web, $topic, $meta);
   if (Foswiki::Func::topicExists($web, $topic)) {
     $this->indexTopic($web, $topic, $meta, $text);
+    $this->setTimestamp($web, $topic);
   }
 
   $this->commit();
@@ -323,7 +446,7 @@ sub indexTopic {
   # all webs
 
   # get date
-  my ($date) = $this->getRevisionInfo($web, $topic);
+  my ($date, undef, $rev) = $this->getRevisionInfo($web, $topic);
   $date ||= 0;    # prevent formatTime to crap out
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
 
@@ -377,6 +500,7 @@ sub indexTopic {
     summary => $summary,
     author => $author,
     date => $date,
+    version => $rev,
     createauthor => $createAuthor,
     createdate => $createDate,
     type => 'topic',
@@ -729,6 +853,7 @@ sub indexAttachment {
   my $date = $attachment->{'date'} || 0;
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
   my $author = getWikiName($attachment->{user});
+  my $rev = $attachment->{'version'} || 1;
 
   # get summary
   my $summary = $this->substr($attText, 0, 300);
@@ -781,6 +906,7 @@ sub indexAttachment {
     summary => $summary,
     author => $author,
     date => $date,
+    version => $rev,
 
     # attachment fields
     name => $name,
@@ -1239,7 +1365,7 @@ sub getGrantedUsers {
 
   # use cache if possible (no topic-level perms set)
   if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
-    $this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if DEBUG;
+    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if DEBUG;
     return $this->{_webACLCache}{$web};
   }
 
@@ -1262,7 +1388,7 @@ sub getGrantedUsers {
     $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$webAllow)};
   } elsif (!defined($deny) && !defined($webDeny)) {
 
-    $this->log("no denies, no allows -> grant all access") if DEBUG;
+    #$this->log("no denies, no allows -> grant all access") if DEBUG;
 
     # No denies, no allows -> open door policy
     $this->{_webACLCache}{$web} = ['all'];
@@ -1379,35 +1505,24 @@ sub getAclFields {
 }
 
 ################################################################################
-sub getTimestampFile {
-  my ($this, $web, $topic) = @_;
+sub setTimestamp {
+  my ($this, $web, $topic, $time) = @_;
 
   return unless $web;
   return unless Foswiki::Func::webExists($web);
 
-  $web =~ s/\//./g;
-
-  my $timestampsDir = Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps';
-  mkdir $timestampsDir unless -d $timestampsDir;
-
-  return $timestampsDir . '/' . $web . '.timestamp' unless defined $topic;
-
-  $timestampsDir .= '/' . $web;
-  mkdir $timestampsDir unless -d $timestampsDir;
-
-  return $timestampsDir . '/' . $topic . '.timestamp';
-}
-
-################################################################################
-sub setTimestamp {
-  my ($this, $web, $topic, $time) = @_;
-
   $time = time() unless defined $time;
 
-  my $timestampFile = $this->getTimestampFile($web, $topic);
-  return 0 unless $timestampFile;
+  unless (defined $this->{_insert_timestamp}) {
+    my $timestampsTable = $this->{tablePrefix}.'timestamps';
+    $this->{_insert_timestamp} = $this->{dbh}->prepare(<<HERE);
+        replace into $timestampsTable 
+          (web, topic, epoch) values 
+          (?, ?, ?)
+HERE
+  }
 
-  Foswiki::Func::saveFile($timestampFile, $time);
+  $this->{_insert_timestamp}->execute($web, ($topic||'undef'), $time) or die("Can't execute statement: " . $this->{_insert_timestamp}->errstr);
 
   return $time;
 }
@@ -1416,12 +1531,19 @@ sub setTimestamp {
 sub getTimestamp {
   my ($this, $web, $topic) = @_;
 
-  my $timestampFile = $this->getTimestampFile($web, $topic);
+  #print STDERR "called getTimestamp($web, ".($topic||'').")\n";
 
-  return 0 unless $timestampFile;
+  unless (defined $this->{_select_timestamp}) {
+    my $timestampsTable = $this->{tablePrefix}.'timestamps';
+    $this->{_select_timestamp} = $this->{dbh}->prepare(<<HERE);
+      select epoch from $timestampsTable where web = ? and topic = ?
+HERE
+  }
 
-  my $data = Foswiki::Func::readFile($timestampFile);
-  return ($data || 0);
+  my ($epoch) = $this->{dbh}->selectrow_array($this->{_select_timestamp}, undef, $web, ($topic||'undef'));
+  $epoch ||= 0;
+
+  return $epoch;
 }
 
 1;
