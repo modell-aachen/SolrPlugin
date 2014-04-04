@@ -197,7 +197,7 @@
             template = self.options.templates[item.group] || self.options.templates["default"];
 
         if (typeof(item.thumbnail) !== 'undefined') {
-          if (!/^(\/|http:)/.test(item.thumbnail)) {
+          if (!/^(\/|https?:)/.test(item.thumbnail)) {
             item.thumbnail = self.options.thumbnailBase + '&topic=' + item.web + '.' + item.topic + '&file=' + item.thumbnail;
           }
         } else {
