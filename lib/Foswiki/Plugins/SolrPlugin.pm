@@ -65,7 +65,7 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRSEARCH($web, $topic);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('proxy', sub {
     my $session = shift;
@@ -73,7 +73,7 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRPROXY($web, $topic);
-  });
+  }, authenticate => 0);
 
 
   Foswiki::Func::registerRESTHandler('similar', sub {
@@ -82,7 +82,7 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRSIMILAR($web, $topic);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('autocomplete', sub {
     my $session = shift;
@@ -90,7 +90,7 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('autosuggest', sub {
     my $session = shift;
@@ -98,18 +98,18 @@ sub initPlugin {
     my $web = $session->{webName};
     my $topic = $session->{topicName};
     return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('webHierarchy', sub {
     my $session = shift;
 
     return getWebHierarchy($session)->restWebHierarchy(@_);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('optimize', sub {
     my $session = shift;
     return getIndexer($session)->optimize();
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::registerRESTHandler('crawl', sub {
     my $session = shift;
@@ -120,7 +120,7 @@ sub initPlugin {
     my $depth = $query->param("depth");
 
     return getCrawler($session, $name)->crawl($path, $depth);
-  });
+  }, authenticate => 0);
 
   Foswiki::Func::addToZone("script", "SOLRPLUGIN::SEARCHBOX", <<'HERE', "JQUERYPLUGIN");
 <script src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solr-searchbox.js'></script> 
