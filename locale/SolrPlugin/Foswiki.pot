@@ -22,18 +22,6 @@ msgstr ""
 msgid "/each"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:136
-#: data/System/SolrSearchBaseTemplate.txt:159
-#: data/System/SolrSearchBaseTemplate.txt:190
-#: data/System/SolrSearchBaseTemplate.txt:225
-#: data/System/SolrSearchBaseTemplate.txt:232
-#: data/System/SolrSearchBaseTemplate.txt:303
-#: data/System/SolrSearchBaseTemplate.txt:330
-#: data/System/SolrWikiUsersViewTemplate.txt:104
-#: data/System/SolrWikiUsersViewTemplate.txt:62
-#: data/System/SolrWikiUsersViewTemplate.txt:63
-#: data/System/SolrWikiUsersViewTemplate.txt:64
-#: data/System/SolrWikiUsersViewTemplate.txt:65
 #: data/System/SolrWikiUsersViewTemplate.txt:78
 msgid "/if"
 msgstr ""
@@ -70,12 +58,24 @@ msgstr ""
 msgid "Author"
 msgstr ""
 
+msgid "Categories"
+msgstr ""
+
 #: data/System/WebChangesViewTemplate.txt:11
 msgid "Category"
 msgstr ""
 
+msgid "Chinese/Japanese/Korean"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:623
 msgid "Clear"
+msgstr ""
+
+msgid "Contributor"
+msgstr ""
+
+msgid "Danish"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:330
@@ -84,6 +84,9 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:663
 msgid "Display as"
+msgstr ""
+
+msgid "Dutch"
 msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt:64
@@ -102,6 +105,12 @@ msgstr ""
 msgid "Filter results"
 msgstr ""
 
+msgid "Finnish"
+msgstr ""
+
+msgid "French"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:92
 msgid "German"
 msgstr ""
@@ -116,6 +125,9 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:714
 msgid "In my contributions"
+msgstr ""
+
+msgid "Italian"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:467
@@ -151,6 +163,9 @@ msgstr ""
 msgid "Popular tags"
 msgstr ""
 
+msgid "Portuguese"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:351
 msgid "Previous"
 msgstr ""
@@ -173,6 +188,9 @@ msgstr ""
 msgid "Recent changes in %1"
 msgstr ""
 
+msgid "Recently changed"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:646
 msgid "Relevance"
 msgstr ""
@@ -185,6 +203,9 @@ msgstr ""
 #: data/System/SolrSearchBaseTemplate.txt:308
 #: data/System/SolrWikiUsersViewTemplate.txt:109
 msgid "Results per page"
+msgstr ""
+
+msgid "Russian"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:393
@@ -200,6 +221,12 @@ msgstr ""
 msgid "Sort by"
 msgstr ""
 
+msgid "Spanish"
+msgstr ""
+
+msgid "Swedish"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:86
 msgid "Tagged %1"
 msgstr ""
@@ -208,12 +235,21 @@ msgstr ""
 msgid "Tel"
 msgstr ""
 
+msgid "Timespan"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:463
 msgid "Topic type"
 msgstr ""
 
+msgid "Turkish"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:431
 msgid "Web"
+msgstr ""
+
+msgid "Webs"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:619

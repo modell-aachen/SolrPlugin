@@ -17,6 +17,27 @@ msgstr ""
 msgid "(none)"
 msgstr "(nichts)"
 
+#: data/System/SolrSearchBaseTemplate.txt:258
+#: data/System/SolrSearchBaseTemplate.txt:330
+msgid "/each"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:136
+#: data/System/SolrSearchBaseTemplate.txt:159
+#: data/System/SolrSearchBaseTemplate.txt:190
+#: data/System/SolrSearchBaseTemplate.txt:225
+#: data/System/SolrSearchBaseTemplate.txt:232
+#: data/System/SolrSearchBaseTemplate.txt:303
+#: data/System/SolrSearchBaseTemplate.txt:330
+#: data/System/SolrWikiUsersViewTemplate.txt:104
+#: data/System/SolrWikiUsersViewTemplate.txt:62
+#: data/System/SolrWikiUsersViewTemplate.txt:63
+#: data/System/SolrWikiUsersViewTemplate.txt:64
+#: data/System/SolrWikiUsersViewTemplate.txt:65
+#: data/System/SolrWikiUsersViewTemplate.txt:78
+msgid "/if"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:449
 msgid "1 hour"
 msgstr "1 Stunde"
@@ -49,13 +70,27 @@ msgstr "7 Tage"
 msgid "Author"
 msgstr "Autor"
 
+#, fuzzy
+msgid "Categories"
+msgstr "Kategorie"
+
 #: data/System/WebChangesViewTemplate.txt:11
 msgid "Category"
 msgstr "Kategorie"
 
+msgid "Chinese/Japanese/Korean"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:623
 msgid "Clear"
 msgstr "Zurücksetzen"
+
+#, fuzzy
+msgid "Contributor"
+msgstr "In meinen Beiträgen"
+
+msgid "Danish"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:330
 msgid "Did you mean %1?"
@@ -64,6 +99,9 @@ msgstr "Meinten Sie %1?"
 #: data/System/SolrSearchBaseTemplate.txt:663
 msgid "Display as"
 msgstr "Anzeige als"
+
+msgid "Dutch"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt:64
 msgid "Email"
@@ -81,6 +119,12 @@ msgstr "Abgelegt in %1"
 msgid "Filter results"
 msgstr "Ergebnisse filtern"
 
+msgid "Finnish"
+msgstr ""
+
+msgid "French"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:92
 msgid "German"
 msgstr "Deutsch"
@@ -96,6 +140,9 @@ msgstr "Im momentanen Bereich"
 #: data/System/SolrSearchBaseTemplate.txt:714
 msgid "In my contributions"
 msgstr "In meinen Beiträgen"
+
+msgid "Italian"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:467
 msgid "Language"
@@ -130,6 +177,9 @@ msgstr "Organisation"
 msgid "Popular tags"
 msgstr "Populäre Schlüsselworte"
 
+msgid "Portuguese"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:351
 msgid "Previous"
 msgstr "Zurück"
@@ -152,6 +202,10 @@ msgstr "Letzte Änderungen"
 msgid "Recent changes in %1"
 msgstr "Letze Änderungen in %1"
 
+#, fuzzy
+msgid "Recently changed"
+msgstr "Letzte Änderungen"
+
 #: data/System/SolrSearchBaseTemplate.txt:646
 msgid "Relevance"
 msgstr "Relevanz"
@@ -166,6 +220,9 @@ msgstr "Treffer %1 - %2 von <b>%3</b>"
 msgid "Results per page"
 msgstr "Treffer pro Seite"
 
+msgid "Russian"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:393
 #: data/System/SolrSearchViewTemplate.txt:25
 msgid "Search"
@@ -179,6 +236,12 @@ msgstr "Ähnliche Seiten"
 msgid "Sort by"
 msgstr "Sortierung"
 
+msgid "Spanish"
+msgstr ""
+
+msgid "Swedish"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:86
 msgid "Tagged %1"
 msgstr "Verschlagwortet als %1"
@@ -187,24 +250,117 @@ msgstr "Verschlagwortet als %1"
 msgid "Tel"
 msgstr "Tel"
 
+msgid "Timespan"
+msgstr ""
+
 #: data/System/SolrSearchBaseTemplate.txt:463
 msgid "Topic type"
 msgstr "Topic Typ"
+
+msgid "Turkish"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:431
 msgid "Web"
 msgstr "Bereich"
 
-#: data/System/SolrSearchBaseTemplate.txt:619
 msgid "Webs"
 msgstr "Bereiche"
 
+#: data/System/SolrSearchBaseTemplate.txt:619
 msgid "Your selection"
 msgstr "Ihre Auswahl"
+
+#: data/System/SolrSearchBaseTemplate.txt:330
+msgid "each suggestions"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:247
+msgid "each(index, value) widget.facetCounts"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:136
+#: data/System/SolrSearchBaseTemplate.txt:159
+#: data/System/SolrSearchBaseTemplate.txt:225
+#: data/System/SolrSearchBaseTemplate.txt:301
+#: data/System/SolrWikiUsersViewTemplate.txt:102
+#: data/System/SolrWikiUsersViewTemplate.txt:76
+msgid "else"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:670
 msgid "grid"
 msgstr "Raster"
+
+#: data/System/SolrSearchBaseTemplate.txt:252
+msgid "html $item.checked(facet)"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:252
+#: data/System/SolrSearchBaseTemplate.txt:254
+msgid "html $item.getFacetKey(facet)"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:252
+msgid "html $item.getFacetValue(facet)"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:146
+#: data/System/SolrSearchBaseTemplate.txt:166
+#: data/System/SolrSearchBaseTemplate.txt:193
+#: data/System/SolrSearchBaseTemplate.txt:213
+#: data/System/SolrSearchBaseTemplate.txt:235
+msgid "html $item.getHilite(id)"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:143
+msgid "html $item.renderTopicInfo()"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:290
+msgid "html group"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:330
+msgid "if $index > 0"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:188
+#: data/System/SolrSearchBaseTemplate.txt:230
+msgid "if comment"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:299
+#: data/System/SolrWikiUsersViewTemplate.txt:100
+msgid "if count > 0"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt:64
+msgid "if field_Email_s"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt:65
+msgid "if field_Location_s"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt:62
+#, fuzzy
+msgid "if field_Profession_s"
+msgstr "Beruf"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:63
+msgid "if field_Telephone_s"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:136
+#: data/System/SolrSearchBaseTemplate.txt:159
+#: data/System/SolrSearchBaseTemplate.txt:225
+msgid "if icon"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt:74
+msgid "if thumbnail"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:139
 #: data/System/SolrSearchBaseTemplate.txt:162
@@ -266,6 +422,15 @@ msgstr "Schlüsselwort"
 #: data/System/SolrSearchBaseTemplate.txt:87
 msgid "tagged %1"
 msgstr "verschlagwortet als %1"
+
+#: data/System/SolrSearchBaseTemplate.txt:129
+#: data/System/SolrWikiUsersViewTemplate.txt:52
+msgid "tmpl($data, $item) $item.getTemplateName()"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt:59
+msgid "tmpl($data, $item) solrHitTemplate_userimage"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:451
 msgid "today"
