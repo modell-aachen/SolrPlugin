@@ -1,0 +1,291 @@
+# Foswiki translation for French (français)
+# Translators:
+#   Islem Haddar 2014.
+msgid ""
+msgstr "Project-Id-Version: fr\n"
+        "Report-Msgid-Bugs-To: \n"
+        "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+        "PO-Revision-Date: 2014-04-08 11:19+0200\n"
+        "Last-Translator: Islem Haddar <haddar@modell-aachen.de>\n"
+        "Language-Team: <support@modell-aachen.de>\n"
+        "Language: fr\n"
+        "MIME-Version: 1.0\n"
+        "Content-Type: text/plain; charset=UTF-8\n"
+        "Content-Transfer-Encoding: 8bit\n"
+        "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+        "X-Generator: Pootle 2.1.6\n"
+
+#: data/System/SolrSearchBaseTemplate.txt:661
+msgid "(none)"
+msgstr "(aucun)"
+
+#: data/System/SolrSearchBaseTemplate.txt:489
+msgid "1 hour"
+msgstr "1 heure"
+
+#: data/System/SolrSearchBaseTemplate.txt:494
+msgid "1 month"
+msgstr "1 mois"
+
+#: data/System/SolrSearchBaseTemplate.txt:496
+msgid "1 year"
+msgstr "1 année"
+
+#: data/System/SolrSearchBaseTemplate.txt:492
+msgid "2 days"
+msgstr "2 jours"
+
+#: data/System/SolrSearchBaseTemplate.txt:495
+msgid "2 months"
+msgstr "2 mois"
+
+#: data/System/SolrSearchBaseTemplate.txt:490
+msgid "4 hours"
+msgstr "4 heures"
+
+#: data/System/SolrSearchBaseTemplate.txt:493
+msgid "7 days"
+msgstr "7 jours"
+
+#: data/System/SolrSearchBaseTemplate.txt:512
+msgid "Author"
+msgstr "Auteur"
+
+#: data/System/SolrSearchBaseTemplate.txt:96
+msgid "Category"
+msgstr "Catégorie"
+
+#: data/System/SolrSearchBaseTemplate.txt:663
+msgid "Clear"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:370
+msgid "Did you mean %1?"
+msgstr "Vouliez-vous dire% 1?"
+
+#: data/System/SolrSearchBaseTemplate.txt:703
+msgid "Display as"
+msgstr "Afficher comme"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:64
+msgid "Email"
+msgstr "Email"
+
+#: data/System/SolrSearchBaseTemplate.txt:91
+msgid "English"
+msgstr "Anglais"
+
+#: data/System/SolrSearchBaseTemplate.txt:85
+msgid "Filed in %1"
+msgstr "Classé dans %1"
+
+#: data/System/SolrSearchBaseTemplate.txt:657
+msgid "Filter results"
+msgstr "Filtrer les résultats"
+
+#: data/System/SolrSearchBaseTemplate.txt:92
+msgid "German"
+msgstr "Allemand"
+
+#: data/System/SolrSearchBaseTemplate.txt:745
+msgid "In all webs"
+msgstr "Dans tout les webs"
+
+#: data/System/SolrSearchBaseTemplate.txt:736
+msgid "In current web"
+msgstr "Dans le web actuel"
+
+#: data/System/SolrSearchBaseTemplate.txt:754
+msgid "In my contributions"
+msgstr "Dans mes contributions"
+
+#: data/System/SolrSearchBaseTemplate.txt:507
+msgid "Language"
+msgstr "Langue"
+
+#: data/System/SolrSearchBaseTemplate.txt:687
+msgid "Last changed"
+msgstr "recemment modifié"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:33
+#: data/System/SolrWikiUsersViewTemplate.txt:65
+msgid "Location"
+msgstr "endroit"
+
+#: data/System/SolrSearchBaseTemplate.txt:482
+msgid "Media"
+msgstr "médias"
+
+#: data/System/SolrSearchBaseTemplate.txt:688
+msgid "Name"
+msgstr "Nom"
+
+#: data/System/SolrSearchBaseTemplate.txt:392
+msgid "Next"
+msgstr "Suivant"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:25
+msgid "Organisation"
+msgstr "Organisation"
+
+#: data/System/SolrSearchBaseTemplate.txt:766
+msgid "Popular tags"
+msgstr "Tags Populaire"
+
+#: data/System/SolrSearchBaseTemplate.txt:392
+msgid "Previous"
+msgstr "Précédent"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:42
+#: data/System/SolrWikiUsersViewTemplate.txt:62
+msgid "Profession"
+msgstr "Profession"
+
+#: data/System/SolrSideBar.txt:71
+msgid "Recent Changes"
+msgstr "Modifications récentes"
+
+#: data/System/SolrSearchBaseTemplate.txt:487
+#: data/System/WebChangesViewTemplate.txt:19
+msgid "Recent changes"
+msgstr "Les changements récents"
+
+#: data/System/WebChangesViewTemplate.txt:20
+msgid "Recent changes in %1"
+msgstr "Les changements récents dans% 1"
+
+#: data/System/SolrSearchBaseTemplate.txt:686
+msgid "Relevance"
+msgstr "pertinence"
+
+#: data/System/SolrSearchBaseTemplate.txt:340
+#: data/System/SolrWikiUsersViewTemplate.txt:101
+msgid "Results %1 - %2 of <b>%3</b>"
+msgstr "Resultats %1 - %2 of <b>%3</b>"
+
+#: data/System/SolrSearchBaseTemplate.txt:348
+#: data/System/SolrWikiUsersViewTemplate.txt:109
+msgid "Results per page"
+msgstr "Résultats par pages"
+
+#: data/System/NatSkinSolrSearchViewTemplate.txt:24
+#: data/System/SolrSearchBaseTemplate.txt:433
+msgid "Search"
+msgstr "Recherche"
+
+#: data/System/SolrSideBar.txt:41
+msgid "Similar topics"
+msgstr "Sujets similaires"
+
+#: data/System/SolrSearchBaseTemplate.txt:683
+msgid "Sort by"
+msgstr "Trier par"
+
+#: data/System/SolrSearchBaseTemplate.txt:86
+msgid "Tagged %1"
+msgstr "Taggé"
+
+#: data/System/SolrWikiUsersViewTemplate.txt:63
+msgid "Tel"
+msgstr "Tel"
+
+#: data/System/SolrSearchBaseTemplate.txt:503
+msgid "Topic type"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:471
+msgid "Web"
+msgstr "Web"
+
+#: data/System/SolrSearchBaseTemplate.txt:779
+msgid "You are here:"
+msgstr "Vous êtes ici :"
+
+#: data/System/SolrSearchBaseTemplate.txt:659
+msgid "Your selection"
+msgstr "Votre sélection"
+
+#: data/System/SolrSearchBaseTemplate.txt:370
+msgid "each suggestions"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:320
+msgid "each(index, value) $item.getChildren"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:269
+msgid "each(index, value) widget.facetCounts"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt:710
+msgid "grid"
+msgstr "grille"
+
+#: data/System/SolrSearchBaseTemplate.txt:155
+#: data/System/SolrSearchBaseTemplate.txt:181
+#: data/System/SolrSearchBaseTemplate.txt:206
+#: data/System/SolrSearchBaseTemplate.txt:230
+#: data/System/SolrSearchBaseTemplate.txt:250
+msgid "in %1"
+msgstr "dans %1"
+
+#: data/System/SolrSearchBaseTemplate.txt:94
+msgid "keyword"
+msgstr "mot clé "
+
+#: data/System/SolrSearchBaseTemplate.txt:93
+msgid "language"
+msgstr "Langue"
+
+#: data/System/SolrSearchBaseTemplate.txt:706
+msgid "list"
+msgstr "Liste"
+
+#: data/System/SolrSearchBaseTemplate.txt:89
+msgid "media"
+msgstr "Média"
+
+#: data/System/SolrSearchBaseTemplate.txt:267
+msgid "next"
+msgstr "Suivant"
+
+#: data/System/SolrSearchBaseTemplate.txt:342
+#: data/System/SolrWikiUsersViewTemplate.txt:103
+msgid "nothing found"
+msgstr "Rien trouvé"
+
+#: data/System/SolrSearchBaseTemplate.txt:497
+msgid "older"
+msgstr "postérieur"
+
+#: data/System/SolrSearchBaseTemplate.txt:267
+msgid "prev"
+msgstr "prev"
+
+#: data/System/SolrSearchBaseTemplate.txt:90
+msgid "recently"
+msgstr "Dèrnierement"
+
+#: data/System/SolrSideBar.txt:44
+msgid "score: %1"
+msgstr "score: %1"
+
+#: data/System/SolrSearchBaseTemplate.txt:433
+msgid "submit the query"
+msgstr "soumettre la requête"
+
+#: data/System/SolrSearchBaseTemplate.txt:95
+msgid "tag"
+msgstr "jour"
+
+#: data/System/SolrSearchBaseTemplate.txt:87
+msgid "tagged %1"
+msgstr "Taggé %1"
+
+#: data/System/SolrSearchBaseTemplate.txt:491
+msgid "today"
+msgstr "Aujourd\\\\\\'hui"
+
+#: data/System/SolrSearchBaseTemplate.txt:88
+msgid "topic type"
+msgstr "Type du sujet"
