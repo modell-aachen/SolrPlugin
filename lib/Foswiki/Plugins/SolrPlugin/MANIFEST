@@ -28,6 +28,7 @@ lib/WebService/Solr.pm 0644
 lib/WebService/Solr/Query.pm 0644
 lib/WebService/Solr/Response.pm 0644
 locale/SolrPlugin/de.po 0644
+locale/SolrPlugin/fr.po 0644
 locale/SolrPlugin/Foswiki.pot 0644
 pub/System/SolrPlugin/ajax-solr/ASL-LICENSE 0644
 pub/System/SolrPlugin/ajax-solr/COPYRIGHT.txt 0644

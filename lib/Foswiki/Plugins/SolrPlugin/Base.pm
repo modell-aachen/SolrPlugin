@@ -506,8 +506,8 @@ sub plainify {
   $text =~ s/^\s+//;                    # remove leading whitespace
   $text =~ s/\s+$//;                    # remove trailing whitespace
   $text =~ s/!(\w+)/$1/gs;              # remove all nop exclamation marks before words
-  $text =~ s/[\r\n]+/\n/s;
-  $text =~ s/[ \t]+/ /s;
+  $text =~ s/[\r\n]+/\n/gs;
+  $text =~ s/[ \t]+/ /gs;
 
   # remove/escape special chars
   $text =~ s/\\//g;
