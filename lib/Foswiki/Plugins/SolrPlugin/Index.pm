@@ -583,7 +583,7 @@ sub indexTopic {
       # if so, skip indexing if there's no according %PROCESS% macro present.
       if ( $attachment->{comment} eq 'ProVisPlugin Upload' || $attachment->{name} =~ m/^__provis_.*/ ) {
         my @arr = split( '\.', $attachment->{name} );
-        my $name = @arr[0];
+        my $name = $arr[0];
         my $pattern = "%PROCESS{.*name=\"$name\".*}%";
         if ( $origText !~ m/$pattern/ ) {
           next;
