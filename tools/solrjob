@@ -94,12 +94,13 @@ export TIME
 
     if test "$MODE" = "full"; then
       SOLRINDEX_ARGS="$SOLRINDEX_ARGS mode=full optimize=on"
+      :> $LOG
     else
       SOLRINDEX_ARGS="$SOLRINDEX_ARGS mode=delta"
     fi
 
     sleep $THROTTLE
-    /bin/date > $LOG 2>&1
+    /bin/date >> $LOG 
     time nice $SOLRINDEX $SOLRINDEX_ARGS >> $LOG 2>&1
   )
 ) 200>$LOCKFILE&

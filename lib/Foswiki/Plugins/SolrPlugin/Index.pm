@@ -29,7 +29,7 @@ use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
 
-use constant DEBUG => 0;    # toggle me
+use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
 use constant PROFILE => 0;  # toggle me
 
@@ -108,7 +108,7 @@ sub initTimestampsDB {
     eval { $this->{dbh}->do("select * from $timestampsTable limit 1"); };
 
     if ($@) {
-      $this->log("creating database") if DEBUG;
+      $this->log("creating database") if TRACE;
 
       $this->{dbh}->do(<<HERE);
       create table $timestampsTable (
@@ -120,7 +120,7 @@ HERE
 
       $this->{dbh}->do("create unique index $timestampsIndex on $timestampsTable (web, topic)");
     } else {
-      $this->log("found database") if DEBUG;
+      $this->log("found database") if TRACE;
     }
   }
 
@@ -160,10 +160,10 @@ sub migrateTimestamps {
       my $topic = $file;
       $topic =~ s/\.timestamp$//;
       if (Foswiki::Func::topicExists($web, $topic)) {
-        $this->log("importing web=$web, topic=$topic, epoch=$epoch") if DEBUG;
+        $this->log("importing web=$web, topic=$topic, epoch=$epoch") if TRACE;
         $this->setTimestamp($web, $topic, $epoch);
       } else {
-        $this->log("found dangling topic timestamp for web=$web, topic=$topic") if DEBUG;
+        $this->log("found dangling topic timestamp for web=$web, topic=$topic") if TRACE;
       }
     } else {
       $web = $file;
@@ -172,10 +172,10 @@ sub migrateTimestamps {
       $this->log("Migrating timestaps database for $web") if VERBOSE;
 
       if (Foswiki::Func::webExists($web)) {
-        $this->log("importing web=$web epoch=$epoch") if DEBUG;
+        $this->log("importing web=$web epoch=$epoch") if TRACE;
         $this->setTimestamp($web, undef, $epoch);
       } else {
-        $this->log("found dangling web timestamp for web=$web") if DEBUG;
+        $this->log("found dangling web timestamp for web=$web") if TRACE;
       }
     }
 
@@ -230,11 +230,11 @@ sub index {
     if ($topic) {
       $web = $this->{session}->{webName} if !$web || $web eq 'all';
 
-      $this->log("doing a topic index $web.$topic") if DEBUG;
+      $this->log("doing a topic index $web.$topic") if TRACE;
       $this->updateTopic($web, $topic);
     } else {
 
-      $this->log("doing a web index in $mode mode") if DEBUG;
+      $this->log("doing a web index in $mode mode") if TRACE;
       $this->update($web, $mode);
     }
 
@@ -348,24 +348,24 @@ sub update {
     } else {
 
       # delta
-      my $since = $this->getTimestamp($web);
+      my $webTime = $this->getTimestamp($web);
 
       my @topics = Foswiki::Func::getTopicList($web);
       foreach my $topic (@topics) {
         next if $this->isSkippedTopic($web, $topic);
 
-        my $topicIndexTime = $this->getTimestamp($web, $topic);
-        next if $topicIndexTime > $since;
+        my $topicTime = $this->getTimestamp($web, $topic);
+        next if $topicTime > $webTime; # this topic has been indexed individually
 
-        my $time;
+        my $changed;
         if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
-          $time = $Foswiki::Plugins::SESSION->getApproxRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($web, $topic);
         } else {
 
           # This is here for old engines
-          $time = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
         }
-        next if $time < $since;
+        next if $topicTime > $changed;
 
         $this->deleteTopic($web, $topic);
         $this->indexTopic($web, $topic);
@@ -757,7 +757,7 @@ sub getContentLanguage {
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
   my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
 
-  #$this->log("contentLanguage=$contentLanguage") if DEBUG;
+  #$this->log("contentLanguage=$contentLanguage") if TRACE;
 
   Foswiki::Func::popTopicContext() if $donePush;
 
@@ -820,7 +820,7 @@ sub indexAttachment {
   # SMELL: while the below test weeds out attachments that somehow where gone physically it is too expensive for the
   # average case to open all attachments
   #unless (defined(Foswiki::Func::readAttachment($web, $topic, $name))) {
-  #  $this->log("... attachment $web.$topic.$name not found") if DEBUG;
+  #  $this->log("... attachment $web.$topic.$name not found") if TRACE;
   #  return;
   #}
 
@@ -1220,10 +1220,11 @@ sub getListOfUsers {
     my $it = Foswiki::Func::eachUser();
     while ($it->hasNext()) {
       my $user = $it->next();
+      next if $user eq 'UnknownUser';
       $this->{_knownUsers}{$user} = 1;# if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
     }
 
-    #$this->log("known users=".join(", ", sort keys %{$this->{_knownUsers}})) if DEBUG;
+    #$this->log("known users=".join(", ", sort keys %{$this->{_knownUsers}})) if TRACE;
     $this->{_nrKnownUsers} = scalar(keys %{ $this->{_knownUsers} });
 
     #$this->log("found ".$this->{_nrKnownUsers}." users");
@@ -1327,10 +1328,13 @@ sub getGrantedUsers {
   my $allow = $this->getACL($meta, 'ALLOWTOPICVIEW');
   my $deny = $this->getACL($meta, 'DENYTOPICVIEW');
 
-  if (DEBUG) {
+  if (TRACE) {
     $this->log("topicAllow=@$allow") if defined $allow;
     $this->log("topicDeny=@$deny") if defined $deny;
   }
+
+  my $isDeprecatedEmptyDeny =
+    !defined($Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny}) || $Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny};
 
   # Check DENYTOPIC
   if (defined $deny) {
@@ -1338,34 +1342,47 @@ sub getGrantedUsers {
       $forbiddenUsers = $this->expandUserList(@$deny);
     } else {
 
-      $this->log("empty deny -> grant all access") if DEBUG;
+      if ($isDeprecatedEmptyDeny) {
+        $this->log("empty deny -> grant all access") if TRACE;
 
-      # Empty deny
-      return ['all'];
+        # Empty deny
+        return ['all'];
+      } else {
+        $deny = undef;
+      }
     }
   }
-  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
+  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   # Check ALLOWTOPIC
   if (defined($allow)) {
     if (scalar(@$allow)) {
-      $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$allow)};
 
-      if (defined $forbiddenUsers) {
-        delete $grantedUsers{$_} foreach @$forbiddenUsers;
+      if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
+        $this->log("access * -> grant all access") if TRACE;
+
+        # Empty deny
+        return ['all'];
+      } else {
+      
+        $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
+
+        if (defined $forbiddenUsers) {
+          delete $grantedUsers{$_} foreach @$forbiddenUsers;
+        }
+        my @grantedUsers = keys %grantedUsers;
+
+        $this->log("(1) granting access for @grantedUsers") if TRACE;
+
+        # A non-empty ALLOW is final
+        return \@grantedUsers;
       }
-      my @grantedUsers = keys %grantedUsers;
-
-      $this->log("(1) granting access for @grantedUsers") if DEBUG;
-
-      # A non-empty ALLOW is final
-      return \@grantedUsers;
     }
   }
 
   # use cache if possible (no topic-level perms set)
   if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
-    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if DEBUG;
+    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if TRACE;
     return $this->{_webACLCache}{$web};
   }
 
@@ -1373,7 +1390,7 @@ sub getGrantedUsers {
   my $webAllow = $this->getACL($webMeta, 'ALLOWWEBVIEW');
   my $webDeny = $this->getACL($webMeta, 'DENYWEBVIEW');
 
-  if (DEBUG) {
+  if (TRACE) {
     $this->log("webAllow=@$webAllow") if defined $webAllow;
     $this->log("webDeny=@$webDeny") if defined $webDeny;
   }
@@ -1382,13 +1399,13 @@ sub getGrantedUsers {
   if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
     push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
   }
-  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
+  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   if (defined($webAllow) && scalar(@$webAllow)) {
-    $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$webAllow)};
+    $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
   } elsif (!defined($deny) && !defined($webDeny)) {
 
-    #$this->log("no denies, no allows -> grant all access") if DEBUG;
+    #$this->log("no denies, no allows -> grant all access") if TRACE;
 
     # No denies, no allows -> open door policy
     $this->{_webACLCache}{$web} = ['all'];
@@ -1412,12 +1429,15 @@ sub getGrantedUsers {
     push @grantedUsers, $user if $grantedUsers{$user} > 1;
   }
 
+  #$this->log("grantedUsers=@grantedUsers");
+
+  $this->log("nr granted users=".scalar(@grantedUsers).", nr known users=".$this->nrKnownUsers) if TRACE;
   @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
 
   # can't cache when there are topic-level perms 
   $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
 
-  $this->log("(2) granting access for ".join(", ", sort @grantedUsers)) if DEBUG;
+  $this->log("(2) granting access for ".scalar(@grantedUsers)." users") if TRACE;
 
   return \@grantedUsers;
 }

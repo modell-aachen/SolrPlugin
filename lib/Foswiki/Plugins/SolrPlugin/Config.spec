@@ -126,7 +126,7 @@ $Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} = 'foswiki_';
 
 # **STRING 80 **
 # Username to access the database
-$Foswiki::cfg{SolrPlugin}{Database}{{UserName} = '';
+$Foswiki::cfg{SolrPlugin}{Database}{UserName} = '';
 
 # **PASSWORD 80 **
 # Credentials for the user accessing the database

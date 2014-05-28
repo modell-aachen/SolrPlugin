@@ -654,13 +654,14 @@ specific search applications. The destination fields are then analysed using the
    * Set SHORTDESCRIPTION = Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]
 -->
 |  Author: | Foswiki:Main.MichaelDaum|
-|  Copyright: | &copy; 2009-2013, Michael Daum http://michaeldaumconsulting.com |
+|  Copyright: | &copy; 2009-2014, Michael Daum http://michaeldaumconsulting.com |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  28 May 2014: | implemented new ACL style compatible with Foswiki >= 1.2 |
 |  14 Jul 2013: | added support for [[Foswiki:Extensions/PiwikPlugin][PiwikPlugin]] |
 |  14 Mar 2013: | improved indexing performance; \
                   added configurable http timeouts takling to the solr backend; \

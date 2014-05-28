@@ -78,7 +78,7 @@
   %FLEXWEBLIST{
     webs="public"
     exclude="Trash.*"
-    format="\"$web\": \"$percntWEBLINK{\"$web\" format=\"$title\"}$percnt\""
+    format="\"$web\": \"$title\""
     subheader=",$n"
     separator=",$n"
   }%,

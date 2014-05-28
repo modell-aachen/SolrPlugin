@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2014 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@ use POSIX ();
 use Error qw(:try);
 use JSON ();
 
-use constant DEBUG => 0; # toggle me
+use constant TRACE => 0; # toggle me
 #use Data::Dumper ();
 
 ##############################################################################
@@ -56,7 +56,7 @@ sub new {
 sub handleSOLRSEARCH {
   my ($this, $params, $theWeb, $theTopic) = @_;
 
-  #$this->log("called handleSOLRSEARCH(".$params->stringify.")") if DEBUG;
+  #$this->log("called handleSOLRSEARCH(".$params->stringify.")") if TRACE;
   return $this->inlineError("can't connect to solr server") unless defined $this->{solr};
 
   my $theId = $params->{id};
@@ -109,7 +109,7 @@ sub handleSOLRSEARCH {
 sub handleSOLRFORMAT {
   my ($this, $params, $theWeb, $theTopic) = @_;
 
-  #$this->log("called handleSOLRFORMAT(".$params->stringify.")") if DEBUG;
+  #$this->log("called handleSOLRFORMAT(".$params->stringify.")") if TRACE;
   return '' unless defined $this->{solr};
 
   my $theId = $params->{_DEFAULT} || $params->{id};
@@ -135,13 +135,13 @@ sub formatResponse {
   try {
     $gotResponse = 1 if $response->content->{response};
   } catch Error::Simple with {
-    $this->log("Error parsing solr response") if DEBUG;
+    $this->log("Error parsing solr response") if TRACE;
     $error = $this->inlineError("Error parsing solr response");
   };
   return $error if $error;
   return '' unless $gotResponse;
 
-  #$this->log("called formatResponse()") if DEBUG;
+  #$this->log("called formatResponse()") if TRACE;
 
   my $theFormat = $params->{format} || '';
   my $theSeparator = $params->{separator} || '';
@@ -192,7 +192,7 @@ sub formatResponse {
   my $count = $this->totalEntries($response);
   $to = $count if $to > $count;
 
-  #$this->log("page=$page, limit=$limit, index=$index, count=$count") if DEBUG;
+  #$this->log("page=$page, limit=$limit, index=$index, count=$count") if TRACE;
   
   if (defined $theFormat && $theFormat ne '') {
     for my $doc ($response->docs) {
@@ -504,7 +504,7 @@ sub renderPager {
     $result .= "<span class='solrPagerEllipsis'>&hellip;</span>";
   }
 
-  #$this->log("currentPage=$currentPage, lastPage=$lastPage, startPage=$startPage, endPage=$endPage") if DEBUG;
+  #$this->log("currentPage=$currentPage, lastPage=$lastPage, startPage=$startPage, endPage=$endPage") if TRACE;
 
   my $count = 1;
   my $marker = '';
@@ -921,7 +921,7 @@ sub restSOLRAUTOCOMPLETE {
     my $result = $response->raw_response->content()."\n\n";
     return $result;
   }
-  $this->log($response->raw_response->content()) if DEBUG;
+  $this->log($response->raw_response->content()) if TRACE;
 
   my $facets = $this->getFacets($response);
   return '' unless $facets;
@@ -987,7 +987,7 @@ sub handleSOLRSIMILAR {
 
   my $response = $this->doSimilar($theQuery, $params);
 
-  #$this->log($response->raw_response->content()) if DEBUG;
+  #$this->log($response->raw_response->content()) if TRACE;
   return $this->formatResponse($params, $theWeb, $theTopic, $response);
 }
 
@@ -1016,7 +1016,7 @@ sub doSimilar {
 
   $theLike = 'category,tag' unless defined $theLike;
   $theFilter = 'type:topic' unless defined $theFilter;
-  $theRows = 10 unless defined $theRows;
+  $theRows = 20 unless defined $theRows;
 
   $theFields = 'web,topic,title,score' unless defined $theFields;
 
@@ -1104,7 +1104,7 @@ sub doSearch {
 
   $theRows =~ s/[^\d]//g if defined $theRows;
   $theRows = Foswiki::Func::expandTemplate('solr::defaultrows') if !defined($theRows) || $theRows eq '';
-  $theRows = 10 if !defined($theRows) || $theRows eq '';
+  $theRows = 20 if !defined($theRows) || $theRows eq '';
 
   my $solrParams = {
     "indent" =>'on',
@@ -1234,7 +1234,7 @@ sub doSearch {
 
   $solrParams->{"fq"} = \@filter if @filter;
 
-  if (DEBUG) {
+  if (TRACE) {
     foreach my $key (sort keys %$solrParams) {
       my $val = $solrParams->{$key};
       if (ref($val)) {
@@ -1251,11 +1251,11 @@ sub doSearch {
     }
   }
 
-  #$this->log("query=$query") if DEBUG;
+  #$this->log("query=$query") if TRACE;
   my $response = $this->solrSearch($query, $solrParams);
 
-  # DEBUG raw response
-  if (DEBUG) {
+  # TRACE raw response
+  if (TRACE) {
     my $raw = $response->raw_response->content();
     #$raw =~ s/"response":.*$//s;
     $this->log("response: $raw");
@@ -1699,7 +1699,7 @@ sub getScriptUrl {
 
   my $theRows = $params->{rows};
   $theRows = Foswiki::Func::expandTemplate('solr::defaultrows') unless defined $theRows;
-  $theRows = 10 if !defined($theRows) || $theRows eq '';
+  $theRows = 20 if !defined($theRows) || $theRows eq '';
 
   my $theSort = $params->{sort};
   $theSort = Foswiki::Func::expandTemplate("solr::defaultsort") unless defined $theSort;
