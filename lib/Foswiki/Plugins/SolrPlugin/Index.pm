@@ -1185,7 +1185,6 @@ sub getWikiName {
   my $user = shift;
 
   my $wikiName = Foswiki::Func::getWikiName($user) || 'UnknownUser';
-  $wikiName = 'UnknownUser' unless Foswiki::Func::isValidWikiWord($wikiName);    # weed out some strangers
 
   return $wikiName;
 }
