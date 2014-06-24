@@ -18,6 +18,8 @@ lib/Foswiki/Configure/Checkers/SolrPlugin/SupportedLanguages.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Autosuggest.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Base.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Config.spec 0644
+lib/Foswiki/Plugins/SolrPlugin/Grinder.pm 0644
+lib/Foswiki/Plugins/SolrPlugin/GrinderDispatch.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Index.pm 0644
 lib/Foswiki/Plugins/SolrPlugin.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Search.pm 0644
