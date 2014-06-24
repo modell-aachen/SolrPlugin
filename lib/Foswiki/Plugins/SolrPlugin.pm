@@ -122,6 +122,10 @@ sub initPlugin {
     return getCrawler($session, $name)->crawl($path, $depth);
   });
 
+  if ($Foswiki::cfg{Plugins}{TaskDaemonPlugin}{Enabled}) {
+    Foswiki::Func::registerRESTHandler('index', \&_restIndex);
+  }
+
   Foswiki::Func::addToZone("script", "SOLRPLUGIN::SEARCHBOX", <<'HERE', "JQUERYPLUGIN");
 <script src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solr-searchbox.js'></script> 
 HERE
@@ -208,7 +212,21 @@ sub searchCgi {
   $session->writeCompletePage($result, 'view');
 }
 
+sub _dispatchGrinderHandler {
+  my $handler = [caller(1)]->[3]; # subroutine
+  $handler =~ s/.*:://;
+  return unless $Foswiki::cfg{Plugins}{TaskDaemonPlugin}{Enabled};
+  require Foswiki::Plugins::SolrPlugin::GrinderDispatch;
+  no strict 'refs';
+  &{"Foswiki::Plugins::SolrPlugin::GrinderDispatch::$handler"}(@_);
+}
+
+sub beforeSaveHandler {
+  &_dispatchGrinderHandler;
+}
+
 sub afterSaveHandler {
+  &_dispatchGrinderHandler;
   return unless $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates};
 
   my ($text, $topic, $web, $error, $meta) = @_;
@@ -222,8 +240,17 @@ sub afterUploadHandler {
 }
 
 sub afterRenameHandler {
+  &_dispatchGrinderHandler;
   return unless $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
   getIndexer()->afterRenameHandler(@_);
+}
+
+sub completePageHandler {
+    &_dispatchGrinderHandler;
+}
+
+sub _restIndex {
+    &_dispatchGrinderHandler;
 }
 
 sub finishPlugin {
