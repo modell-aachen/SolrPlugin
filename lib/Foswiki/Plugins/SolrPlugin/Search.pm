@@ -162,8 +162,12 @@ sub formatResponse {
 
   my $hilites;
   if ($theFormat =~ /\$hilite/ || $theHeader =~ /\$hilite/ || $theFooter =~ /\$hilite/) {
-    $hilites = $this->getHighlights($response);
-    $hilites = toSiteCharSet($hilites);
+    my $hilitesEncoded = $this->getHighlights($response);
+    if($hilitesEncoded) {
+        foreach my $key (keys %$hilitesEncoded) {
+            $hilites->{toSiteCharSet($key)} = toSiteCharSet($hilitesEncoded->{$key});
+        }
+    }
   }
 
   my $moreLikeThis;
