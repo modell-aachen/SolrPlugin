@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 {
+    cache_fields => ['groups_members', 'web_acls'],
     handle_message => sub {
         my ($host, $t, $hdl, $run_engine, $json) = @_;
         if ($t =~ m'update_topic|update_web') {
@@ -10,13 +11,9 @@ use warnings;
             if ($@) {
                 print "Worker: $t exception: $@\n";
             } else {
-                for my $c ('groups_members', 'web_acls') {
-                    $hdl->push_write(json => {
-                        type => 'set_cache',
-                        host => $host,
-                        data => {key => $c, value => $main::mattworker_data{caches}{$c}},
-                    });
-                }
+                return {
+                    caches => $main::mattworker_data{caches},
+                };
             }
         } elsif ($t eq 'flush_acls') {
             print "Flush web ACL cache\n";
@@ -45,6 +42,5 @@ use warnings;
             groups_members => $indexer->groupsCache(),
             web_acls => $indexer->webACLsCache(),
         };
-
     },
 };
