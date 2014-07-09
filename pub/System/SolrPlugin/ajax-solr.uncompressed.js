@@ -1708,8 +1708,11 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
     if (params) {
       for (i in params) {
         param = params[i];
-        q = (this.union ? new RegExp('^-?' + this.field + ':\\((.*)\\)')
-            : new RegExp('^-?' + this.field + ':(.*)')).exec(param.val())[1];
+        var fieldQuoted = this.field.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        var match = (this.union ? new RegExp('^-?' + fieldQuoted + ':\\((.*)\\)')
+            : new RegExp('^-?' + fieldQuoted + ':(.*)')).exec(param.val());
+        if(!match) continue;
+        q = match[1];
         if (this.union) {
           values = AjaxSolr.parseStringList(q).slice();
         } else {

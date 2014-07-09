@@ -36,6 +36,7 @@ AJAX_SOLR_WIDGETS_SOURCE=\
   widgets/FacetFieldWidget.uncompressed.js \
   widgets/WebFacetWidget.uncompressed.js \
   widgets/ToggleFacetWidget.uncompressed.js \
+  widgets/DefaultFacetWidget.uncompressed.js \
   widgets/PagerWidget.uncompressed.js \
   widgets/ResultsPerPageWidget.uncompressed.js \
   widgets/ResultWidget.uncompressed.js \

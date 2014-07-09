@@ -53,6 +53,7 @@
     $(".solrFacetField").solrFacetFieldWidget(manager);
     $(".solrWebFacetField").solrWebFacetWidget(manager);
     $(".solrToggleFacet").solrToggleFacetWidget(manager);
+    $(".solrDefaultFacet").solrDefaultFacetWidget(manager);
     $("#solrCurrentSelection").solrCurrentSelectionWidget(manager);
     $("#solrSearchBox").solrSearchBoxWidget(manager);
     $(".solrResultsPerPage").solrResultsPerPageWidget(manager);

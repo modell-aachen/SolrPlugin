@@ -72,6 +72,7 @@ pub/System/SolrPlugin/toggle.png 0644
 pub/System/SolrPlugin/widgets/AbstractJQueryFacetWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/AbstractJQueryWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/CurrentSelectionWidget.uncompressed.js 0644
+pub/System/SolrPlugin/widgets/DefaultFacetWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/FacetFieldWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/HierarchyWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/PagerWidget.uncompressed.js 0644
