@@ -5,7 +5,7 @@ use warnings;
     cache_fields => ['groups_members', 'web_acls'],
     handle_message => sub {
         my ($host, $t, $hdl, $run_engine, $json) = @_;
-        if ($t =~ m'update_topic|update_web') {
+        if ($t =~ m'delete_topic|update_topic|update_web') {
             $main::mattworker_data{caches} = $json->{cache};
             eval { $run_engine->(); };
             if ($@) {
@@ -31,6 +31,11 @@ use warnings;
 
         if ($type eq 'update_topic') {
             $indexer->updateTopic(undef, $data);
+            $indexer->commit(1);
+        }
+        elsif ($type eq 'delete_topic') {
+            my ($web, $topic) = Foswiki::Func::normalizeWebTopicName(undef, $data);
+            $indexer->deleteDocument($web, $topic);
             $indexer->commit(1);
         }
         elsif ($type eq 'update_web') {
