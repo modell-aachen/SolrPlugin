@@ -47,7 +47,7 @@ sub afterRenameHandler {
          # XXX when a topic is being moved in the frontend a
          # _send("$newWeb.$newTopic") will be fired by afterSaveHandler, since
          # a %META:TOPICMOVED{...}% will be inserted
-         _send("$oldWeb.$oldTopic", 'update_topic');
+         _send("$oldWeb.$oldTopic", 'delete_topic') unless $oldAttachment;
          _send("$newWeb.$newTopic", 'update_topic');
      }
 }
