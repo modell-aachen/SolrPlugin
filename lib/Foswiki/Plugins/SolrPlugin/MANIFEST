@@ -188,3 +188,4 @@ tools/solrstart 0755
 tools/virtualhosts-solrdelete 0755
 tools/virtualhosts-solrindex 0755
 tools/virtualhosts-solrsearch 0755
+ressources/solrworker 0755
