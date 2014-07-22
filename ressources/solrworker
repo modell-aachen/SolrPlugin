@@ -1,7 +1,7 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          solrworker
-# Required-Start:    $remote_fs $syslog
+# Required-Start:    $remote_fs $syslog mattdaemon
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -14,6 +14,7 @@ BIN="./mattworker"
 PARAMS="--department="SolrPlugin" -d"
 PIDFILE=/var/run/solrworker.pid
 WORKER_USER=www-data
+LOGFILE=$FOSWIKI_ROOT/working/logs/solrindex.log
 
 . /lib/lsb/init-functions
 
@@ -31,7 +32,7 @@ case "${1:-}" in
         cd $FOSWIKI_ROOT
         cd tools
 
-        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" www-data > $PIDFILE
+        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" www-data > $PIDFILE 2> $LOGFILE
         #start-stop-daemon -b --pidfile $PIDFILE --user $WORKER_USER -d $FOSWIKI_ROOT/tools --start --exec /usr/bin/perl --startas $BIN -- $PARAMS
         RC=$?
         set -e
