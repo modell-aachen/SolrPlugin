@@ -32,7 +32,7 @@ case "${1:-}" in
         cd $FOSWIKI_ROOT
         cd tools
 
-        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" www-data > $PIDFILE 2> $LOGFILE
+        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" www-data > $PIDFILE 2>> $LOGFILE
         #start-stop-daemon -b --pidfile $PIDFILE --user $WORKER_USER -d $FOSWIKI_ROOT/tools --start --exec /usr/bin/perl --startas $BIN -- $PARAMS
         RC=$?
         set -e
