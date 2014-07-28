@@ -16,10 +16,10 @@ use warnings;
                 };
             }
         } elsif ($t eq 'flush_acls') {
-            print "Flush web ACL cache\n";
+            print STDERR "Flush web ACL cache\n";
             $hdl->push_write(json => {type => 'clear_cache', host => $host});
         } elsif ($t eq 'flush_groups') {
-            print "Flush group membership cache\n";
+            print STDERR "Flush group membership cache\n";
             $hdl->push_write(json => {type => 'clear_cache', host => $host});
         }
     },
