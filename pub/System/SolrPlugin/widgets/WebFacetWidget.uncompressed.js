@@ -16,7 +16,7 @@
       for (var i = 0, l = facetCounts.length; i < l; i++) {
         facet = facetCounts[i].facet;
         //self.keyOfValue[facet] = facetCounts[i].key = _(facet.slice(facet.lastIndexOf('.') + 1));
-        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./,"/"));
+        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./g,"/"));
       }
 
       facetCounts.sort(function(a,b) {
