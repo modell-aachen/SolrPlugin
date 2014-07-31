@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: SolrPlugin $Id\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2014-07-31 17:14+0200\n"
+"PO-Revision-Date: 2014-07-31 17:19+0200\n"
 "Last-Translator: Modell Aachen <access@modell-aachen.de>\n"
 "Language-Team: German <http://translate.modell-aachen.de/projects/solrplugin"
 "/releasenew-york/de/>\n"
@@ -80,7 +80,7 @@ msgid "Category"
 msgstr "Kategorie"
 
 msgid "Chinese/Japanese/Korean"
-msgstr ""
+msgstr "Chinesisch/Japanisch/Koreanisch"
 
 #: data/System/SolrSearchBaseTemplate.txt:623
 msgid "Clear"
