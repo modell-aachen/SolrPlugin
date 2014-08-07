@@ -22,6 +22,7 @@ use warnings;
             print STDERR "Flush group membership cache\n";
             $hdl->push_write(json => {type => 'clear_cache', host => $host});
         }
+        return {};
     },
     engine_part => sub {
         my ($session, $type, $data, $caches) = @_;
