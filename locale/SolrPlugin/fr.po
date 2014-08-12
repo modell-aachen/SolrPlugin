@@ -61,13 +61,7 @@ msgstr "Catégorie"
 msgid "Clear"
 msgstr "Effacer"
 
-msgid "Contributor"
-msgstr "Contributeur"
-
-msgid "Danish"
-msgstr "Danois"
-
-#: data/System/SolrSearchBaseTemplate.txt:330
+#: data/System/SolrSearchBaseTemplate.txt:370
 msgid "Did you mean %1?"
 msgstr "Vouliez-vous dire% 1?"
 
@@ -293,7 +287,7 @@ msgstr "Taggé %1"
 
 #: data/System/SolrSearchBaseTemplate.txt:491
 msgid "today"
-msgstr "Aujourd\\\\\\'hui"
+msgstr "Aujourd 'hui"
 
 #: data/System/SolrSearchBaseTemplate.txt:88
 msgid "topic type"
