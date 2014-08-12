@@ -6,15 +6,16 @@ msgstr ""
 "Project-Id-Version: fr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2014-04-08 11:19+0200\n"
-"Last-Translator: Islem Haddar <haddar@modell-aachen.de>\n"
-"Language-Team: <support@modell-aachen.de>\n"
+"PO-Revision-Date: 2014-08-11 17:26+0200\n"
+"Last-Translator: geisen <>\n"
+"Language-Team: French <http://translate.modell-aachen.de/projects/solrplugin"
+"/releasenew-york/fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Pootle 2.1.6\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 1.9\n"
 
 #: data/System/SolrSearchBaseTemplate.txt:661
 msgid "(none)"
@@ -58,9 +59,15 @@ msgstr "Catégorie"
 
 #: data/System/SolrSearchBaseTemplate.txt:663
 msgid "Clear"
-msgstr ""
+msgstr "Effacer"
 
-#: data/System/SolrSearchBaseTemplate.txt:370
+msgid "Contributor"
+msgstr "Contributeur"
+
+msgid "Danish"
+msgstr "Danois"
+
+#: data/System/SolrSearchBaseTemplate.txt:330
 msgid "Did you mean %1?"
 msgstr "Vouliez-vous dire% 1?"
 
@@ -100,7 +107,6 @@ msgstr "Dans le web actuel"
 msgid "In my contributions"
 msgstr "Dans mes contributions"
 
-#: data/System/SolrSearchBaseTemplate.txt:507
 msgid "Language"
 msgstr "Langue"
 
@@ -192,7 +198,7 @@ msgstr "Tel"
 
 #: data/System/SolrSearchBaseTemplate.txt:503
 msgid "Topic type"
-msgstr ""
+msgstr "Type du contenu"
 
 #: data/System/SolrSearchBaseTemplate.txt:471
 msgid "Web"
@@ -218,7 +224,7 @@ msgstr ""
 #: data/System/SolrWikiUsersViewTemplate.txt:102
 #: data/System/SolrWikiUsersViewTemplate.txt:76
 msgid "else"
-msgstr ""
+msgstr "autrement"
 
 #: data/System/SolrSearchBaseTemplate.txt:710
 msgid "grid"
