@@ -15,93 +15,57 @@ msgstr ""
 "X-Poedit-Country: Taiwan\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: data/System/SolrSearchBaseTemplate.txt:621
+#: data/System/SolrSearchBaseTemplate.txt:661
 msgid "(none)"
 msgstr "(无)"
 
-#: data/System/SolrSearchBaseTemplate.txt:258
-#: data/System/SolrSearchBaseTemplate.txt:330
-msgid "/each"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:136
-#: data/System/SolrSearchBaseTemplate.txt:159
-#: data/System/SolrSearchBaseTemplate.txt:190
-#: data/System/SolrSearchBaseTemplate.txt:225
-#: data/System/SolrSearchBaseTemplate.txt:232
-#: data/System/SolrSearchBaseTemplate.txt:303
-#: data/System/SolrSearchBaseTemplate.txt:330
-#: data/System/SolrWikiUsersViewTemplate.txt:104
-#: data/System/SolrWikiUsersViewTemplate.txt:62
-#: data/System/SolrWikiUsersViewTemplate.txt:63
-#: data/System/SolrWikiUsersViewTemplate.txt:64
-#: data/System/SolrWikiUsersViewTemplate.txt:65
-#: data/System/SolrWikiUsersViewTemplate.txt:78
-msgid "/if"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:449
+#: data/System/SolrSearchBaseTemplate.txt:489
 msgid "1 hour"
 msgstr "１小时"
 
-#: data/System/SolrSearchBaseTemplate.txt:454
+#: data/System/SolrSearchBaseTemplate.txt:494
 msgid "1 month"
 msgstr "１个月"
 
-#: data/System/SolrSearchBaseTemplate.txt:456
+#: data/System/SolrSearchBaseTemplate.txt:496
 msgid "1 year"
 msgstr "１年"
 
-#: data/System/SolrSearchBaseTemplate.txt:452
+#: data/System/SolrSearchBaseTemplate.txt:492
 msgid "2 days"
 msgstr "２天"
 
-#: data/System/SolrSearchBaseTemplate.txt:455
+#: data/System/SolrSearchBaseTemplate.txt:495
 msgid "2 months"
 msgstr "２个月"
 
-#: data/System/SolrSearchBaseTemplate.txt:450
+#: data/System/SolrSearchBaseTemplate.txt:490
 msgid "4 hours"
 msgstr "４小时"
 
-#: data/System/SolrSearchBaseTemplate.txt:453
+#: data/System/SolrSearchBaseTemplate.txt:493
 msgid "7 days"
 msgstr "７天"
 
-#: data/System/SolrSearchBaseTemplate.txt:472
+#: data/System/SolrSearchBaseTemplate.txt:512
 msgid "Author"
 msgstr ""
 
-msgid "Categories"
-msgstr "类别"
-
-#: data/System/WebChangesViewTemplate.txt:11
+#: data/System/SolrSearchBaseTemplate.txt:96
 msgid "Category"
 msgstr "分类"
 
-msgid "Chinese/Japanese/Korean"
-msgstr "中文/日文/韩文"
-
-#: data/System/SolrSearchBaseTemplate.txt:623
+#: data/System/SolrSearchBaseTemplate.txt:663
 msgid "Clear"
 msgstr "清除"
 
-msgid "Contributor"
-msgstr "搞稿者"
-
-msgid "Danish"
-msgstr "丹麦语"
-
-#: data/System/SolrSearchBaseTemplate.txt:330
+#: data/System/SolrSearchBaseTemplate.txt:370
 msgid "Did you mean %1?"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:663
+#: data/System/SolrSearchBaseTemplate.txt:703
 msgid "Display as"
 msgstr "显示为"
-
-msgid "Dutch"
-msgstr "荷兰语"
 
 #: data/System/SolrWikiUsersViewTemplate.txt:64
 msgid "Email"
@@ -112,62 +76,51 @@ msgid "English"
 msgstr "英语"
 
 #: data/System/SolrSearchBaseTemplate.txt:85
-#, fuzzy
 msgid "Filed in %1"
 msgstr "在%1"
 
-#: data/System/SolrSearchBaseTemplate.txt:617
+#: data/System/SolrSearchBaseTemplate.txt:657
 msgid "Filter results"
 msgstr "过滤的结果"
-
-msgid "Finnish"
-msgstr "芬兰语"
-
-msgid "French"
-msgstr "法语"
 
 #: data/System/SolrSearchBaseTemplate.txt:92
 msgid "German"
 msgstr "德语"
 
-#: data/System/SolrSearchBaseTemplate.txt:705
+#: data/System/SolrSearchBaseTemplate.txt:745
 msgid "In all webs"
 msgstr "在所有的网页"
 
-#: data/System/SolrSearchBaseTemplate.txt:696
+#: data/System/SolrSearchBaseTemplate.txt:736
 msgid "In current web"
 msgstr "在当前的网页"
 
-#: data/System/SolrSearchBaseTemplate.txt:714
+#: data/System/SolrSearchBaseTemplate.txt:754
 msgid "In my contributions"
 msgstr "在我所有的文稿中"
 
-msgid "Italian"
-msgstr "意大利语"
-
-#: data/System/SolrSearchBaseTemplate.txt:467
+#: data/System/SolrSearchBaseTemplate.txt:507
 msgid "Language"
 msgstr "语言"
 
-#: data/System/SolrSearchBaseTemplate.txt:647
+#: data/System/SolrSearchBaseTemplate.txt:687
 msgid "Last changed"
 msgstr "最后的更改"
 
 #: data/System/SolrWikiUsersViewTemplate.txt:33
 #: data/System/SolrWikiUsersViewTemplate.txt:65
-#, fuzzy
 msgid "Location"
 msgstr "应用"
 
-#: data/System/SolrSearchBaseTemplate.txt:442
+#: data/System/SolrSearchBaseTemplate.txt:482
 msgid "Media"
 msgstr "多媒体"
 
-#: data/System/SolrSearchBaseTemplate.txt:648
+#: data/System/SolrSearchBaseTemplate.txt:688
 msgid "Name"
 msgstr "名称"
 
-#: data/System/SolrSearchBaseTemplate.txt:351
+#: data/System/SolrSearchBaseTemplate.txt:392
 msgid "Next"
 msgstr ""
 
@@ -175,14 +128,11 @@ msgstr ""
 msgid "Organisation"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:726
+#: data/System/SolrSearchBaseTemplate.txt:766
 msgid "Popular tags"
 msgstr "通用标签"
 
-msgid "Portuguese"
-msgstr "葡萄牙语"
-
-#: data/System/SolrSearchBaseTemplate.txt:351
+#: data/System/SolrSearchBaseTemplate.txt:392
 msgid "Previous"
 msgstr ""
 
@@ -191,58 +141,45 @@ msgstr ""
 msgid "Profession"
 msgstr ""
 
-#: data/System/SolrSideBar.txt:68
-#, fuzzy
+#: data/System/SolrSideBar.txt:71
 msgid "Recent Changes"
 msgstr "最近的更改"
 
-#: data/System/SolrSearchBaseTemplate.txt:447
-#: data/System/WebChangesViewTemplate.txt:22
+#: data/System/SolrSearchBaseTemplate.txt:487
+#: data/System/WebChangesViewTemplate.txt:19
 msgid "Recent changes"
 msgstr "最近的更改"
 
-#: data/System/WebChangesViewTemplate.txt:23
+#: data/System/WebChangesViewTemplate.txt:20
 msgid "Recent changes in %1"
 msgstr "在%1中最近的更改"
 
-msgid "Recently changed"
-msgstr "最近改变了"
-
-#: data/System/SolrSearchBaseTemplate.txt:646
+#: data/System/SolrSearchBaseTemplate.txt:686
 msgid "Relevance"
 msgstr "相关联"
 
-#: data/System/SolrSearchBaseTemplate.txt:300
+#: data/System/SolrSearchBaseTemplate.txt:340
 #: data/System/SolrWikiUsersViewTemplate.txt:101
 msgid "Results %1 - %2 of <b>%3</b>"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:308
+#: data/System/SolrSearchBaseTemplate.txt:348
 #: data/System/SolrWikiUsersViewTemplate.txt:109
 msgid "Results per page"
 msgstr "每页的结果"
 
-msgid "Russian"
-msgstr "俄语"
-
-#: data/System/SolrSearchBaseTemplate.txt:393
-#: data/System/SolrSearchViewTemplate.txt:25
+#: data/System/NatSkinSolrSearchViewTemplate.txt:24
+#: data/System/SolrSearchBaseTemplate.txt:433
 msgid "Search"
 msgstr "搜寻"
 
-#: data/System/SolrSideBar.txt:42
+#: data/System/SolrSideBar.txt:41
 msgid "Similar topics"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:643
+#: data/System/SolrSearchBaseTemplate.txt:683
 msgid "Sort by"
 msgstr "排序以"
-
-msgid "Spanish"
-msgstr "西班牙语"
-
-msgid "Swedish"
-msgstr "瑞典语"
 
 #: data/System/SolrSearchBaseTemplate.txt:86
 msgid "Tagged %1"
@@ -252,159 +189,78 @@ msgstr ""
 msgid "Tel"
 msgstr ""
 
-msgid "Timespan"
-msgstr "时间间隔"
-
-#: data/System/SolrSearchBaseTemplate.txt:463
+#: data/System/SolrSearchBaseTemplate.txt:503
 msgid "Topic type"
 msgstr ""
 
-msgid "Turkish"
-msgstr "土尔其语"
-
-#: data/System/SolrSearchBaseTemplate.txt:431
-#, fuzzy
+#: data/System/SolrSearchBaseTemplate.txt:471
 msgid "Web"
 msgstr "子网"
 
-msgid "Webs"
-msgstr "子网"
+#: data/System/SolrSearchBaseTemplate.txt:779
+msgid "You are here:"
+msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:619
+#: data/System/SolrSearchBaseTemplate.txt:659
 msgid "Your selection"
 msgstr "你的选择"
 
-#: data/System/SolrSearchBaseTemplate.txt:330
+#: data/System/SolrSearchBaseTemplate.txt:370
 msgid "each suggestions"
 msgstr ""
 
+#: data/System/SolrSearchBaseTemplate.txt:152
+#: data/System/SolrSearchBaseTemplate.txt:178
+#: data/System/SolrSearchBaseTemplate.txt:203
 #: data/System/SolrSearchBaseTemplate.txt:247
-msgid "each(index, value) widget.facetCounts"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:136
-#: data/System/SolrSearchBaseTemplate.txt:159
-#: data/System/SolrSearchBaseTemplate.txt:225
-#: data/System/SolrSearchBaseTemplate.txt:301
+#: data/System/SolrSearchBaseTemplate.txt:341
 #: data/System/SolrWikiUsersViewTemplate.txt:102
 #: data/System/SolrWikiUsersViewTemplate.txt:76
 msgid "else"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:670
+#: data/System/SolrSearchBaseTemplate.txt:710
 msgid "grid"
 msgstr "网格"
 
-#: data/System/SolrSearchBaseTemplate.txt:252
-msgid "html $item.checked(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:252
-#: data/System/SolrSearchBaseTemplate.txt:254
-msgid "html $item.getFacetKey(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:252
-msgid "html $item.getFacetValue(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:146
-#: data/System/SolrSearchBaseTemplate.txt:166
-#: data/System/SolrSearchBaseTemplate.txt:193
-#: data/System/SolrSearchBaseTemplate.txt:213
-#: data/System/SolrSearchBaseTemplate.txt:235
-msgid "html $item.getHilite(id)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:143
-msgid "html $item.renderTopicInfo()"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:290
-msgid "html group"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:330
-msgid "if $index > 0"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:188
+#: data/System/SolrSearchBaseTemplate.txt:155
+#: data/System/SolrSearchBaseTemplate.txt:181
+#: data/System/SolrSearchBaseTemplate.txt:206
 #: data/System/SolrSearchBaseTemplate.txt:230
-msgid "if comment"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:299
-#: data/System/SolrWikiUsersViewTemplate.txt:100
-msgid "if count > 0"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:64
-msgid "if field_Email_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:65
-msgid "if field_Location_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:62
-msgid "if field_Profession_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:63
-msgid "if field_Telephone_s"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:136
-#: data/System/SolrSearchBaseTemplate.txt:159
-#: data/System/SolrSearchBaseTemplate.txt:225
-msgid "if icon"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:74
-msgid "if thumbnail"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:139
-#: data/System/SolrSearchBaseTemplate.txt:162
-#: data/System/SolrSearchBaseTemplate.txt:186
-#: data/System/SolrSearchBaseTemplate.txt:209
-#: data/System/SolrSearchBaseTemplate.txt:228
+#: data/System/SolrSearchBaseTemplate.txt:250
 msgid "in %1"
 msgstr "在%1"
 
 #: data/System/SolrSearchBaseTemplate.txt:94
-#, fuzzy
 msgid "keyword"
 msgstr "关键字"
 
 #: data/System/SolrSearchBaseTemplate.txt:93
-#, fuzzy
 msgid "language"
 msgstr "语言"
 
-#: data/System/SolrSearchBaseTemplate.txt:666
+#: data/System/SolrSearchBaseTemplate.txt:706
 msgid "list"
 msgstr "列表"
 
 #: data/System/SolrSearchBaseTemplate.txt:89
-#, fuzzy
 msgid "media"
 msgstr "多媒体"
 
-#: data/System/SolrSearchBaseTemplate.txt:245
+#: data/System/SolrSearchBaseTemplate.txt:267
 msgid "next"
 msgstr "下一页"
 
-#: data/System/SolrSearchBaseTemplate.txt:302
+#: data/System/SolrSearchBaseTemplate.txt:342
 #: data/System/SolrWikiUsersViewTemplate.txt:103
 msgid "nothing found"
 msgstr "没有发现"
 
-#: data/System/SolrSearchBaseTemplate.txt:457
+#: data/System/SolrSearchBaseTemplate.txt:497
 msgid "older"
 msgstr "以前的"
 
-#: data/System/SolrSearchBaseTemplate.txt:245
+#: data/System/SolrSearchBaseTemplate.txt:267
 msgid "prev"
 msgstr "上一页"
 
@@ -412,16 +268,15 @@ msgstr "上一页"
 msgid "recently"
 msgstr ""
 
-#: data/System/SolrSideBar.txt:45
+#: data/System/SolrSideBar.txt:44
 msgid "score: %1"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:393
+#: data/System/SolrSearchBaseTemplate.txt:433
 msgid "submit the query"
 msgstr "提交查询"
 
 #: data/System/SolrSearchBaseTemplate.txt:95
-#, fuzzy
 msgid "tag"
 msgstr "标签"
 
@@ -429,16 +284,7 @@ msgstr "标签"
 msgid "tagged %1"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:129
-#: data/System/SolrWikiUsersViewTemplate.txt:52
-msgid "tmpl($data, $item) $item.getTemplateName()"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:59
-msgid "tmpl($data, $item) solrHitTemplate_userimage"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:451
+#: data/System/SolrSearchBaseTemplate.txt:491
 msgid "today"
 msgstr "今天"
 

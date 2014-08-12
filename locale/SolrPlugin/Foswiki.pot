@@ -19,10 +19,6 @@ msgstr ""
 msgid "(none)"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:280 data/System/SolrSearchBaseTemplate.txt:324 data/System/SolrSearchBaseTemplate.txt:370
-msgid "/each"
-msgstr ""
-
 #: data/System/SolrSearchBaseTemplate.txt:489
 msgid "1 hour"
 msgstr ""
@@ -207,92 +203,12 @@ msgstr ""
 msgid "each suggestions"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:320
-msgid "each(index, value) $item.getChildren"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:269
-msgid "each(index, value) widget.facetCounts"
-msgstr ""
-
 #: data/System/SolrSearchBaseTemplate.txt:152 data/System/SolrSearchBaseTemplate.txt:178 data/System/SolrSearchBaseTemplate.txt:203 data/System/SolrSearchBaseTemplate.txt:247 data/System/SolrSearchBaseTemplate.txt:341 data/System/SolrWikiUsersViewTemplate.txt:102 data/System/SolrWikiUsersViewTemplate.txt:76
 msgid "else"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:710
 msgid "grid"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:274
-msgid "html $item.checked(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:274 data/System/SolrSearchBaseTemplate.txt:276
-msgid "html $item.getFacetKey(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:274
-msgid "html $item.getFacetValue(facet)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:163 data/System/SolrSearchBaseTemplate.txt:185 data/System/SolrSearchBaseTemplate.txt:213 data/System/SolrSearchBaseTemplate.txt:234 data/System/SolrSearchBaseTemplate.txt:257
-msgid "html $item.getHilite(id)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:318
-msgid "html $item.renderFacetCount(id)"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:159
-msgid "html $item.renderTopicInfo()"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:312
-msgid "html group"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:370
-msgid "if $index > 0"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:325
-msgid "if $item.getChildren().length >= 5"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:208 data/System/SolrSearchBaseTemplate.txt:252
-msgid "if comment"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:339 data/System/SolrWikiUsersViewTemplate.txt:100
-msgid "if count > 0"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:64
-msgid "if field_Email_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:65
-msgid "if field_Location_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:62
-msgid "if field_Profession_s"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:63
-msgid "if field_Telephone_s"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:152 data/System/SolrSearchBaseTemplate.txt:178 data/System/SolrSearchBaseTemplate.txt:203 data/System/SolrSearchBaseTemplate.txt:247
-msgid "if icon"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:321
-msgid "if index < 5"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:137 data/System/SolrWikiUsersViewTemplate.txt:74
-msgid "if thumbnail"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:155 data/System/SolrSearchBaseTemplate.txt:181 data/System/SolrSearchBaseTemplate.txt:206 data/System/SolrSearchBaseTemplate.txt:230 data/System/SolrSearchBaseTemplate.txt:250
@@ -349,14 +265,6 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:87
 msgid "tagged %1"
-msgstr ""
-
-#: data/System/SolrSearchBaseTemplate.txt:131 data/System/SolrWikiUsersViewTemplate.txt:52
-msgid "tmpl($data, $item) $item.getTemplateName()"
-msgstr ""
-
-#: data/System/SolrWikiUsersViewTemplate.txt:59
-msgid "tmpl($data, $item) solrHitTemplate_userimage"
 msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt:491
