@@ -15,279 +15,268 @@ msgstr ""
 "X-Poedit-Country: Taiwan\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: data/System/SolrSearchBaseTemplate.txt:661
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "(none)"
 msgstr "(无)"
 
-#: data/System/SolrSearchBaseTemplate.txt:489
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "1 hour"
 msgstr "１小时"
 
-#: data/System/SolrSearchBaseTemplate.txt:494
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "1 month"
 msgstr "１个月"
 
-#: data/System/SolrSearchBaseTemplate.txt:496
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "1 year"
 msgstr "１年"
 
-#: data/System/SolrSearchBaseTemplate.txt:492
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "2 days"
 msgstr "２天"
 
-#: data/System/SolrSearchBaseTemplate.txt:495
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "2 months"
 msgstr "２个月"
 
-#: data/System/SolrSearchBaseTemplate.txt:490
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "4 hours"
 msgstr "４小时"
 
-#: data/System/SolrSearchBaseTemplate.txt:493
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "7 days"
 msgstr "７天"
 
-#: data/System/SolrSearchBaseTemplate.txt:512
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Author"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:96
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Category"
 msgstr "分类"
 
-#: data/System/SolrSearchBaseTemplate.txt:663
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Clear"
 msgstr "清除"
 
-#: data/System/SolrSearchBaseTemplate.txt:370
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Did you mean %1?"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:703
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Display as"
 msgstr "显示为"
 
-#: data/System/SolrWikiUsersViewTemplate.txt:64
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Email"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:91
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "English"
 msgstr "英语"
 
-#: data/System/SolrSearchBaseTemplate.txt:85
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Filed in %1"
 msgstr "在%1"
 
-#: data/System/SolrSearchBaseTemplate.txt:657
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Filter results"
 msgstr "过滤的结果"
 
-#: data/System/SolrSearchBaseTemplate.txt:92
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "German"
 msgstr "德语"
 
-#: data/System/SolrSearchBaseTemplate.txt:745
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "In all webs"
 msgstr "在所有的网页"
 
-#: data/System/SolrSearchBaseTemplate.txt:736
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "In current web"
 msgstr "在当前的网页"
 
-#: data/System/SolrSearchBaseTemplate.txt:754
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "In my contributions"
 msgstr "在我所有的文稿中"
 
-#: data/System/SolrSearchBaseTemplate.txt:507
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Language"
 msgstr "语言"
 
-#: data/System/SolrSearchBaseTemplate.txt:687
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Last changed"
 msgstr "最后的更改"
 
-#: data/System/SolrWikiUsersViewTemplate.txt:33
-#: data/System/SolrWikiUsersViewTemplate.txt:65
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Location"
 msgstr "应用"
 
-#: data/System/SolrSearchBaseTemplate.txt:482
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Media"
 msgstr "多媒体"
 
-#: data/System/SolrSearchBaseTemplate.txt:688
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Name"
 msgstr "名称"
 
-#: data/System/SolrSearchBaseTemplate.txt:392
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Next"
 msgstr ""
 
-#: data/System/SolrWikiUsersViewTemplate.txt:25
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Organisation"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:766
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Popular tags"
 msgstr "通用标签"
 
-#: data/System/SolrSearchBaseTemplate.txt:392
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Previous"
 msgstr ""
 
-#: data/System/SolrWikiUsersViewTemplate.txt:42
-#: data/System/SolrWikiUsersViewTemplate.txt:62
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Profession"
 msgstr ""
 
-#: data/System/SolrSideBar.txt:71
+#: data/System/SolrSideBar.txt
 msgid "Recent Changes"
 msgstr "最近的更改"
 
-#: data/System/SolrSearchBaseTemplate.txt:487
-#: data/System/WebChangesViewTemplate.txt:19
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes"
 msgstr "最近的更改"
 
-#: data/System/WebChangesViewTemplate.txt:20
+#: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes in %1"
 msgstr "在%1中最近的更改"
 
-#: data/System/SolrSearchBaseTemplate.txt:686
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Relevance"
 msgstr "相关联"
 
-#: data/System/SolrSearchBaseTemplate.txt:340
-#: data/System/SolrWikiUsersViewTemplate.txt:101
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results %1 - %2 of <b>%3</b>"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:348
-#: data/System/SolrWikiUsersViewTemplate.txt:109
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results per page"
 msgstr "每页的结果"
 
-#: data/System/NatSkinSolrSearchViewTemplate.txt:24
-#: data/System/SolrSearchBaseTemplate.txt:433
+#: data/System/NatSkinSolrSearchViewTemplate.txt
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Search"
 msgstr "搜寻"
 
-#: data/System/SolrSideBar.txt:41
+#: data/System/SolrSideBar.txt
 msgid "Similar topics"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:683
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Sort by"
 msgstr "排序以"
 
-#: data/System/SolrSearchBaseTemplate.txt:86
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Tagged %1"
 msgstr ""
 
-#: data/System/SolrWikiUsersViewTemplate.txt:63
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Tel"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:503
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Topic type"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:471
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Web"
 msgstr "子网"
 
-#: data/System/SolrSearchBaseTemplate.txt:779
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "You are here:"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:659
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "Your selection"
 msgstr "你的选择"
 
-#: data/System/SolrSearchBaseTemplate.txt:370
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "each suggestions"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:152
-#: data/System/SolrSearchBaseTemplate.txt:178
-#: data/System/SolrSearchBaseTemplate.txt:203
-#: data/System/SolrSearchBaseTemplate.txt:247
-#: data/System/SolrSearchBaseTemplate.txt:341
-#: data/System/SolrWikiUsersViewTemplate.txt:102
-#: data/System/SolrWikiUsersViewTemplate.txt:76
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "else"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:710
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "grid"
 msgstr "网格"
 
-#: data/System/SolrSearchBaseTemplate.txt:155
-#: data/System/SolrSearchBaseTemplate.txt:181
-#: data/System/SolrSearchBaseTemplate.txt:206
-#: data/System/SolrSearchBaseTemplate.txt:230
-#: data/System/SolrSearchBaseTemplate.txt:250
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "in %1"
 msgstr "在%1"
 
-#: data/System/SolrSearchBaseTemplate.txt:94
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "keyword"
 msgstr "关键字"
 
-#: data/System/SolrSearchBaseTemplate.txt:93
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "language"
 msgstr "语言"
 
-#: data/System/SolrSearchBaseTemplate.txt:706
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "list"
 msgstr "列表"
 
-#: data/System/SolrSearchBaseTemplate.txt:89
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "media"
 msgstr "多媒体"
 
-#: data/System/SolrSearchBaseTemplate.txt:267
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "next"
 msgstr "下一页"
 
-#: data/System/SolrSearchBaseTemplate.txt:342
-#: data/System/SolrWikiUsersViewTemplate.txt:103
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
 msgid "nothing found"
 msgstr "没有发现"
 
-#: data/System/SolrSearchBaseTemplate.txt:497
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "older"
 msgstr "以前的"
 
-#: data/System/SolrSearchBaseTemplate.txt:267
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "prev"
 msgstr "上一页"
 
-#: data/System/SolrSearchBaseTemplate.txt:90
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "recently"
 msgstr ""
 
-#: data/System/SolrSideBar.txt:44
+#: data/System/SolrSideBar.txt
 msgid "score: %1"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:433
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "submit the query"
 msgstr "提交查询"
 
-#: data/System/SolrSearchBaseTemplate.txt:95
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "tag"
 msgstr "标签"
 
-#: data/System/SolrSearchBaseTemplate.txt:87
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "tagged %1"
 msgstr ""
 
-#: data/System/SolrSearchBaseTemplate.txt:491
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "today"
 msgstr "今天"
 
-#: data/System/SolrSearchBaseTemplate.txt:88
+#: data/System/SolrSearchBaseTemplate.txt
 msgid "topic type"
 msgstr ""
