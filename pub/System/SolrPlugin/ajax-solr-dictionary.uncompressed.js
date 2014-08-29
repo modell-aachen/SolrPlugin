@@ -52,6 +52,7 @@ var _ = function(key, id) {
   AjaxSolr.Dictionary.prototype.set = function(key, val) {
     var self = this;
     key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    val = val.replace(/^\s*(.*?)\s*$/, "$1");
     self.data[key] = val;
   };
 

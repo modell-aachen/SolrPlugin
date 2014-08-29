@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1390989066" format="1.1" reprev="16" version="16"}%
+%META:TOPICINFO{author="ProjectContributor" comment="reprev" date="1403791128" format="1.1" reprev="16" version="17"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -35,7 +35,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
 %STARTSECTION{"solrsimilar"}%<!-- -->
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%" 
    filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
-   %IF{"defined SOLRSIMILAR_LIKE" then="like=\"%SOLRSIMILAR_LIKE%\""}%
+   like="%SOLRSIMILAR_LIKE{default="field_Category_flat_lst^5,tag"}%"
    fields="web,topic,title,score,summary"
    rows="5"
    header="<h2 >%MAKETEXT{"Similar topics"}%</h2>$n<ul>" 
@@ -63,11 +63,10 @@ Renders a list of the five most recent changes in the current web.
 <verbatim class="tml">
 %STARTSECTION{"recentchanges"}%<!-- -->
 %SOLRSEARCH{
-  "web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
+  "web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}% -topic:(WebHome OR WebLinks OR WebSideBar OR WebPreferences OR WebStatistics OR WebTopicList OR WebSearch OR WebIndex OR WebAdvancedSearch OR SitePreferences OR SiteHtmlHead)"
   sort="date desc" 
-  limit="5"
+  rows="5"
   fields="web,topic,title,summary"
-  exclude="WebHome|WebLinks|WebSideBar|WebPreferences|WebStatistics|WebTopicList|WebSearch|WebIndex|WebAdvancedSearch"
   header="<h2 >%MAKETEXT{"Recent Changes"}%</h2>$n<ul>"
   footer="</ul>"
   format="<li>
@@ -84,5 +83,5 @@ Renders a list of the five most recent changes in the current web.
 }%%ENDSECTION{"recentchanges"}%
 </verbatim>
 
-%META:PREFERENCE{name="DENYTOPICVIEW" title="DENYTOPICVIEW" type="Set" value=" "}%
 %META:PREFERENCE{name="PERMSET_VIEW" title="PERMSET_VIEW" type="Local" value="everybody"}%
+%META:PREFERENCE{name="ALLOWTOPICVIEW" title="ALLOWTOPICVIEW" type="Set" value="*"}%

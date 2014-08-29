@@ -147,7 +147,7 @@
             }
 
             if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "<span class='solrUnknownDate'>???</span>";
+              return "???";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);

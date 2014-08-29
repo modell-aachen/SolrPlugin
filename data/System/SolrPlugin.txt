@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1386087424" format="1.1" reprev="9" version="13"}%
+%META:TOPICINFO{author="ProjectContributor" comment="save topic" date="1402671573" format="1.1" reprev="9" version="14"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -203,7 +203,7 @@ Instead of waiting for =cron= to trigger the delta indexing job, you can use [[h
   <watchlist>
     <title>Foswiki</title>
     <contactpoint email="root@localhost" name="Administrator"/>
-    <path type="recursive" alert="off" syslog="on" exec="su www-data -c '<foswiki-dir>/tools/solrjob --host mydomain.com --file %f'"><vhosts-dir>/mydomain.com/data</path>
+    <path type="recursive" filter=".*\.txt$" alert="off" syslog="on" exec="su www-data -c '<foswiki-dir>/tools/solrjob --host mydomain.com --file %f'"><vhosts-dir>/mydomain.com/data</path>
     <!-- add other virtual hosts here -->
     <path type="regexception">\.tmp|\.sw\w|\.svn|\.lease|\.lock|,$|\.changes|,v|^_[0-9]|^log|^Temporary|^UnitTestCheck</path>
   </watchlist>
@@ -661,6 +661,15 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  29 Aug 2014: | fix mailto links in !WikiUsers view template; \
+                  fully specify rest security; \
+                  fixed creating of working area for timestamps db; \
+                  improved indexing of list values; \
+                  fixed encoding error in SOLRSEARCH/FORMAT; \
+                  use SOLR_EXTRAFILTER preference setting in auto-suggest widget as well; \
+                  fixed applying strings and defaults in solrDictionary class; \
+                  fixed applying extra-filters in !SolrSearch; \
+                  harvest facet headings for translations; |
 |  28 May 2014: | implemented new ACL style compatible with Foswiki >= 1.2 |
 |  14 Jul 2013: | added support for [[Foswiki:Extensions/PiwikPlugin][PiwikPlugin]] |
 |  14 Mar 2013: | improved indexing performance; \

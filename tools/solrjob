@@ -3,7 +3,7 @@
 #set -x
 
 # location of the foswiki install
-test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=/home/www-data/foswiki/trunk/core
+test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=/home/www-data/foswiki/core
 
 # location of the solr indexer log file
 LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
@@ -86,7 +86,7 @@ export TIME
       WEB=${FILE/*data\//};
       WEB=$(dirname $WEB)
       TOPIC=$(basename $FILE);
-      TOPIC=${TOPIC/.txt/};
+      TOPIC=${TOPIC/.txt*/};
 
       SOLRINDEX_ARGS="$SOLRINDEX_ARGS topic=$WEB.$TOPIC"
       MODE=delta

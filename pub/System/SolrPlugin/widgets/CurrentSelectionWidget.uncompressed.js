@@ -59,7 +59,7 @@
         count++;
         self.addSelection(self.options.keywordText, q, function() {
           self.manager.store.get('q').val(self.options.defaultQuery);
-          self.doRequest(0);
+          self.manager.doRequest(0);
         });
       }
 
@@ -107,7 +107,7 @@
 
       return function() {
         if (self.manager.store.removeByValue('fq', field + ':' + AjaxSolr.Parameter.escapeValue(value))) {
-          self.doRequest(0);
+          self.manager.doRequest(0);
         }
       }
     },

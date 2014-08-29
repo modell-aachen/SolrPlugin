@@ -91,7 +91,6 @@
 
     if (extraFilter) {
       manager.store.hidden.push("fq="+extraFilter);
-      manager.store.addByValue("fq", extraFilter);
     }
 
     manager.doRequest();

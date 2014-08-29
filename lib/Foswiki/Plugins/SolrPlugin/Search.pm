@@ -211,7 +211,7 @@ sub formatResponse {
         my $value = join($theValueSep, @values);
 
 #        $name = fromUtf8($name);
-#        $value = fromUtf8($value);
+        $value = toSiteCharSet($value);
 
         $web = $value if $name eq 'web';
         $topic = $value if $name eq 'topic';
@@ -460,7 +460,7 @@ sub formatResponse {
 
   #$this->log("result=$result");
 
-  return toSiteCharSet($result);
+  return $result;
 }
 
 ##############################################################################
@@ -713,6 +713,9 @@ sub restSOLRAUTOSUGGEST {
 
   my $trashWeb = $Foswiki::cfg{TrashWebName} || 'Trash';
   push @filter, "-web:_* -web:$trashWeb"; # exclude some webs 
+
+  my $solrExtraFilter = Foswiki::Func::getPreferencesValue("SOLR_EXTRAFILTER");
+  push @filter, $solrExtraFilter if defined $solrExtraFilter && $solrExtraFilter ne '';
 
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);
@@ -1012,9 +1015,9 @@ sub doSimilar {
   my $theMaxWordLength = $params->{'maxdwordlength'};
   my $theLimit = $params->{'maxterms'}; 
   $theLimit = $params->{limit} unless defined $theLimit;
-  $theLimit = 100 unless defined $theLimit;
+  $theLimit = 10 unless defined $theLimit;
 
-  $theLike = 'category,tag' unless defined $theLike;
+  $theLike = 'field_Category_flat_lst^5,tag' unless defined $theLike;
   $theFilter = 'type:topic' unless defined $theFilter;
   $theRows = 20 unless defined $theRows;
 

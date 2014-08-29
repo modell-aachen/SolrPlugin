@@ -60,7 +60,7 @@
     <ul class='foswikiTopicInfo jqShrinkUrls' data-size='15'>
       {{if field_Profession_s}}<li>%MAKETEXT{"Profession"}%: ${field_Profession_s}</li>{{/if}}
       {{if field_Telephone_s}}<li>%MAKETEXT{"Tel"}%: ${field_Telephone_s}</li>{{/if}}
-      {{if field_Email_s}}<li>%MAKETEXT{"Email"}%: <a mailto='${field_Email_s}'>${field_Email_s}</a></li>{{/if}}
+      {{if field_Email_s}}<li>%MAKETEXT{"Email"}%: <a href='mailto:${field_Email_s}'>${field_Email_s}</a></li>{{/if}}
       {{if field_Location_s}}<li>%MAKETEXT{"Location"}%: ${field_Location_s}</li>{{/if}}
     </ul>
   </div>

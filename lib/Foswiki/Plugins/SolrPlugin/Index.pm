@@ -71,7 +71,8 @@ sub new {
   # let the indexer run for a maximum timespan, then flag a signal for it
   # to bail out from work done so far
 
-  $this->{dsn} = $Foswiki::cfg{SolrPlugin}{Database}{DSN} || 'dbi:SQLite:dbname=' . Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps.db',
+  $this->{workArea} = Foswiki::Func::getWorkArea('SolrPlugin');
+  $this->{dsn} = $Foswiki::cfg{SolrPlugin}{Database}{DSN} || 'dbi:SQLite:dbname=' . $this->{workArea} . '/timestamps.db',
   $this->{username} = $Foswiki::cfg{SolrPlugin}{Database}{UserName},
   $this->{password} = $Foswiki::cfg{SolrPlugin}{Database}{Password},
   $this->{tablePrefix} = $Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} || 'foswiki_',
@@ -134,7 +135,7 @@ HERE
 sub migrateTimestamps {
   my ($this, $dir) = @_;
 
-  my $baseDir = Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps';
+  my $baseDir = $this->{workArea} . '/timestamps';
   unless ($dir) {
     $dir = $baseDir;
     return unless -d $dir;
@@ -592,28 +593,37 @@ sub indexTopic {
           }
 
           # multi-valued types
-          elsif ($isMultiValued || $name =~ /TopicType/) {    # TODO: make this configurable
+          elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
+            my $fieldName = 'field_' . $name;
+            $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
 
-            $doc->add_fields('field_' . $name . '_lst' => [ split(/\s*,\s*/, $value) ]);
+            $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
           }
 
-          # make it a text field unless its name does not indicate otherwise
-          else {
+          # finally make it a non-list field as well 
+          {
             my $fieldName = 'field_' . $name;
             my $fieldType = '_s';
+
+            # is there an explicit type info part of the formfield name?
             if ($fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//) {
               $fieldType = $1;
             }
+
+            # add an extra check for floats
             if ($fieldType eq '_f') {
               if ($value =~ /^\s*([\-\+]?\d+(\.\d+)?)\s*$/) {
                 $doc->add_fields($fieldName . '_f' => $1,);
               } else {
                 $this->log("WARNING: malformed float value '$value'");
               }
-            } elsif ($fieldType eq '_s') {
+            } 
 
-              # applying a full plainify might alter the content too much in some cases. so
-              # we try to remove only those characters that break the json parser
+            # for explicit _s fields apply a full plainify
+            elsif ($fieldType eq '_s') {
+
+              # note this might alter the content too much in some cases. 
+              # so we try to remove only those characters that break the json parser
               #$value = $this->plainify($value, $web, $topic);
               $value =~ s/<!--.*?-->//gs;    # remove all HTML comments
               $value =~ s/<[^>]*>/ /g;       # remove all HTML tags
@@ -1103,7 +1113,7 @@ sub deleteDocument {
 sub lock {
   my $this = shift;
 
-  my $lockfile = Foswiki::Func::getWorkArea('SolrPlugin') . "/indexer.lock";
+  my $lockfile = $this->{workArea} . "/indexer.lock";
   open($this->{lock}, ">$lockfile")
     or die "can't create lockfile $lockfile";
 
@@ -1139,7 +1149,7 @@ sub getStringifiedVersion {
 
   #print STDERR "filename=$filename, mime=$mime\n";
 
-  my $workArea = Foswiki::Func::getWorkArea('SolrPlugin');
+  my $workArea = $this->{workArea};
   my $cachedFilename = "$workArea/$web/$topic/$attachment.txt";
 
   # untaint..

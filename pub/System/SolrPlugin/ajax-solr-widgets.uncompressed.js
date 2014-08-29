@@ -257,20 +257,27 @@
         if (self.facetType == 'facet_ranges') {
           value = value+' TO '+value+self["facet.range.gap"];
           if (title) {
-            AjaxSolr.Dict['default'].set(value, title);
+            AjaxSolr.Dicts['default'].set(value, title);
           }
           value = '['+value+']';
         }
 
         if (value == '') {
           self.clear();
-          self.doRequest(0);
+          self.manager.doRequest(0);
         } else {
           if ($this.is(":checked, select")) {
             self.clickHandler(value).call(self);
           } else {
             self.unclickHandler(value).call(self);
           }
+        }
+      });
+
+      self.$target.children("h2").each(function() {
+        var text = $(this).text();
+        if (text) {
+          AjaxSolr.Dicts['default'].set(self.field,text);
         }
       });
     },
@@ -311,7 +318,7 @@
       for (var i = 0, l = facetCounts.length; i < l; i++) {
         facet = facetCounts[i].facet;
         //self.keyOfValue[facet] = facetCounts[i].key = _(facet.slice(facet.lastIndexOf('.') + 1));
-        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./,"/"));
+        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./g,"/"));
       }
 
       facetCounts.sort(function(a,b) {
@@ -717,7 +724,7 @@
             }
 
             if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "<span class='solrUnknownDate'>???</span>";
+              return "???";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
@@ -893,7 +900,7 @@
         count++;
         self.addSelection(self.options.keywordText, q, function() {
           self.manager.store.get('q').val(self.options.defaultQuery);
-          self.doRequest(0);
+          self.manager.doRequest(0);
         });
       }
 
@@ -941,7 +948,7 @@
 
       return function() {
         if (self.manager.store.removeByValue('fq', field + ':' + AjaxSolr.Parameter.escapeValue(value))) {
-          self.doRequest(0);
+          self.manager.doRequest(0);
         }
       }
     },

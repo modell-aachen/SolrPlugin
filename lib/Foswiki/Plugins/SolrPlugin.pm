@@ -20,8 +20,8 @@ use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
   
-our $VERSION = '2.10';
-our $RELEASE = '2.10';
+our $VERSION = '2.20';
+our $RELEASE = '2.20';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our %searcher;
@@ -60,67 +60,99 @@ sub initPlugin {
 
 
   Foswiki::Func::registerRESTHandler('search', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRSEARCH($web, $topic);
-  }, authenticate => 0);
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRSEARCH($web, $topic);
+    }, 
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('proxy', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRPROXY($web, $topic);
-  }, authenticate => 0);
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRPROXY($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
 
   Foswiki::Func::registerRESTHandler('similar', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRSIMILAR($web, $topic);
-  }, authenticate => 0);
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRSIMILAR($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('autocomplete', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
-  }, authenticate => 0);
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('autosuggest', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
-  }, authenticate => 0);
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('webHierarchy', sub {
-    my $session = shift;
+      my $session = shift;
 
-    return getWebHierarchy($session)->restWebHierarchy(@_);
-  }, authenticate => 0);
+      return getWebHierarchy($session)->restWebHierarchy(@_);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('optimize', sub {
-    my $session = shift;
-    return getIndexer($session)->optimize();
-  }, authenticate => 0);
+      my $session = shift;
+      return getIndexer($session)->optimize();
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('crawl', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $query = Foswiki::Func::getCgiQuery();
-    my $name = $query->param("name");
-    my $path = $query->param("path");
-    my $depth = $query->param("depth");
+      my $query = Foswiki::Func::getCgiQuery();
+      my $name = $query->param("name");
+      my $path = $query->param("path");
+      my $depth = $query->param("depth");
 
-    return getCrawler($session, $name)->crawl($path, $depth);
-  }, authenticate => 0);
+      return getCrawler($session, $name)->crawl($path, $depth);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::addToZone("script", "SOLRPLUGIN::SEARCHBOX", <<'HERE', "JQUERYPLUGIN");
 <script src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/solr-searchbox.js'></script> 
