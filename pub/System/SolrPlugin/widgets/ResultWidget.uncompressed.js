@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.ResultWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
@@ -43,11 +44,14 @@
         $("#solrSearch").fadeIn();
       }
 
-      self.$target.html($("#solrHitTemplate").tmpl(
+      self.$target.html($("#solrHitTemplate").render(
         response.response.docs, {
           debug:function(msg) {
-            //console.log(msg||'',this);
+            console.log(msg||'',this);
             return "";
+          },
+          encodeURIComponent: function(text) {
+            return encodeURIComponent(text);
           },
           getTemplateName: function() {
             var type = this.data.type, 
@@ -75,7 +79,7 @@
             return "#solrHitTemplate_misc";
           },
           renderList: function(fieldName, separator, limit) {
-            var list = this.data[fieldName], result = '';
+            var list = this.data[fieldName], result = '', lines;
 
             separator = separator || ', ';
             limit = limit || 10;

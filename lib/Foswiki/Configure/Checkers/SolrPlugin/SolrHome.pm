@@ -27,7 +27,7 @@ sub check {
           File::Spec->catpath( $vol, File::Spec->catdir( @dirs, 'solr' ), '' );
         $mess .= $this->guessed(0);
     }
-    $mess .= $this->showExpandedValue( $Foswiki::cfg{SolrPlugin}{SolrHome} );
+    #$mess .= $this->showExpandedValue( $Foswiki::cfg{SolrPlugin}{SolrHome} );
 
     return $mess;
 }

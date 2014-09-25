@@ -11,7 +11,7 @@ our @ISA = ('Foswiki::Configure::Checker');
 sub check {
     my $this = shift;
 
-    return $this->showExpandedValue( $Foswiki::cfg{SolrPlugin}{SolrStartCmd} );
+    #return $this->showExpandedValue( $Foswiki::cfg{SolrPlugin}{SolrStartCmd} );
 }
 
 1;

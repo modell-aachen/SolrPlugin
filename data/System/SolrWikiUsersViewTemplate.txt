@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1392283513" format="1.1" version="2"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1411635852" format="1.1" version="1"}%
 %META:TOPICPARENT{name="WebHome"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchView"}%
@@ -47,31 +47,31 @@
 %TMPL:DEF{"solr::templates::hits"}%<!-- -->
 %TMPL:P{"solr::templates::hits::topic"}%<!-- -->
 %TMPL:P{"solr::templates::userimage"}%<!-- -->
-<script id="solrHitTemplate" type="text/x-jquery-tmpl"> 
-{{tmpl($data, $item) $item.getTemplateName()}}
+<script id="solrHitTemplate" type="text/x-jsrender"> 
+{{:~getTemplateName()}}
 </script>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::templates::hits::topic"}%<script id="solrHitTemplate_topic" type="text/x-jquery-tmpl">
+%TMPL:DEF{"solr::templates::hits::topic"}%<script id="solrHitTemplate_topic" type="text/x-jsrender">
   <div class='solrSearchHit solrTopicHit foswikiProfileInfo'>
-    {{tmpl($data, $item) solrHitTemplate_userimage}}
-    <h4><a href='${url}'>${title}</a></h4>
+    {{:~solrHitTemplate_userimage}}
+    <h4><a href='{{:url}}'>{{:title}}</a></h4>
     <ul class='foswikiTopicInfo jqShrinkUrls' data-size='15'>
-      {{if field_Profession_s}}<li>%MAKETEXT{"Profession"}%: ${field_Profession_s}</li>{{/if}}
-      {{if field_Telephone_s}}<li>%MAKETEXT{"Tel"}%: ${field_Telephone_s}</li>{{/if}}
-      {{if field_Email_s}}<li>%MAKETEXT{"Email"}%: <a href='mailto:${field_Email_s}'>${field_Email_s}</a></li>{{/if}}
-      {{if field_Location_s}}<li>%MAKETEXT{"Location"}%: ${field_Location_s}</li>{{/if}}
+      {{if typeof(field_Profession_s)==='string'}}<li>%MAKETEXT{"Profession"}%: {{:field_Profession_s}}</li>{{/if}}
+      {{if typeof(field_Telephone_s)==='string'}}<li>%MAKETEXT{"Tel"}%: {{:field_Telephone_s}}</li>{{/if}}
+      {{if typeof(field_Email_s)==='string'}}<li>%MAKETEXT{"Email"}%: <a href='mailto:{{:field_Email_s}}'>{{:field_Email_s}}</a></li>{{/if}}
+      {{if typeof(field_Location_s)==='string'}}<li>%MAKETEXT{"Location"}%: {{:field_Location_s}}</li>{{/if}}
     </ul>
   </div>
 </script>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim>}%
-%TMPL:DEF{"solr::templates::userimage"}%<script id="solrHitTemplate_userimage" type="text/x-jquery-tmpl">
+%TMPL:DEF{"solr::templates::userimage"}%<script id="solrHitTemplate_userimage" type="text/x-jsrender">
   <div class='foswikiImage foswikiLeft'>
     {{if thumbnail}}
-      <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic=${web}.${topic};file=${encodeURIComponent(thumbnail)};size=60x80>;crop=on' alt='${name}' />
+      <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:encodeURIComponent(thumbnail)}};size=60x80>;crop=on' alt='{{:name}}' />
     {{else}}
       <img src='%PUBURLPATH%/%SYSTEMWEB%/JQueryPlugin/images/nobody.gif' height='80' />
     {{/if}}
@@ -92,12 +92,12 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::templates::resultsperpage"}%<script id="solrResultsPerPageTemplate" type="text/x-jquery-tmpl">
+%TMPL:DEF{"solr::templates::resultsperpage"}%<script id="solrResultsPerPageTemplate" type="text/x-jsrender">
 <table class='foswikiNullTable' width='100%'>
   <tr>
     <td>
      {{if count > 0}}
-       %MAKETEXT{"Results [_1] - [_2] of <b>[_3]</b>" args="${from}, ${to}, ${count}"}%
+       %MAKETEXT{"Results [_1] - [_2] of <b>[_3]</b>" args="{{:from}}, {{:to}}, {{:count}}"}%
      {{else}}
         <span class="foswikiAlert">%MAKETEXT{"nothing found"}%</span>
      {{/if}}

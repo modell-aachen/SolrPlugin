@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.PagerWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults:  {

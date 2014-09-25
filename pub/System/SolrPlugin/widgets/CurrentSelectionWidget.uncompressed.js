@@ -1,12 +1,13 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.CurrentSelectionWidget = AjaxSolr.AbstractJQueryWidget.extend({
     options: {
       defaultQuery: "",
-      currentSelectionTemplate: "#solrCurrentSelectionTemplate",
+      templateName: "#solrCurrentSelectionTemplate",
       keywordText: "keyword"
     },
-    selectionTemplate: null,
+    template: null,
     selectionContainer: null,
 
     getKeyOfValue: function(field, value) {
@@ -95,11 +96,11 @@
         value = RegExp.$1 + value;
       }
       
-      self.selectionContainer.append($.tmpl(self.selectionTemplate, {
+      self.selectionContainer.append($(self.template.render({
         id: AjaxSolr.Helpers.getUniqueID(),
         field: _(field),
         facet: value
-      }).change(handler));
+      })).change(handler));
     },
 
     removeFacet: function (field, value) {
@@ -116,7 +117,7 @@
       var self = this;
 
       self._super();
-      self.selectionTemplate = $(self.options.currentSelectionTemplate).template();
+      self.template = $.templates(self.options.templateName);
       self.selectionContainer = self.$target.children("ul:first");
       self.$target.find(".solrClear").click(function() {
         self.clearSelection();

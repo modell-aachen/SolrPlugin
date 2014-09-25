@@ -1,4 +1,6 @@
 (function($) {
+"use strict";
+
   AjaxSolr.WebFacetWidget = AjaxSolr.FacetFieldWidget.extend({
     facetType: 'facet_fields',
     keyOfValue: {},

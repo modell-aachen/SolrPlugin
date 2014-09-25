@@ -25,13 +25,13 @@ sub new {
   my $this = bless(
     $class->SUPER::new(
       name => 'Autosuggest',
-      version => '1.10',
+      version => '2.00',
       author => 'Michael Daum',
       homepage => 'http://foswiki.org/Extensions/SolrPlugin',
       css => ['jquery.autosuggest.css'],
       javascript => ['jquery.autosuggest.js', ],
       puburl => '%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin',
-      dependencies => ['ui::autocomplete', 'tmpl', 'blockUI'],
+      dependencies => ['ui::autocomplete', 'render', 'blockUI'],
     ),
     $class
   );

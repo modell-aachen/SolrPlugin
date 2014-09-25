@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.FacetFieldWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
@@ -61,7 +62,7 @@
         return;
       } 
 
-      self.container.html($.tmpl(self.template, {
+      self.container.html(self.template.render({
         widget: self
       }, {
         checked: function(facet) {
@@ -118,7 +119,7 @@
       self.initQueries();
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.container = self.$target.find(self.options.container);
       self.inputType = 'checkbox'; //(self.options.multiSelect)?'checkbox':'radio';
       self.$target.addClass("solrFacetContainer");

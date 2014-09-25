@@ -1,4 +1,6 @@
 jQuery(function($) {
+"use strict";
+
   $(".solrSearchBox form").submit(function() {
     var $this = $(this),
         action = $this.attr("action"),

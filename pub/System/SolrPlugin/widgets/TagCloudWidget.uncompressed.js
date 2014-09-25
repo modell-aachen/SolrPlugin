@@ -1,4 +1,6 @@
 (function ($) {
+"use strict";
+
   AjaxSolr.TagCloudWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
       title: 'title not set',
@@ -90,7 +92,7 @@
       if (facetCounts.length) {
         self.$target.show();
         self.$container.empty();
-        self.$container.append($.tmpl(self.template, facetCounts));
+        self.$container.append(self.template.render(facetCounts));
         self.$container.find("a").click(function() {
           var $this = $(this),
               term = $(this).text();
@@ -111,7 +113,7 @@
 
       self._super();
       self.$container = self.$target.find(self.options.container);
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.multivalue = true;
     }
   });

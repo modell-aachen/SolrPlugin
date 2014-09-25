@@ -2048,6 +2048,8 @@ String.prototype.strtr = function (replacePairs) {
   return str;
 };
 (function($) {
+"use strict";
+
   AjaxSolr.Helpers = {
     getUniqueID: function() {
       var uid = new Date().getTime().toString(32), i;
@@ -2095,6 +2097,8 @@ var _ = function(key, id) {
 };
 
 (function($) {
+"use strict";
+
   AjaxSolr.Dictionary = function(elem, opts) {
     var self = this, 
         $elem = $(elem),

@@ -1,4 +1,6 @@
 (function($) {
+"use strict";
+
   AjaxSolr.AbstractJQueryFacetWidget = AjaxSolr.AbstractFacetWidget.extend({
     defaults: {
       facetType: 'facet_fields',
@@ -58,7 +60,7 @@
 
     getFacetCounts: function() {
       var self = this,
-          allFacetCounts = this._super();
+          allFacetCounts = this._super(),
           facetCounts = [];
 
       if (self.options.facetMincount == 0) {

@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
   
   AjaxSolr.ResultsPerPageWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
@@ -22,7 +23,7 @@
 
       self.$target.empty();
 
-      self.$target.append($.tmpl(self.template, {
+      self.$target.append(self.template.render({
         from: from+1,
         to: to,
         count: numFound
@@ -47,7 +48,7 @@
       var self = this;
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       if (!self.template) {
         throw "template "+self.options.templateName+" not found";
       }

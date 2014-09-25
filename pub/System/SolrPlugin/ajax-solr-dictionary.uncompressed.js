@@ -9,6 +9,8 @@ var _ = function(key, id) {
 };
 
 (function($) {
+"use strict";
+
   AjaxSolr.Dictionary = function(elem, opts) {
     var self = this, 
         $elem = $(elem),
