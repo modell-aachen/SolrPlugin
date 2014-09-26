@@ -1,0 +1,283 @@
+# Hungarian translations for PACKAGE package.
+# Copyright (C) 2014 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: hu\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "(none)"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "1 hour"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "1 month"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "1 year"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "2 days"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "2 months"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "4 hours"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "7 days"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Author"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Category"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Clear"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Did you mean %1?"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Display as"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Email"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "English"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Filed in %1"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Filter results"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "German"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "In all webs"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "In current web"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "In my contributions"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Language"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Last changed"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Location"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Media"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Name"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Next"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Organisation"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Popular tags"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Previous"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Profession"
+msgstr ""
+
+#: data/System/SolrSideBar.txt
+msgid "Recent Changes"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/WebChangesViewTemplate.txt
+msgid "Recent changes"
+msgstr ""
+
+#: data/System/WebChangesViewTemplate.txt
+msgid "Recent changes in %1"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Relevance"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Results %1 - %2 of <b>%3</b>"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Results per page"
+msgstr ""
+
+#: data/System/NatSkinSolrSearchViewTemplate.txt
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Search"
+msgstr ""
+
+#: data/System/SolrSideBar.txt
+msgid "Similar topics"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Sort by"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Tagged %1"
+msgstr ""
+
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "Tel"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Topic type"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Web"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "You are here:"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Your selection"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "each suggestions"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "else"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "grid"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "in %1"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "keyword"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "language"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "list"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "media"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "next"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+#: data/System/SolrWikiUsersViewTemplate.txt
+msgid "nothing found"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "older"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "prev"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "recently"
+msgstr ""
+
+#: data/System/SolrSideBar.txt
+msgid "score: %1"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "submit the query"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "tag"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "tagged %1"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "today"
+msgstr ""
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "topic type"
+msgstr ""
