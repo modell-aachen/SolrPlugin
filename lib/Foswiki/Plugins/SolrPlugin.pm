@@ -235,6 +235,7 @@ sub afterSaveHandler {
 
 # Foswiki >= 1.1
 sub afterUploadHandler {
+  &_dispatchGrinderHandler;
   return unless $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates};
   getIndexer()->afterUploadHandler(@_);
 }

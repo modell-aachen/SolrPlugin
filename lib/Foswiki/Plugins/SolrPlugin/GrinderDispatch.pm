@@ -41,15 +41,18 @@ sub afterRenameHandler {
     my ( $oldWeb, $oldTopic, $oldAttachment,
          $newWeb, $newTopic, $newAttachment ) = @_;
 
-     if(not $oldTopic) {
-         _send("$newWeb", 'update_web'); # old web will be deleted automatically
-     } else {
-         # XXX when a topic is being moved in the frontend a
-         # _send("$newWeb.$newTopic") will be fired by afterSaveHandler, since
-         # a %META:TOPICMOVED{...}% will be inserted
-         _send("$oldWeb.$oldTopic", 'delete_topic') unless $oldAttachment;
-         _send("$newWeb.$newTopic", 'update_topic');
-     }
+    if( not $oldTopic ) {
+        _send("$newWeb", 'update_web'); # old web will be deleted automatically
+    } else {
+        # If attachment moved (i.e. $oldAttachment is not false), update oldtopic, otherweise, topic moved delete oldtopic..
+        # Attachment moving or updating does not trigger afterSaveHandler.
+        if ( $oldAttachment ) {
+           _send("$oldWeb.$oldTopic", 'update_topic');
+        } else {
+           _send("$oldWeb.$oldTopic", 'delete_topic');
+        }
+        _send("$newWeb.$newTopic", 'update_topic');
+    }
 }
 
 sub completePageHandler {
@@ -65,8 +68,7 @@ sub completePageHandler {
     }
 }
 
-# Disabled -> let afterSave handle it
-sub afterUploadHandlerDisabled {
+sub afterUploadHandler {
     my( $attrHashRef, $meta ) = @_;
 
     my $web = $meta->web();
