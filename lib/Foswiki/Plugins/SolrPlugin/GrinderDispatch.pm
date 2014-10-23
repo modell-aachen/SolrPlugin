@@ -81,12 +81,12 @@ sub _restIndex {
     my ( $session, $subject, $verb, $response ) = @_;
 
     my $params = $session->{request}->{param};
-    my ($web, $topic) = Foswiki::Func::normalizeWebTopicName( $params->{w}[0], $params->{t}[0] );
+    my $web = $params->{w}[0] || '';
+    my $topic = $params->{t}[0] || '';
 
-    $web = '' if ( !$params->{w}[0] );
-    $topic = '' if ( !$params->{t}[0] );
+    ($web, $topic) = Foswiki::Func::normalizeWebTopicName( $web, $topic ) if $topic;
 
-    if ( !$web || !Foswiki::Func::webExists( $web ) ) {
+    if ( !$web || (!Foswiki::Func::webExists( $web ) && $web ne 'all' ) ) {
         $response->status( 400 );
         return;
     }
