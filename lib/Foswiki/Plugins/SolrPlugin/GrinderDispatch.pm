@@ -8,9 +8,9 @@ use Foswiki::Func ();
 my @flushCmd;
 
 sub _send {
-    my ($message, $type) = @_;
+    my ($message, $type, $wait) = @_;
 
-    Foswiki::Plugins::TaskDaemonPlugin::send($message, $type, 'SolrPlugin');
+    Foswiki::Plugins::TaskDaemonPlugin::send($message, $type, 'SolrPlugin', $wait);
 }
 
 sub beforeSaveHandler {
@@ -87,6 +87,7 @@ sub _restIndex {
     my $params = $session->{request}->{param};
     my $web = $params->{w}[0] || '';
     my $topic = $params->{t}[0] || '';
+    my $wait = $params->{wait}[0];
 
     ($web, $topic) = Foswiki::Func::normalizeWebTopicName( $web, $topic ) if $topic;
 
@@ -96,9 +97,9 @@ sub _restIndex {
     }
 
     if ( $topic ) {
-        _send( "$web.$topic", 'update_topic' );
+        _send( "$web.$topic", 'update_topic', $wait );
     } else {
-        _send( $web, "update_web" );
+        _send( $web, "update_web", $wait );
     }
 
     $response->status( 200 );
