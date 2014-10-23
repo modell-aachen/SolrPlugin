@@ -80,6 +80,10 @@ sub afterUploadHandler {
 sub _restIndex {
     my ( $session, $subject, $verb, $response ) = @_;
 
+    if(!_isAllowed($Foswiki::cfg{SolrPlugin}{AllowRestInterface})) {
+        $response->status( 403 );
+        return;
+    }
     my $params = $session->{request}->{param};
     my $web = $params->{w}[0] || '';
     my $topic = $params->{t}[0] || '';
@@ -98,6 +102,46 @@ sub _restIndex {
     }
 
     $response->status( 200 );
+}
+
+# Copy/Paste KVPPlugin/WorkflowPlugin
+sub _isAllowed {
+    my ($allow) = @_;
+
+    return 1 unless ($allow);
+
+    # Always allow members of the admin group to edit
+    return 1 if ( Foswiki::Func::isAnAdmin() );
+
+    return 0 if ( $allow =~ /^\s*nobody\s*$/ );
+    if($allow =~ /\bLOGGEDIN\b/ && not Foswiki::Func::isGuest()) {
+        return 1;
+    }
+
+    if (
+            ref( $Foswiki::Plugins::SESSION->{user} )
+            && $Foswiki::Plugins::SESSION->{user}->can("isInList")
+        )
+    {
+        return $Foswiki::Plugins::SESSION->{user}->isInList($allow);
+    }
+    elsif ( defined &Foswiki::Func::isGroup ) {
+        my $thisUser = Foswiki::Func::getWikiName();
+        foreach my $allowed ( split( /\s*,\s*/, $allow ) ) {
+            ( my $waste, $allowed ) =
+              Foswiki::Func::normalizeWebTopicName( undef, $allowed );
+            if ( Foswiki::Func::isGroup($allowed) ) {
+                return 1 if Foswiki::Func::isGroupMember( $allowed, $thisUser );
+            }
+            else {
+                $allowed = Foswiki::Func::getWikiUserName($allowed);
+                $allowed =~ s/^.*\.//;    # strip web
+                return 1 if $thisUser eq $allowed;
+            }
+        }
+    }
+
+    return 0;
 }
 
 1;
