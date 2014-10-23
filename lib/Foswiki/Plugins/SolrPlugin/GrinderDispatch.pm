@@ -47,7 +47,7 @@ sub afterRenameHandler {
         # If attachment moved (i.e. $oldAttachment is not false), update oldtopic, otherweise, topic moved delete oldtopic..
         # Attachment moving or updating does not trigger afterSaveHandler.
         if ( $oldAttachment ) {
-           _send("$oldWeb.$oldTopic", 'update_topic');
+           _send("$oldWeb.$oldTopic", 'update_topic') unless $oldWeb eq $newWeb && $oldTopic eq $newTopic;
         } else {
            _send("$oldWeb.$oldTopic", 'delete_topic');
         }
