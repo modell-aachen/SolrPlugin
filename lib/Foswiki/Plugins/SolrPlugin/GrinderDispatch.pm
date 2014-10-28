@@ -44,9 +44,10 @@ sub afterRenameHandler {
     if( not $oldTopic ) {
         _send("$newWeb", 'update_web'); # old web will be deleted automatically
     } else {
-        # If attachment moved (i.e. $oldAttachment is not false), update oldtopic, otherweise, topic moved delete oldtopic..
+        # If attachment moved (i.e. $oldAttachment is not false), update oldtopic. Otherwise, topic moved: Delete oldtopic.
         # Attachment moving or updating does not trigger afterSaveHandler.
         if ( $oldAttachment ) {
+            # update topic if not only attachment moved.
            _send("$oldWeb.$oldTopic", 'update_topic') unless $oldWeb eq $newWeb && $oldTopic eq $newTopic;
         } else {
            _send("$oldWeb.$oldTopic", 'delete_topic');
@@ -108,13 +109,11 @@ sub _restIndex {
 # Copy/Paste KVPPlugin/WorkflowPlugin
 sub _isAllowed {
     my ($allow) = @_;
-
-    return 1 unless ($allow);
-
+    
     # Always allow members of the admin group to edit
     return 1 if ( Foswiki::Func::isAnAdmin() );
-
-    return 0 if ( $allow =~ /^\s*nobody\s*$/ );
+    
+    return 0 if ( ( ! $allow ) || ( $allow =~ /^\s*nobody\s*$/ ) );
     if($allow =~ /\bLOGGEDIN\b/ && not Foswiki::Func::isGuest()) {
         return 1;
     }

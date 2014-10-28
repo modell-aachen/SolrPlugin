@@ -123,7 +123,7 @@ $Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
 # **STRING**
 # Usernames and groups, that are allowed to access the rest interface when TaskDaemonPlugin is active.
 # Comma separated list; use 'LOGGEDIN' for everybody but WikiGuest; use 'nobody' for nobody but admins.
-$Foswiki::cfg{SolrPlugin}{AllowRestInterface} = 'AdminGroup';
+$Foswiki::cfg{SolrPlugin}{AllowRestInterface} = '';
 
 # ---++ JQueryPlugin
 # ---+++ Extra plugins
