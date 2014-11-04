@@ -11,8 +11,8 @@ set -eu
 ##############################################################################
 export FOSWIKI_ROOT="/var/www/qwikis/qwiki"
 BIN="./mattworker"
-PARAMS="--department=\"SolrPlugin\" -d"
-PIDFILE=/var/run/solrworker.pid
+PIDFILE="/var/run/solrworker.pid"
+PARAMS="--department=\"SolrPlugin\" -d $PIDFILE"
 WORKER_USER=www-data
 LOGFILE=$FOSWIKI_ROOT/working/logs/solrindex.log
 
@@ -32,7 +32,10 @@ case "${1:-}" in
         cd $FOSWIKI_ROOT
         cd tools
 
-        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" $WORKER_USER > $PIDFILE 2>> $LOGFILE
+        # start daemon
+        touch $PIDFILE
+        chown $WORKER_USER $PIDFILE
+        su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" $WORKER_USER 2>> $LOGFILE
         RC=$?
         set -e
         log_end_msg $RC
