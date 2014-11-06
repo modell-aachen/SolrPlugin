@@ -36,7 +36,7 @@ use warnings;
         }
         elsif ($type eq 'delete_topic') {
             my ($web, $topic) = Foswiki::Func::normalizeWebTopicName(undef, $data);
-            $indexer->deleteDocument($web, $topic);
+            $indexer->deleteTopic($web, $topic);
             $indexer->commit(1);
         }
         elsif ($type eq 'update_web') {
