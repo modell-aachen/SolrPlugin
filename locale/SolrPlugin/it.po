@@ -1,208 +1,190 @@
-# Foswiki translation for French (français)
-# Translators:
-#   Islem Haddar 2014.
-msgid ""
-msgstr ""
-"Project-Id-Version: fr\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2014-08-11 17:26+0200\n"
-"Last-Translator: geisen <>\n"
-"Language-Team: French <http://translate.modell-aachen.de/projects/solrplugin/releasenew-york/fr/>\n"
-"Language: fr\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 1.9\n"
-
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "(none)"
-msgstr "(aucun)"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 hour"
-msgstr "1 heure"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 month"
-msgstr "1 mois"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 year"
-msgstr "1 année"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "2 days"
-msgstr "2 jours"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "2 months"
-msgstr "2 mois"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "4 hours"
-msgstr "4 heures"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "7 days"
-msgstr "7 jours"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Author"
-msgstr "Auteur"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Category"
-msgstr "Catégorie"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Clear"
-msgstr "Effacer"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Did you mean %1?"
-msgstr "Vouliez-vous dire% 1?"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Display as"
-msgstr "Afficher comme"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Email"
-msgstr "Email"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "English"
-msgstr "Anglais"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filed in %1"
-msgstr "Classé dans %1"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filter results"
-msgstr "Filtrer les résultats"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "German"
-msgstr "Allemand"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In all webs"
-msgstr "Dans tout les webs"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In current web"
-msgstr "Dans le web actuel"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In my contributions"
-msgstr "Dans mes contributions"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Language"
-msgstr "Langue"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Last changed"
-msgstr "recemment modifié"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Location"
-msgstr "endroit"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Media"
-msgstr "médias"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Name"
-msgstr "Nom"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Next"
-msgstr "Suivant"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Organisation"
-msgstr "Organisation"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Popular tags"
-msgstr "Tags Populaire"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Previous"
-msgstr "Précédent"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Profession"
-msgstr "Profession"
+msgstr ""
 
 #: data/System/SolrSideBar.txt
 msgid "Recent Changes"
-msgstr "Modifications récentes"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes"
-msgstr "Les changements récents"
+msgstr ""
 
 #: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes in %1"
-msgstr "Les changements récents dans% 1"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Relevance"
-msgstr "pertinence"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results %1 - %2 of <b>%3</b>"
-msgstr "Resultats %1 - %2 of <b>%3</b>"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results per page"
-msgstr "Résultats par pages"
+msgstr ""
 
 #: data/System/NatSkinSolrSearchViewTemplate.txt
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Search"
-msgstr "Recherche"
+msgstr ""
 
 #: data/System/SolrSideBar.txt
 msgid "Similar topics"
-msgstr "Sujets similaires"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Sort by"
-msgstr "Trier par"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Tagged %1"
-msgstr "Taggé"
+msgstr ""
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Tel"
-msgstr "Tel"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Topic type"
-msgstr "Type du contenu"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Web"
-msgstr "Web"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "You are here:"
-msgstr "Vous êtes ici :"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Your selection"
-msgstr "Votre sélection"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "each suggestions"
@@ -211,73 +193,73 @@ msgstr ""
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "else"
-msgstr "autrement"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "grid"
-msgstr "grille"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "in %1"
-msgstr "dans %1"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "keyword"
-msgstr "mot clé "
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "language"
-msgstr "Langue"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "list"
-msgstr "Liste"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "media"
-msgstr "Média"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "next"
-msgstr "Suivant"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "nothing found"
-msgstr "Rien trouvé"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "older"
-msgstr "postérieur"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "prev"
-msgstr "prev"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "recently"
-msgstr "Dèrnierement"
+msgstr ""
 
 #: data/System/SolrSideBar.txt
 msgid "score: %1"
-msgstr "score: %1"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "submit the query"
-msgstr "soumettre la requête"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "tag"
-msgstr "jour"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "tagged %1"
-msgstr "Taggé %1"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "today"
-msgstr "Aujourd 'hui"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "topic type"
-msgstr "Type du sujet"
+msgstr ""
