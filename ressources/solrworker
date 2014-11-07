@@ -45,7 +45,7 @@ case "${1:-}" in
         if [ -f "$PIDFILE" ] ; then
             log_daemon_msg "Stopping solrworker" "solrworker"
             set +e
-            start-stop-daemon -K -p $PIDFILE
+            /sbin/start-stop-daemon -K -p $PIDFILE
             RC=$?
             rm -f $PIDFILE
             set -e
