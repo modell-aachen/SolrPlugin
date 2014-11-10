@@ -1,3 +1,19 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-11-10 15:53+0200\n"
+"PO-Revision-Date: 2014-11-10 15:53+0200\n"
+"Last-Translator: Modell Aachen <access@modell-aachen.de>\n"
+"Language-Team: Italian <http://translate.modell-"
+"aachen.de/projects/solrplugin/releasenew-york/it/>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 1.9\n"
+
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "(none)"
 msgstr ""
@@ -40,7 +56,7 @@ msgstr "Categoria"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Clear"
-msgstr "Clear"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Did you mean %1?"
@@ -60,7 +76,7 @@ msgstr "Inglese"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filed in %1"
-msgstr "Archiviato in%1?"
+msgstr "Archiviato in %1"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filter results"
@@ -180,7 +196,7 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "You are here:"
-msgstr "Tu sei qui"
+msgstr "Tu sei qui:"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Your selection"
@@ -246,7 +262,7 @@ msgstr "punteggio: %1"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "submit the query"
-msgstr "invia la richiesta "
+msgstr "invia la richiesta"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "tag"
