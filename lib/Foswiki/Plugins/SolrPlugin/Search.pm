@@ -605,7 +605,7 @@ sub restSOLRPROXY {
       );
     } catch Error::Simple with {
       # report but ignore
-      print STDERR "PiwikiPlugin::Tracker - ".shift."\n";
+      print STDERR "PiwikiPlugin::Tracker - " . shift() . "\n";
     };
   }
 
@@ -784,7 +784,7 @@ sub restSOLRAUTOSUGGEST {
         );
       } catch Error::Simple with {
         # report but ignore
-        print STDERR "PiwikiPlugin::Tracker - ".shift."\n";
+        print STDERR "PiwikiPlugin::Tracker - " . shift() . "\n";
       };
     }
 
