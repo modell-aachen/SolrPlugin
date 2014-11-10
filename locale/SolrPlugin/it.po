@@ -4,51 +4,51 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 hour"
-msgstr ""
+msgstr "1 ora"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 month"
-msgstr ""
+msgstr "1 mese"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "1 year"
-msgstr ""
+msgstr "1 anno"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "2 days"
-msgstr ""
+msgstr "2 giorni"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "2 months"
-msgstr ""
+msgstr "2 mesi"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "4 hours"
-msgstr ""
+msgstr "4 ore"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "7 days"
-msgstr ""
+msgstr "7 giorni"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Author"
-msgstr ""
+msgstr "Autore"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Category"
-msgstr ""
+msgstr "Categoria"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Clear"
-msgstr ""
+msgstr "Clear"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Did you mean %1?"
-msgstr ""
+msgstr "Intendevi %1?"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Display as"
-msgstr ""
+msgstr "Display come"
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Email"
@@ -56,43 +56,43 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "English"
-msgstr ""
+msgstr "Inglese"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filed in %1"
-msgstr ""
+msgstr "Archiviato in%1?"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Filter results"
-msgstr ""
+msgstr "Risultati filtro"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "German"
-msgstr ""
+msgstr "Tedesco"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In all webs"
-msgstr ""
+msgstr "In tutto il web"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In current web"
-msgstr ""
+msgstr "Nel web corrente"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In my contributions"
-msgstr ""
+msgstr "Nei miei contributi"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Language"
-msgstr ""
+msgstr "Lingua"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Last changed"
-msgstr ""
+msgstr "Ultima modifica"
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Location"
-msgstr ""
+msgstr "Locazione"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Media"
@@ -100,67 +100,67 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Name"
-msgstr ""
+msgstr "Nome"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Next"
-msgstr ""
+msgstr "Successivo"
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Organisation"
-msgstr ""
+msgstr "Organizzazione"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Popular tags"
-msgstr ""
+msgstr "Tags popolari"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Previous"
-msgstr ""
+msgstr "Precedente"
 
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Profession"
-msgstr ""
+msgstr "Professione"
 
 #: data/System/SolrSideBar.txt
 msgid "Recent Changes"
-msgstr ""
+msgstr "Modifiche recenti"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes"
-msgstr ""
+msgstr "Modifiche recenti"
 
 #: data/System/WebChangesViewTemplate.txt
 msgid "Recent changes in %1"
-msgstr ""
+msgstr "Modifiche recenti in %1"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Relevance"
-msgstr ""
+msgstr "Rilevanza"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results %1 - %2 of <b>%3</b>"
-msgstr ""
+msgstr "Risultati %1 - %2 of <b> %3 </b>"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results per page"
-msgstr ""
+msgstr "Risultati per pagina"
 
 #: data/System/NatSkinSolrSearchViewTemplate.txt
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Search"
-msgstr ""
+msgstr "Ricercare"
 
 #: data/System/SolrSideBar.txt
 msgid "Similar topics"
-msgstr ""
+msgstr "Argomenti simili"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Sort by"
-msgstr ""
+msgstr "Ordinare per"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Tagged %1"
@@ -172,7 +172,7 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Topic type"
-msgstr ""
+msgstr "Tipologia argomento"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Web"
@@ -180,24 +180,24 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "You are here:"
-msgstr ""
+msgstr "Tu sei qui"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Your selection"
-msgstr ""
+msgstr "La tua selezione"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "each suggestions"
-msgstr ""
+msgstr "ogni suggerimento"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "else"
-msgstr ""
+msgstr "altro"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "grid"
-msgstr ""
+msgstr "griglia"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "in %1"
@@ -209,11 +209,11 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "language"
-msgstr ""
+msgstr "lingua"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "list"
-msgstr ""
+msgstr "lista"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "media"
@@ -221,32 +221,32 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "next"
-msgstr ""
+msgstr "successivo"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "nothing found"
-msgstr ""
+msgstr "nessun risultato"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "older"
-msgstr ""
+msgstr "obsoleto"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "prev"
-msgstr ""
+msgstr "prec"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "recently"
-msgstr ""
+msgstr "recentemente"
 
 #: data/System/SolrSideBar.txt
 msgid "score: %1"
-msgstr ""
+msgstr "punteggio: %1"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "submit the query"
-msgstr ""
+msgstr "invia la richiesta "
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "tag"
@@ -258,8 +258,8 @@ msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "today"
-msgstr ""
+msgstr "oggi"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "topic type"
-msgstr ""
+msgstr "tipologia argomento"
