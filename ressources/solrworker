@@ -9,9 +9,14 @@
 ### END INIT INFO
 set -eu
 ##############################################################################
+# FOSWIKI_ROOT. If using VirtualHostingContrib, point this to the core.
 export FOSWIKI_ROOT="/var/www/qwikis/qwiki"
 BIN="./mattworker"
 PIDFILE="/var/run/solrworker.pid"
+# Options
+# -d [PIDFILE]                  Start as daemon with [PIDFILE].
+# --department=\"[DEPARTMENT\"  Run worker in [DEPARTMENT]. Should be \"SolrPlugin\".
+# --virtualhosts                Run SolrWorker in VirtualHostingContrib mode.
 PARAMS="--department=\"SolrPlugin\" -d $PIDFILE"
 WORKER_USER=www-data
 LOGFILE=$FOSWIKI_ROOT/working/logs/solrindex.log
@@ -32,9 +37,11 @@ case "${1:-}" in
         cd $FOSWIKI_ROOT
         cd tools
 
-        # start daemon
+        # create files, fix permissions, start daemon
         touch $PIDFILE
+        touch $LOGFILE
         chown $WORKER_USER $PIDFILE
+        chown $WORKER_USER $LOGFILE
         su -c "cd $FOSWIKI_ROOT/tools; FOSWIKI_ROOT=$FOSWIKI_ROOT $BIN $PARAMS" $WORKER_USER 2>> $LOGFILE
         RC=$?
         set -e
