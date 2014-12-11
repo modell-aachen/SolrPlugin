@@ -57,7 +57,7 @@ sub new {
   $this->connect();
 
   unless ($this->{solr}) {
-    $this->log("ERROR: can't conect solr daemon");
+    $this->log("ERROR: can't connect to solr daemon");
   }
 
   # trap SIGINT

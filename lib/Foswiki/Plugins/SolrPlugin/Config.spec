@@ -120,6 +120,11 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
 # Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
 $Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
 
+# **STRING**
+# Usernames and groups, that are allowed to access the rest interface when TaskDaemonPlugin is active.
+# Comma separated list; use 'LOGGEDIN' for everybody but WikiGuest; use 'nobody' for nobody but admins.
+$Foswiki::cfg{SolrPlugin}{AllowRestInterface} = '';
+
 # ---++ JQueryPlugin
 # ---+++ Extra plugins
 # **STRING**
