@@ -19,8 +19,12 @@ sub beforeSaveHandler {
     return unless $topic eq $Foswiki::cfg{WebPrefsTopicName};
 
     my ($oldMeta) = Foswiki::Func::readTopic($web, $topic);
-    if ($oldMeta->getPreference('ALLOWWEBVIEW') ne $meta->getPreference('ALLOWWEBVIEW') ||
-            $oldMeta->getPreference('DENYWEBVIEW') ne $meta->getPreference('DENYWEBVIEW')) {
+
+    # check if preferences are set, if set check permissions
+    my ($AVold, $AV ) = ( $oldMeta->getPreference('ALLOWWEBVIEW'), $meta->getPreference('ALLOWWEBVIEW'));
+    my ($DVold, $DV ) = ( $oldMeta->getPreference('DENYWEBVIEW'), $meta->getPreference('DENYWEBVIEW'));
+    if (( (defined $AVold && defined $AV) && ($AVold  ne $AV) ) ||
+            ( (defined $DVold && defined $DV) && ($DVold  ne $DV) )) {
         @flushCmd = ([$web, 'flush_acls'], [$web, 'update_web']);
     }
 }
