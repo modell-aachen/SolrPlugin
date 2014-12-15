@@ -7,14 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2014-12-15 15:55+0200\n"
+"Last-Translator: Modell Aachen <access@modell-aachen.de>\n"
+"Language-Team: Hungarian <http://translate.modell-"
+"aachen.de/projects/solrplugin/releasenew-york/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 1.9\n"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "(none)"
@@ -62,7 +64,7 @@ msgstr "Kiürít"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Did you mean %1?"
-msgstr "Úgy érted, hogy…"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Display as"
@@ -98,7 +100,7 @@ msgstr "Ezen a weblapon"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "In my contributions"
-msgstr "In my contributions"
+msgstr ""
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "Language"
@@ -160,7 +162,7 @@ msgstr "Alkalmazhatóság"
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
 msgid "Results %1 - %2 of <b>%3</b>"
-msgstr "Eredmények "
+msgstr "Eredmények %1 - %2 of <b>%3</b>"
 
 #: data/System/SolrSearchBaseTemplate.txt
 #: data/System/SolrWikiUsersViewTemplate.txt
@@ -260,7 +262,7 @@ msgstr "legutóbbi"
 
 #: data/System/SolrSideBar.txt
 msgid "score: %1"
-msgstr "pontszám:"
+msgstr "pontszám: %1"
 
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "submit the query"
