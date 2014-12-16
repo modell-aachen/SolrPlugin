@@ -28,6 +28,7 @@ use JSON ();
 use constant TRACE => 0; # toggle me
 #use Data::Dumper ();
 
+
 ##############################################################################
 sub new {
   my ($class, $session) = @_;
@@ -550,7 +551,7 @@ sub restSOLRPROXY {
   $theTopic ||= $this->{session}->{topicName};
   my $theQuery = $query->param('q') || "*:*";
 
-  my %params = map {$_ => [$query->param($_)]} grep {!/^_$/} $query->param();
+  my %params = map {$_ => [$query->multi_param($_)]} grep {!/^_$/} $query->param();
 
   my $wikiUser = Foswiki::Func::getWikiName();
 
@@ -610,7 +611,7 @@ sub restSOLRSEARCH {
   $theTopic ||= $this->{session}->{topicName};
 
   my $theQuery = $query->param('q') || $query->param('search');
-  my %params = map {$_ => join(" " , @{[$query->param($_)]})} $query->param();
+  my %params = map {$_ => join(" " , @{[$query->multi_param($_)]})} $query->multi_param();
 
   # SMELL: why doesn't this work out directly?
   my $jsonWrf = $params{"json.wrf"};
@@ -679,7 +680,7 @@ sub restSOLRAUTOSUGGEST {
   my $theQuery = $query->param('term') || '*';
   $theQuery .= '*' if $theQuery !~ /\*$/ && $theQuery !~ /:/;
 
-  my $theRaw = Foswiki::Func::isTrue($query->param('raw'));
+  my $theRaw = Foswiki::Func::isTrue(scalar $query->param('raw'));
 
   my $theLimit = $query->param('limit');
   $theLimit = 5 unless defined $theLimit;

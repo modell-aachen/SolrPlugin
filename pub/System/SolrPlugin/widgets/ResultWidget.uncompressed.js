@@ -44,6 +44,27 @@
         $("#solrSearch").fadeIn();
       }
 
+      // rewrite view urls
+      $.each(response.response.docs, function(index,doc) {
+        var containerWeb = doc.container_web, 
+            containerTopic = doc.container_topic;
+
+        if (doc.type === "topic") {
+          doc.url = foswiki.getScriptUrl("view", doc.web, doc.topic);
+        }
+
+        if (typeof(containerWeb) === 'undefined' || typeof(containerTopic) === 'undefined') {
+          if (doc.container_id.match(/^(.*)\.(.*)$/)) {
+            containerWeb = RegExp.$1;
+            containerTopic = RegExp.$2;
+          }
+        }
+
+        if (typeof(containerWeb) !== 'undefined' && typeof(containerTopic) !== 'undefined') {
+          doc.container_url = foswiki.getScriptUrl("view", containerWeb, containerTopic);
+        }
+      });
+
       self.$target.html($("#solrHitTemplate").render(
         response.response.docs, {
           debug:function(msg) {

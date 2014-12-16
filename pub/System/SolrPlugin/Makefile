@@ -48,9 +48,9 @@ AJAX_SOLR_WIDGETS_SOURCE=\
 ajax-solr:
 	git clone https://github.com/evolvingweb/ajax-solr.git
 
-ajax-solr.uncompressed.js: Makefile ajax-solr $(AJAX_SOLR_SOURCE)
-	@echo "generating ajax-solr.uncompressed.js"
-	@$(CAT) $(AJAX_SOLR_SOURCE) > $@
+#ajax-solr.uncompressed.js: Makefile ajax-solr $(AJAX_SOLR_SOURCE)
+#	@echo "generating ajax-solr.uncompressed.js"
+#	@$(CAT) $(AJAX_SOLR_SOURCE) > $@
 
 ajax-solr-widgets.uncompressed.js: Makefile $(AJAX_SOLR_WIDGETS_SOURCE)
 	@echo "generating ajax-solr-widgets.uncompressed.js"

@@ -231,7 +231,7 @@
       </span>
     </h3>
     <div class='solrHilite'>
-      {{:~.getHilite(id)}}
+      {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}

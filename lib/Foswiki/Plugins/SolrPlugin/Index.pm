@@ -146,6 +146,7 @@ sub migrateTimestamps {
 
   while (my $file = readdir($dh)) {
     next if $file eq '.' or $file eq '..';
+    $file = Foswiki::Sandbox::untaintUnchecked($file);
     my $path = "$dir/$file";
     if (-d $path) {
       $this->migrateTimestamps($path);
@@ -505,7 +506,9 @@ sub indexTopic {
     createauthor => $createAuthor,
     createdate => $createDate,
     type => 'topic',
-    container_id => $web,
+    container_id => $web . '.'. $Foswiki::cfg{HomeTopicName},
+    container_web => $web,
+    container_topic => $Foswiki::cfg{HomeTopicName},
     container_url => $this->getScriptUrlPath($web, $Foswiki::cfg{HomeTopicName}, "view"),
     container_title => $containerTitle,
     icon => $this->mapToIconFileName('topic'),
@@ -924,6 +927,8 @@ sub indexAttachment {
     size => $size,
     icon => $icon,
     container_id => $web . '.' . $topic,
+    container_web => $web,
+    container_topic => $topic,
     container_url => $this->getScriptUrlPath($web, $topic, "view"),
     container_title => $this->getTopicTitle($web, $topic),
   );

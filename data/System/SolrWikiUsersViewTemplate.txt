@@ -48,20 +48,20 @@
 %TMPL:P{"solr::templates::hits::topic"}%<!-- -->
 %TMPL:P{"solr::templates::userimage"}%<!-- -->
 <script id="solrHitTemplate" type="text/x-jsrender"> 
-{{:~getTemplateName()}}
+{{include tmpl=~getTemplateName() /}}
 </script>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hits::topic"}%<script id="solrHitTemplate_topic" type="text/x-jsrender">
   <div class='solrSearchHit solrTopicHit foswikiProfileInfo'>
-    {{:~solrHitTemplate_userimage}}
+    {{include tmpl="#solrHitTemplate_userimage" /}}
     <h4><a href='{{:url}}'>{{:title}}</a></h4>
     <ul class='foswikiTopicInfo jqShrinkUrls' data-size='15'>
-      {{if typeof(field_Profession_s)==='string'}}<li>%MAKETEXT{"Profession"}%: {{:field_Profession_s}}</li>{{/if}}
-      {{if typeof(field_Telephone_s)==='string'}}<li>%MAKETEXT{"Tel"}%: {{:field_Telephone_s}}</li>{{/if}}
-      {{if typeof(field_Email_s)==='string'}}<li>%MAKETEXT{"Email"}%: <a href='mailto:{{:field_Email_s}}'>{{:field_Email_s}}</a></li>{{/if}}
-      {{if typeof(field_Location_s)==='string'}}<li>%MAKETEXT{"Location"}%: {{:field_Location_s}}</li>{{/if}}
+      {{if field_Profession_s}}<li>%MAKETEXT{"Profession"}%: {{:field_Profession_s}}</li>{{/if}}
+      {{if field_Telephone_s}}<li>%MAKETEXT{"Tel"}%: {{:field_Telephone_s}}</li>{{/if}}
+      {{if field_Email_s}}<li>%MAKETEXT{"Email"}%: <a href='mailto:{{:field_Email_s}}'>{{:field_Email_s}}</a></li>{{/if}}
+      {{if field_Location_s}}<li>%MAKETEXT{"Location"}%: {{:field_Location_s}}</li>{{/if}}
     </ul>
   </div>
 </script>%TMPL:END%
@@ -71,7 +71,7 @@
 %TMPL:DEF{"solr::templates::userimage"}%<script id="solrHitTemplate_userimage" type="text/x-jsrender">
   <div class='foswikiImage foswikiLeft'>
     {{if thumbnail}}
-      <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:encodeURIComponent(thumbnail)}};size=60x80>;crop=on' alt='{{:name}}' />
+      <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:~encodeURIComponent(thumbnail)}};size=60x80>;crop=on' alt='{{:name}}' />
     {{else}}
       <img src='%PUBURLPATH%/%SYSTEMWEB%/JQueryPlugin/images/nobody.gif' height='80' />
     {{/if}}

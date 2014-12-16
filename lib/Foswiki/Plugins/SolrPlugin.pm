@@ -19,6 +19,17 @@ use warnings;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
+
+use Foswiki::Request();
+
+BEGIN {
+  # Backwards compatibility for Foswiki 1.1.x
+  unless (Foswiki::Request->can('multi_param')) {
+    no warnings 'redefine';
+    *Foswiki::Request::multi_param = \&Foswiki::Request::param;
+    use warnings 'redefine';
+  }
+}
   
 our $VERSION = '2.30';
 our $RELEASE = '2.30';

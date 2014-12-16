@@ -184,6 +184,10 @@
 
           $.each(section.docs, function(index, item) {
 
+            if (section.group === 'topics') {
+              item.url = foswiki.getScriptUrl("view", item.web, item.topic);
+            } 
+
             item.phoneNumber = item.field_Telephone_s || item.field_Phone_s || item.field_Mobile_s;
             item.group = section.group;
 
@@ -214,7 +218,8 @@
 
       _renderItem: function(ul, item) {
         var self = this, 
-            template = self._getTemplate(item.group) || self._getTemplate("default");
+            template = self._getTemplate(item.group) || self._getTemplate("default"),
+            li;
 
         if (typeof(item.thumbnail) !== 'undefined') {
           if (!/^(\/|https?:)/.test(item.thumbnail)) {
@@ -224,7 +229,9 @@
           item.thumbnail = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
         }
 
-        return ul.append(template.render(item));
+        li = $(template.render(item)).data("ui-autocomplete-item", item)
+
+        return ul.append(li);
       },
       _normalize: function( items ) {
         return items; // don't normalize 

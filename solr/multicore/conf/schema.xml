@@ -1144,6 +1144,8 @@
        * for webs, this is is the parent web
     -->
    <field name="container_id" type="string" /> <!-- id -->
+   <field name="container_web" type="string" />
+   <field name="container_topic" type="string" />
    <field name="container_url" type="string" /> <!-- url -->
    <field name="container_title" type="string" /> <!-- display title -->
 
