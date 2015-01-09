@@ -286,6 +286,9 @@ sub indexTopic {
   my ($this, $web, $topic, $meta, $text) = @_;
 
   my %outgoingLinks = ();
+  my %outgoingWikiLinks = ();
+  my %outgoingAttachmentLinks = ();
+  my %outgoingAttachmentTopicLinks = ();
 
   my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
 
@@ -322,6 +325,7 @@ sub indexTopic {
   }
 
   # get all outgoing links from topic text
+  $this->extractOutgoingWikiLinks($web, $topic, $origText, \%outgoingWikiLinks, \%outgoingAttachmentLinks, \%outgoingAttachmentTopicLinks);
   $this->extractOutgoingLinks($web, $topic, $origText, \%outgoingLinks);
 
   # all webs
@@ -471,6 +475,14 @@ sub indexTopic {
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
+          if($value =~ m#[./]#) {
+              my $webtopic = $value;
+              $webtopic =~ s#[?\#].*##;
+              my ($vweb, $vtopic) = Foswiki::Func::normalizeWebTopicName(undef, $webtopic);
+              if(Foswiki::Func::topicExists($vweb, $vtopic)) {
+                  $outgoingWikiLinks{$webtopic} = 1;
+              }
+          }
 
           # bit of cleanup
           $mapped = $this->escapeHtml($mapped) if defined $mapped;
@@ -533,6 +545,22 @@ sub indexTopic {
   foreach my $link (keys %outgoingLinks) {
     next if $link eq "$web.$topic";    # self link is not an outgoing link
     $doc->add_fields(outgoing => $link);
+  }
+
+  # store all outgoing wiki links collected so far
+  foreach my $link (keys %outgoingWikiLinks) {
+    next if $link eq "$web.$topic";    # self link is not an outgoing link
+    $doc->add_fields(outgoingWiki_lst => $link);
+  }
+
+  # store all outgoing attachment links collected so far
+  foreach my $link (keys %outgoingAttachmentTopicLinks) {
+    $doc->add_fields(outgoingAttachmentTopic_lst => $link);
+  }
+
+  # store all outgoing attachment links collected so far
+  foreach my $link (keys %outgoingAttachmentLinks) {
+    $doc->add_fields(outgoingAttachment_lst => $link);
   }
 
   # all prefs are of type _t
@@ -699,8 +727,64 @@ sub extractOutgoingLinks {
 
 }
 
+sub extractOutgoingWikiLinks {
+  my ($this, $web, $topic, $text, $outgoingLinks, $outgoingLinksAttachments, $outgoingLinksAttachmentTopics) = @_;
+
+  my $attachmentUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%|\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
+  my $attachmentBracketRegex = "$attachmentUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
+
+  # topics
+  # square brackets
+  while($text =~ m#\[\[([^\]\[\n]+)\]\]#g) {
+      $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+  }
+  while($text =~ m#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#g) {
+      $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+  }
+
+  # attachments:
+  # square brackets
+  while($text =~ m#\[\[$attachmentBracketRegex\]\]#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
+  }
+  while($text =~ m#\[\[$attachmentBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
+  }
+  # img tags etc.
+  while($text =~ m#(?:src|href)\s*=\s*('|")$attachmentUrlRegex([^\n]+?)/([^\n/]+?)\1#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $2, $3);
+  }
+
+}
+
+sub _addAttachmentLink {
+  my ($this, $links, $topiclinks, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
+
+  # TODO: url escapes
+
+  $topic = "$web.$topic" if $web;
+  $topic =~ s/\%SCRIPTURL(PATH)?{.*?}\%\///g;
+  $topic =~ s/%WEB%/$baseWeb/g;
+  $topic =~ s/%TOPIC%/$baseTopic/g;
+
+  ($web, $topic) = $this->normalizeWebTopicName($web || $baseWeb, $topic);
+
+  $attachment =~ s/\?.*//;
+  $attachment =~ s/#.*//;
+
+  my $link = "$web.$topic/$attachment";
+  return '' unless Foswiki::Func::topicExists($web, $topic);
+
+  $links->{$link} = 1;
+  $topiclinks->{"$web.$topic"} = 1;
+
+  return $link;
+}
+
 sub _addLink {
   my ($this, $links, $baseWeb, $baseTopic, $web, $topic) = @_;
+
+  # TODO: url escapes
 
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
