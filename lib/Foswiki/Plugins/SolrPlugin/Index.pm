@@ -487,7 +487,9 @@ sub indexTopic {
               my ($vweb, $vtopic) = Foswiki::Func::normalizeWebTopicName(undef, $webtopic);
               if(Foswiki::Func::isValidWebName($vweb) && Foswiki::Func::isValidTopicName($vtopic, 1)) {
                   $outgoingWikiLinks{$webtopic} = 1 if Foswiki::Func::topicExists($vweb, $vtopic);
-              }
+              # if(Foswiki::Func::topicExists($vweb, $vtopic)) {
+              #     $outgoingWikiLinks{$webtopic} = 1;
+              # }
           }
 
           # bit of cleanup
@@ -743,6 +745,9 @@ sub extractOutgoingWikiLinks {
   my $attachUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%)/";
   my $attachBracketRegex = "$attachUrlRegex([^\]\[\n/]+)";
 
+  # my $attachmentUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%|\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
+  # my $attachmentBracketRegex = "$attachmentUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
+
   # topics
   # square brackets
   while($text =~ m#\[\[([^\]\[\n]+)\]\]#g) {
@@ -754,6 +759,7 @@ sub extractOutgoingWikiLinks {
 
   # attachments:
   # square brackets
+
   while($text =~ m#\[\[$pubBracketRegex\]\]#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
   }
@@ -773,6 +779,18 @@ sub extractOutgoingWikiLinks {
   while($text =~ m#(?:src|href)\s*=\s*('|")$attachUrlRegex([^\n/]+?)\1#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $2);
   }
+
+  # while($text =~ m#\[\[$attachmentBracketRegex\]\]#g) {
+  #     $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
+  # }
+  # while($text =~ m#\[\[$attachmentBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
+  #     $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
+  # }
+  # # img tags etc.
+  # while($text =~ m#(?:src|href)\s*=\s*('|")$attachmentUrlRegex([^\n]+?)/([^\n/]+?)\1#g) {
+  #     $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $2, $3);
+  # }
+
 }
 
 sub _addAttachmentLink {
