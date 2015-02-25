@@ -12,9 +12,6 @@ data/System/SolrSideBar.txt 0644
 data/System/SolrWikiUsersViewTemplate.txt 0644
 data/System/WebChangesViewTemplate.txt 0644
 lib/CharsetDetector.pm 0644
-lib/Foswiki/Configure/Checkers/SolrPlugin/SolrHome.pm 0644
-lib/Foswiki/Configure/Checkers/SolrPlugin/SolrStartCmd.pm 0644
-lib/Foswiki/Configure/Checkers/SolrPlugin/SupportedLanguages.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Autosuggest.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Base.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Config.spec 0644
@@ -147,12 +144,10 @@ solr/configsets/foswiki_configs/conf/typemap.txt 0644
 solr/cores/foswiki/core.properties 0644
 solr/.htaccess 0644
 templates/viewtopbar.solr.tmpl 0644
-tools/etc-defaults-jetty 0755
 tools/solrdelete 0755
 tools/solrindex 0755
 tools/solrindex_all 0755
 tools/solrjob 0755
-tools/solrstart 0755
 tools/virtualhosts-solrdelete 0755
 tools/virtualhosts-solrindex 0755
 tools/virtualhosts-solrsearch 0755

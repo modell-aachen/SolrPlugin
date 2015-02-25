@@ -1784,6 +1784,10 @@
   -->
 
   <updateRequestProcessorChain name="foswiki_chain">
+    <processor class="solr.TruncateFieldUpdateProcessorFactory">
+      <str name="typeClass">solr.StrField</str>
+      <int name="maxLength">32765</int>
+    </processor>
     <processor class="org.apache.solr.update.processor.LangDetectLanguageIdentifierUpdateProcessorFactory">
     <!-- processor class="org.apache.solr.update.processor.TikaLanguageIdentifierUpdateProcessorFactory"-->
       <lst name="defaults">

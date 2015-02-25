@@ -31,8 +31,8 @@ BEGIN {
   }
 }
   
-our $VERSION = '2.30';
-our $RELEASE = '2.30';
+our $VERSION = '3.00_0001';
+our $RELEASE = '25 Feb 2015';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our %searcher;

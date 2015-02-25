@@ -28,6 +28,7 @@ use Foswiki::Form ();
 use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
+use Data::Dump qw(dump);
 
 use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
@@ -640,12 +641,9 @@ sub indexTopic {
               $value =~ s/<[^>]*>/ /g;       # remove all HTML tags
               $value = $this->discardIllegalChars($value);       # remove illegal characters
 
-              $doc->add_fields(
-                $fieldName . '_s' => $value,
-                $fieldName . '_search' => $value,
-              ) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . '_s' => $value) if defined $value && $value ne '';
             } else {
-              $doc->add_fields($fieldName . $fieldType => $value,) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . $fieldType => $value) if defined $value && $value ne '';
             }
           }
         }
@@ -739,6 +737,8 @@ sub indexTopic {
     $this->log("took $elapsed ms to index all attachments at $web.$topic");
     $t1 = [Time::HiRes::gettimeofday];
   }
+
+#print STDERR dump($doc)."\n";
 
   # add the document to the index
   try {

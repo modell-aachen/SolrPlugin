@@ -40,14 +40,7 @@ sub new {
 
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
-  if (!$this->connect() && $Foswiki::cfg{SolrPlugin}{AutoStartDaemon}) {
-    $this->startDaemon();
-    $this->connect();
-  }
-
-  unless ($this->{solr}) {
-    $this->log("ERROR: can't conect solr daemon");
-  }
+  $this->log("ERROR: can't conect solr daemon") unless $this->connect;
 
   return $this;
 }

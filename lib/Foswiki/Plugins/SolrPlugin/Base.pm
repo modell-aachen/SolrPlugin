@@ -59,39 +59,6 @@ sub new {
 }
 
 ##############################################################################
-sub startDaemon {
-  my ($this) = @_;
-
-  my $maxStartRetries = 3;
-
-  my $toolsDir = $Foswiki::cfg{ToolsDir} || $Foswiki::cfg{WorkingDir} . "/../tools";    # try to cope with old foswikis w/o a ToolsDir setting
-  my $autoStartCmd = $Foswiki::cfg{SolrPlugin}{SolrStartCmd} || $toolsDir . '/solrstart %SOLRHOME|F%';
-  my $solrHome = $Foswiki::cfg{SolrPlugin}{SolrHome} || $Foswiki::cfg{WorkingDir} . "/../solr";
-
-  for (my $tries = 1; $tries <= $maxStartRetries; $tries++) {
-
-    # trying to autostart
-    $this->log("autostarting solr at $solrHome");
-
-    unless (-f $solrHome . "/start.jar") {
-      $this->log("ERROR: start.jar not found ... aborting autostart");
-      last;
-    }
-
-    my ($stdout, $exit, $stderr) = Foswiki::Sandbox::sysCommand(undef, $autoStartCmd, SOLRHOME => $solrHome);
-
-    if ($exit) {
-      $this->log("ERROR: $stderr");
-      sleep 1;
-    } else {
-      $this->log("... waiting for solr to start up");
-      sleep 5;
-      last;
-    }
-  }
-}
-
-##############################################################################
 sub connect {
   my ($this) = @_;
 
