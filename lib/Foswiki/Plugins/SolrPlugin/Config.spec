@@ -9,7 +9,7 @@ $Foswiki::cfg{SolrPlugin}{SkipWebs} = 'TWiki, TestCases';
 # List of topics to skip.
 # Topics can be in the form of Web.MyTopic, or if you want a topic to be excluded from all webs just enter MyTopic.
 # For example: Main.WikiUsers, WebStatistics
-$Foswiki::cfg{SolrPlugin}{SkipTopics} = 'WebRss, WebSearch, WebStatistics, WebTopicList, WebLeftBar, WebPreferences, WebSearchAdvanced, WebIndex, WebAtom, WebChanges, WebCreateNewTopic, WebNotify';
+$Foswiki::cfg{SolrPlugin}{SkipTopics} = '';
 
 # **STRING**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
@@ -84,10 +84,6 @@ $Foswiki::cfg{SolrPlugin}{SolrStartCmd} = '$Foswiki::cfg{ToolsDir}/solrstart %SO
 # Path to the directory containing the <code>start.jar</code> file. That's where the jetty engine is 
 # located and where solr puts its data further down the directory structure. 
 $Foswiki::cfg{SolrPlugin}{SolrHome} = '';
-
-# **STRING**
-# Default collection where to put foswiki content to (including topic text as well as all attachments)
-$Foswiki::cfg{SolrPlugin}{DefaultCollection} = 'wiki';
 
 # **PERL**
 # List of supported languages. These are the locale IDs as supported for by the schema.xml configuration

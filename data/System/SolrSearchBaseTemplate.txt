@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1411635852" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1424859947" format="1.1"  version="1"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -37,7 +37,7 @@
    content: main definition that puts together all pieces
 }%
 %TMPL:DEF{"content"}%<noautolink>
-<div id='solrSearch' style='display:none' data-more-fields='%TMPL:P{"solr::fields"}%' data-solr-url='%SCRIPTURL{"rest"}%/SolrPlugin/proxy' data-solr-params='{"topic": "%WEB%.%TOPIC%", "qt":"%TMPL:P{"solr::defaultquerytype"}%", "rows": %TMPL:P{"solr::defaultrows"}%}' data-extra-filter='%TMPL:P{"solr::extrafilter"}%%IF{"'%TMPL:P{"solr::defaultweb"}%'!='all'" then=" web:%TMPL:P{"solr::defaultweb"}%"}%'>
+<div id='solrSearch' style='display:none' data-more-fields='%TMPL:P{"solr::fields"}%' data-solr-url='%SCRIPTURL{"rest"}%/SolrPlugin/proxy' data-solr-params='{"topic": "%WEB%.%TOPIC%", "qt":"%TMPL:P{"solr::defaultquerytype"}%", "rows": %TMPL:P{"solr::defaultrows"}%}' data-extra-filter='%TMPL:P{"solr::extrafilter"}%'>
 %TMPL:P{"solr::title"}%<!-- -->
 %TMPL:P{"solr::header"}%<!-- -->
 %TMPL:P{"solr::hits"}%<!-- -->

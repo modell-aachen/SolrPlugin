@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1411635852" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1424859947" format="1.1"  version="1"}%
 %META:TOPICPARENT{name="SolrSearchViewTemplate"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchView"}%

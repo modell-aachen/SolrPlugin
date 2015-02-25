@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1411635852" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1424859947" format="1.1"  version="1"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -455,7 +455,7 @@ A lucene document is made up of fields of a certain type which defines the way t
 by the solr server. This is configured in the =schema.xml= file.
 
 While the schema is able to cover all Foswiki related data it is still kept generic enough to be used for non-wiki
-content as well. Different kinds of content are distinguished using the =collection= field (see below).
+content as well. 
 
 ---+++ Field types
 
@@ -495,7 +495,6 @@ useful for spatial search.
 | timestamp | tdate | | stored | time when the document was added to the index |
 | spell | text_spell | multivalued | | used for spellchecking |
 | id | string | | stored | unique identifier for each document; this is the _external_ id usable in applications; there's an internal solr document id not related to this field |
-| collection | string | | stored | identifies a set of documents comming from the same content collection; by default all content stored in Foswiki (topics and attachments) is gathered in the =wiki= collection set in =Foswiki::cfg{SolrPlugin}{DefaultCollection}= |
 | language | string | | stored | language of the current document; this may be specified explicitly using the =CONTENT_LANGUAGE= preference, or set to "detect" to let the solr update chain detect the language automatically |
 | url | string | | stored | url used to  access the document being indexed |
 | type | type | | stored | holds the type facet of the document; this is "image" for all kinds of images, "video" for all kinds of videos, "topic" for Foswiki topics and the verbatim file extension for everything else; note: plugins like Foswiki:Extensions/MetaCommentPlugin might use specific types as well (like "comment" in this case) |
@@ -738,5 +737,5 @@ specific search applications. The destination fields are then analysed using the
 |  22 Nov 2010: | fixes integration with pattern skin |
 |  18 Nov 2010: | initial public release |
 
-%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1411635852" size="93552" user="ProjectContributor" version="1"}%
-%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1411635852" size="158013" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1424859947" size="93552" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1424859947" size="158013" user="ProjectContributor" version="1"}%

@@ -1,20 +1,20 @@
 %TMPL:INCLUDE{"viewtopbar"}%
 %TMPL:DEF{"topbar"}%<div id="patternTopBar"><div id="patternTopBarContentsWrapper"><div id="patternTopBarContents">
 <table border="0" cellpadding="0" cellspacing="0" style="width:100%" summary="">
-  <tr><td valign="middle"><span id="foswikiLogo" class="foswikiImage"><a href="%WEBLOGOURL%"><img src="%WEBLOGOIMG%" border="0" alt="%WEBLOGOALT%" style="border:none;" /></a></span></td>
-  <td align="right" valign="top" class="patternMetaMenu">
+  <tr><td><span id="foswikiLogo" class="foswikiImage"><a href="%WEBLOGOURL%"><img src="%WEBLOGOIMG%" border="0" alt="%WEBLOGOALT%" style="border:none;" /></a></span></td>
+  <td align="right" class="patternMetaMenu">
     <div class="natSearchBox foswikiHideOnPrint solrSearchBox jqUITooltip" data-theme="info" data-arrow="on" data-position="left">
       <form name="searchbox" id="searchbox" class="natSearchForm" action="%SCRIPTURLPATH{"view"}%/%BASEWEB%/WebSearch" >
-        <input type="text" class="foswikiInputField" placeholder="%TMPL:P{"searchbox::placeholder"}%" size="20" title="%MAKETEXT{"Enter topic name or a search string"}%" name="search" value="%TMPL:P{"searchbox::value"}%" accesskey="f" /> 
+        <b>%MAKETEXT{"Search"}%:</b> <input type="text" class="foswikiInputField" size="20" title="%MAKETEXT{"Enter topic name or a search string"}%" name="search" value="%TMPL:P{"searchbox::value"}%" accesskey="f" /> 
       </form>
     </div>
   </td></tr></table>
 %JQREQUIRE{"autosuggest"}%<!-- -->
 %TMPL:P{"searchbox::javascript"}%<!-- -->
 %TMPL:P{"searchbox::css"}%<!-- -->
-</div></div></div>%TMPL:END%
+</div></div>
+</div>%TMPL:P{"horizontalnavigation"}%%TMPL:END%
 
-%TMPL:DEF{"searchbox::placeholder"}%%MAKETEXT{"search"}%%TMPL:END%
 %TMPL:DEF{"searchbox::value"}%%URLPARAM{"search" encode="entity"}%%TMPL:END%
 
 %TMPL:DEF{"searchbox::javascript"}%<literal><script>

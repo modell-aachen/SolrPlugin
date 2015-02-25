@@ -1014,9 +1014,7 @@ sub doSimilar {
   my $theMinDocFreq = $params->{'mindocumentfrequency'};
   my $theMinWordLength = $params->{'mindwordlength'};
   my $theMaxWordLength = $params->{'maxdwordlength'};
-  my $theLimit = $params->{'maxterms'}; 
-  $theLimit = $params->{limit} unless defined $theLimit;
-  $theLimit = 10 unless defined $theLimit;
+  my $theMaxTerms = $params->{'maxterms'} || 25;
 
   $theLike = 'field_Category_flat_lst^5,tag' unless defined $theLike;
   $theFilter = 'type:topic' unless defined $theFilter;
@@ -1036,7 +1034,7 @@ sub doSimilar {
     "rows" => $theRows,
     "start" => $theStart,
     "indent" => 'true',
-    "mlt.maxqt" => $theLimit,
+    "mlt.maxqt" => $theMaxTerms,
   };
   
   my @fields = ();

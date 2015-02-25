@@ -35,10 +35,6 @@ use constant PROFILE => 0;  # toggle me
 
 #use Time::HiRes (); # enable this too when profiling
 
-use constant COMMIT_THRESHOLD => 200;    # commit every x topics on a bulk index job
-use constant WAIT_SEARCHER => "true";
-use constant SOFTCOMMIT => "true";
-
 ##############################################################################
 sub new {
   my ($class, $session) = @_;
@@ -193,11 +189,6 @@ sub migrateTimestamps {
 sub finish {
   my $this = shift;
 
-  $this->commit(1)
-    if $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates}
-      || $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates}
-      || $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
-
   $this->{_insert_timestamp}->finish if defined $this->{_insert_timestamp};
   $this->{_select_timestamp}->finish if defined $this->{_select_timestamp};
   $this->{dbh}->disconnect if defined $this->{dbh};
@@ -240,7 +231,6 @@ sub index {
       $this->update($web, $mode);
     }
 
-    $this->commit(1) if $this->{commitCounter};
     $this->optimize() if $optimize;
   }
 
@@ -397,8 +387,6 @@ sub updateTopic {
     $this->indexTopic($web, $topic, $meta, $text);
     $this->setTimestamp($web, $topic);
   }
-
-  $this->commit();
 }
 
 ################################################################################
@@ -452,6 +440,11 @@ sub indexTopic {
   $date ||= 0;    # prevent formatTime to crap out
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
 
+  unless ($rev =~ /^\d+$/) {
+    $this->log("Warning: invalid version '$rev' of $web.$topic");
+    $rev = 1;
+  }
+
   # get create date
   my ($createDate) = $this->getRevisionInfo($web, $topic, 1);
   $createDate ||= 0;    # prevent formatTime to crap out
@@ -474,8 +467,6 @@ sub indexTopic {
   # url to topic
   my $url = $this->getScriptUrlPath($web, $topic, "view");
 
-  my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-
   my $containerTitle = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
   $containerTitle = $web if $containerTitle eq $Foswiki::cfg{HomeTopicName};
 
@@ -491,7 +482,6 @@ sub indexTopic {
 
     # common fields
     id => "$web.$topic",
-    collection => $collection,
     url => $url,
     topic => $topic,
     web => $web,
@@ -568,11 +558,29 @@ sub indexTopic {
           $seenFields{$name} = 1;
 
           my $value = $field->{value};
+
           if ($isValueMapped) {
-            $fieldDef->getOptions(); # load value map
-            # SMELL: there's no api to get the mapped display value
-            $value = $fieldDef->{valueMap}{$value} if defined $fieldDef->{valueMap} && defined $fieldDef->{valueMap}{$value};
-          } 
+
+            # get mapped value
+            if ($fieldDef->can('getDisplayValue')) {
+              $value = $fieldDef->getDisplayValue($value);
+            } else {
+
+              # backwards compatibility
+              $fieldDef->getOptions();    # load value map
+              if (defined $fieldDef->{valueMap}) {
+                my @values = ();
+                foreach my $v (split(/\s*,\s*/, $value)) {
+                  if (defined $fieldDef->{valueMap}{$v}) {
+                    push @values, $fieldDef->{valueMap}{$v};
+                  } else {
+                    push @values, $v;
+                  }
+                }
+                $value = join(", ", @values);
+              }
+            }
+          }
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
@@ -741,8 +749,6 @@ sub indexTopic {
     $this->log("ERROR: " . $e->{-text});
   };
 
-  $this->commit();
-
   if (PROFILE) {
     my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
     $this->log("took $elapsed ms to index topic $web.$topic");
@@ -868,6 +874,11 @@ sub indexAttachment {
   my $author = getWikiName($attachment->{user});
   my $rev = $attachment->{'version'} || 1;
 
+  unless ($rev =~ /^\d+$/) {
+    $this->log("Warning: invalid version '$rev' of attachment $name in $web.$topic");
+    $rev = 1;
+  }
+
   # get summary
   my $summary = $this->substr($attText, 0, 300);
 
@@ -891,7 +902,6 @@ sub indexAttachment {
   $webDir =~ s/\./\//g;
   my $url = $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name;
 
-  my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
   my $icon = $this->mapToIconFileName($extension);
 
   # gather all webs and parent webs
@@ -907,7 +917,6 @@ sub indexAttachment {
 
     # common fields
     id => $id,
-    collection => $collection,
     url => $url,
     web => $web,
     webcat => [@webCats],
@@ -963,8 +972,6 @@ sub indexAttachment {
     $this->log("ERROR: " . $e->{-text});
   };
 
-  $this->commit();
-
   #if (PROFILE) {
   #  my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
   #  $this->log("took $elapsed ms to index attachment $web.$topic.$name");
@@ -996,44 +1003,37 @@ sub optimize {
 
   $agent->timeout($this->{optimizeTimeout});  
 
-  $this->{solr}->commit();
   $this->log("Optimizing index");
   $this->{solr}->optimize({
-    waitSearcher => WAIT_SEARCHER,
-    softCommit => SOFTCOMMIT,
+    waitSearcher => "true",
+    softCommit => "true",
   });
 
   $agent->timeout($oldTimeout);
 }
 
 ################################################################################
-# commit every COMMIT_THRESHOLD times
 sub commit {
   my ($this, $force) = @_;
 
   return unless $this->{solr};
 
-  $this->{commitCounter}++;
+  $this->log("Committing index") if VERBOSE;
+  $this->{solr}->commit({
+      waitSearcher => "true",
+      softCommit => "true",
+  });
 
-  if ($this->{commitCounter} > 1 && ($this->{commitCounter} >= COMMIT_THRESHOLD || $force)) {
-    $this->log("Committing index") if VERBOSE;
-    $this->{solr}->commit({
-        waitSearcher => WAIT_SEARCHER,
-        softCommit => SOFTCOMMIT,
-    });
-    $this->{commitCounter} = 0;
+  # invalidate page cache for all search interfaces
+  if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
+    my @webs = Foswiki::Func::getListOfWebs("user, public");
+    foreach my $web (@webs) {
+      next if $web eq $Foswiki::cfg{TrashWebName};
 
-    # invalidate page cache for all search interfaces
-    if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
-      my @webs = Foswiki::Func::getListOfWebs("user, public");
-      foreach my $web (@webs) {
-        next if $web eq $Foswiki::cfg{TrashWebName};
+      #$this->log("firing dependencies in $web");
+      $this->{session}->{cache}->fireDependency($web, "WebSearch");
 
-        #$this->log("firing dependencies in $web");
-        $this->{session}->{cache}->fireDependency($web, "WebSearch");
-
-        # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
-      }
+      # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
     }
   }
 }
@@ -1083,7 +1083,6 @@ sub deleteByQuery {
   my $success;
   try {
     $success = $this->{solr}->delete_by_query($query);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
@@ -1105,7 +1104,6 @@ sub deleteDocument {
 
   try {
     $this->{solr}->delete_by_id($id);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
