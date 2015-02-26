@@ -19,4 +19,3 @@ Any::Moose,>=0.17,cpan,Required
 XML::Easy,>0,cpan,Required
 HTML::Entities,>=3.64,cpan,Required
 File::MMagic,>0,cpan,Required
-DBI,>=1,cpan,Required

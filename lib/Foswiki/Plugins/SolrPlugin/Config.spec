@@ -2,20 +2,53 @@
 # ---++ SolrPlugin
 
 # **STRING**
+# Url where to find the solr server. The url has got the format <code>http://&lt;domain>:&lt;port>/solr/&lt;core></code>. 
+# The default core name is <code>foswiki</code>. When you installed VirtualHostingContrib then use the virtual domain as the core name per convention, 
+# e.g. <code>http://localhost:8983/solr/www.foswiki.org</code>
+$Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr/foswiki';
+
+# **NUMBER CHECK='undefok'**
+# default timeout in seconds for an HTTP transaction to the SOLR server 
+$Foswiki::cfg{SolrPlugin}{Timeout} = 180;
+
+# **NUMBER CHECK='undefok'**
+# timeout in seconds for an HTTP transaction to the SOLR server issuing an "optimize" 
+# action. This normally takes a lot longer than a normal request as all of the SOLR database
+# is restructured with a lot of IO on the disk. 
+$Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
+
+# **STRING CHECK='undefok'** 
+# Url of the server to send updates to. Note, you will only need this setting
+# in a solr setup with master-slave replication where all updates are sent to
+# a single master which in turn replicates them to the clients. This setting
+# will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{UpdateUrl} = '';
+
+# **STRING CHECK='undefok'** 
+# Url of a slave server to get search results from.  Note, you will only
+# need this server in a solr setup with master-slave replication.  This
+# setting will override any {Url} setting above.
+$Foswiki::cfg{SolrPlugin}{SearchUrl} = '';
+
+# **STRING**
+# Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
+$Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
+
+# **STRING EXPERT CHECK='undefok'**
 # Comma seperated list of webs to skip
 $Foswiki::cfg{SolrPlugin}{SkipWebs} = 'TWiki, TestCases';
 
-# **STRING**
+# **STRING EXPERT CHECK='undefok'**
 # List of topics to skip.
 # Topics can be in the form of Web.MyTopic, or if you want a topic to be excluded from all webs just enter MyTopic.
 # For example: Main.WikiUsers, WebStatistics
 $Foswiki::cfg{SolrPlugin}{SkipTopics} = '';
 
-# **STRING**
+# **STRING EXPERT CHECK='undefok'**
 # Comma seperated list of extenstions to read, Their metadata is added to the index in any case.
 $Foswiki::cfg{SolrPlugin}{IndexExtensions} = 'txt, html, xml, doc, docx, xls, xlsx, ppt, pptx, pdf, odt';
 
-# **STRING**
+# **STRING EXPERT CHECK='undefok'**
 # List of attachments to skip                                                                                         
 # For example: Web.SomeTopic.AnAttachment.txt, Web.OtherTopic.OtherAttachment.pdf 
 # Note that neither metadata nor the content of the attachment is added to the index
@@ -36,42 +69,7 @@ $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates} = 0;
 # If this flag is disabled, you will have to install a cronjob to update the index regularly.
 $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 
-# **PERL H**
-# This setting is required to enable executing the solrsearch script from the bin directory
-$Foswiki::cfg{SwitchBoard}{solrsearch} = ['Foswiki::Plugins::SolrPlugin', 'searchCgi', { 'solrsearch' => 1 }];
-
-# **PERL H**
-$Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexCgi', { 'solrindex' => 1 }];
-
-# **STRING**
-# Url where to find the solr server
-$Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr';
-
-# **NUMBER**
-# default timeout in seconds for an HTTP transaction to the SOLR server 
-$Foswiki::cfg{SolrPlugin}{Timeout} = 180;
-
-# **NUMBER**
-# timeout in seconds for an HTTP transaction to the SOLR server issuing an "optimize" 
-# action. This normally takes a lot longer than a normal request as all of the SOLR database
-# is restructured with a lot of IO on the disk. 
-$Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
-
-
-# **STRING** 
-# Url of the server to send updates to. Note, you will only need this setting
-# in a solr setup with master-slave replication where all updates are sent to
-# a single master which in turn replicates them to the clients. This setting
-# will override any {Url} setting above.
-$Foswiki::cfg{SolrPlugin}{UpdateUrl} = '';
-
-# **STRING** 
-# Url of a slave server to get search results from.  Note, you will only
-# need this server in a solr setup with master-slave replication.  This
-# setting will override any {Url} setting above.
-$Foswiki::cfg{SolrPlugin}{SearchUrl} = '';
-
-# **PERL**
+# **PERL EXPERT**
 # List of supported languages. These are the locale IDs as supported for by the schema.xml configuration
 # file for solr. For each language ID there's a text field named text_&lt;ID&gt; that will be filled
 # with content in the appropriate language. A wiki page can be flagged to be in a specific language by
@@ -113,25 +111,12 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
   'tr' => 'tr', 'turkish' => 'tr',
 };
 
-# **STRING**
-# Configuration info for the database to be used to store timestamps.
-$Foswiki::cfg{SolrPlugin}{Database}{DSN} = 'dbi:SQLite:dbname=$Foswiki::cfg{WorkingDir}/work_areas/SolrPlugin/timestamps.db';
+# **PERL H EXPERT**
+# This setting is required to enable executing the solrsearch script from the bin directory
+$Foswiki::cfg{SwitchBoard}{solrsearch} = ['Foswiki::Plugins::SolrPlugin', 'searchCgi', { 'solrsearch' => 1 }];
 
-# **STRING 80 **
-# Prefix used naming tables and indexes generated in the database.
-$Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} = 'foswiki_';
-
-# **STRING 80 **
-# Username to access the database
-$Foswiki::cfg{SolrPlugin}{Database}{UserName} = '';
-
-# **PASSWORD 80 **
-# Credentials for the user accessing the database
-$Foswiki::cfg{SolrPlugin}{Database}{Password} = '';
-
-# **STRING**
-# Name of the Foswiki DataForm that will identify the currently being indexed topic as a user profile page.
-$Foswiki::cfg{SolrPlugin}{PersonDataForm} = '*UserForm';
+# **PERL H EXPERT**
+$Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexCgi', { 'solrindex' => 1 }];
 
 # ---++ JQueryPlugin
 # ---+++ Extra plugins

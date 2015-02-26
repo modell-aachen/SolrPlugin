@@ -521,4 +521,32 @@ sub discardIllegalChars {
   return $string;
 }
 
+##############################################################################
+sub fromSiteCharSet {
+  my $this = shift;
+  return Encode::decode($Foswiki::cfg{Site}{CharSet}, $_[0]);
+}
+
+##############################################################################
+sub toSiteCharSet {
+  my $this = shift;
+  return Encode::encode($Foswiki::cfg{Site}{CharSet}, $_[0]);
+}
+
+##############################################################################
+sub fromUtf8 {
+  my $this = shift;
+  return Encode::decode_utf8($_[0]);
+}
+
+##############################################################################
+sub toUtf8 {
+  my ($this, $string) = @_;
+
+  my $charset = $Foswiki::cfg{Site}{CharSet};
+  my $octets = Encode::decode($charset, $string);
+  $octets = Encode::encode('utf-8', $octets);
+  return $octets;
+}
+
 1;

@@ -20,7 +20,6 @@ our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );
 
 use Error qw( :try );
 use Fcntl qw( :flock );
-use DBI ();
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Foswiki::Plugins::SolrPlugin ();
@@ -28,7 +27,6 @@ use Foswiki::Form ();
 use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
-use Data::Dump qw(dump);
 
 use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
@@ -69,135 +67,14 @@ sub new {
   # to bail out from work done so far
 
   $this->{workArea} = Foswiki::Func::getWorkArea('SolrPlugin');
-  $this->{dsn} = $Foswiki::cfg{SolrPlugin}{Database}{DSN} || 'dbi:SQLite:dbname=' . $this->{workArea} . '/timestamps.db',
-  $this->{username} = $Foswiki::cfg{SolrPlugin}{Database}{UserName},
-  $this->{password} = $Foswiki::cfg{SolrPlugin}{Database}{Password},
-  $this->{tablePrefix} = $Foswiki::cfg{SolrPlugin}{Database}{TablePrefix} || 'foswiki_',
-
-  $this->initTimestampsDB;
 
   return $this;
-}
-
-################################################################################
-sub initTimestampsDB {
-  my $this = shift;
-
-  unless (defined $this->{dbh}) {
-    $this->{dbh} = DBI->connect(
-      $this->{dsn},
-      $this->{username},
-      $this->{password},
-      {
-        PrintError => 0,
-        RaiseError => 1,
-        AutoCommit => 1
-      }
-    );
-
-    throw Error::Simple("Can't open database $this->{dsn}: " . $DBI::errstr)
-      unless defined $this->{dbh};
-
-    my $timestampsTable = $this->{tablePrefix}.'timestamps';
-    my $timestampsIndex = $this->{tablePrefix}.'timestamps_index';
-
-
-    # test whether the table exists
-    eval { $this->{dbh}->do("select * from $timestampsTable limit 1"); };
-
-    if ($@) {
-      $this->log("creating database") if TRACE;
-
-      $this->{dbh}->do(<<HERE);
-      create table $timestampsTable (
-        web char(255),
-        topic char(255),
-        epoch int
-  )
-HERE
-
-      $this->{dbh}->do("create unique index $timestampsIndex on $timestampsTable (web, topic)");
-    } else {
-      $this->log("found database") if TRACE;
-    }
-  }
-
-  # migrate 
-  $this->migrateTimestamps;
-
-  return $this->{dbh};
-}
-
-################################################################################
-sub migrateTimestamps {
-  my ($this, $dir) = @_;
-
-  my $baseDir = $this->{workArea} . '/timestamps';
-  unless ($dir) {
-    $dir = $baseDir;
-    return unless -d $dir;
-  }
-
-  my $dh;
-  opendir($dh, $dir) || die "can't open directory $dir: $!\n";
-
-  while (my $file = readdir($dh)) {
-    next if $file eq '.' or $file eq '..';
-    $file = Foswiki::Sandbox::untaintUnchecked($file);
-    my $path = "$dir/$file";
-    if (-d $path) {
-      $this->migrateTimestamps($path);
-      next;
-    }
-
-    my $web = $dir;
-    $web =~ s/^$baseDir\/?//;
-
-    my $epoch = Foswiki::Func::readFile($path);
-
-    if ($web) {
-      my $topic = $file;
-      $topic =~ s/\.timestamp$//;
-      if (Foswiki::Func::topicExists($web, $topic)) {
-        $this->log("importing web=$web, topic=$topic, epoch=$epoch") if TRACE;
-        $this->setTimestamp($web, $topic, $epoch);
-      } else {
-        $this->log("found dangling topic timestamp for web=$web, topic=$topic") if TRACE;
-      }
-    } else {
-      $web = $file;
-      $web =~ s/\.timestamp$//;
-  
-      $this->log("Migrating timestaps database for $web") if VERBOSE;
-
-      if (Foswiki::Func::webExists($web)) {
-        $this->log("importing web=$web epoch=$epoch") if TRACE;
-        $this->setTimestamp($web, undef, $epoch);
-      } else {
-        $this->log("found dangling web timestamp for web=$web") if TRACE;
-      }
-    }
-
-    unlink $path;
-  }
-
-  closedir($dh);
-
-  rmdir $dir;
 }
 
 ################################################################################
 sub finish {
   my $this = shift;
 
-  $this->{_insert_timestamp}->finish if defined $this->{_insert_timestamp};
-  $this->{_select_timestamp}->finish if defined $this->{_select_timestamp};
-  $this->{dbh}->disconnect if defined $this->{dbh};
-
-  undef $this->{_insert_timestamp};
-  undef $this->{_select_timestamp};
-  undef $this->{dbh};
-  undef $this->{dsn};
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
   undef $this->{_webACLCache};
@@ -212,8 +89,6 @@ sub index {
   # mode to run in parallel
 
   try {
-
-    #    $this->lock();
 
     my $query = Foswiki::Func::getCgiQuery();
     my $web = $query->param('web') || 'all';
@@ -238,12 +113,8 @@ sub index {
   catch Error::Simple with {
     my $error = shift;
     print STDERR "Error: " . $error->{-text} . "\n";
-  }
-
-  finally {
-
-    #    $this->unlock();
   };
+
 }
 
 ################################################################################
@@ -291,11 +162,10 @@ sub update {
 
   $mode ||= 'full';
 
-  # check if old webs still exist
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
-  my @webs = $searcher->getListOfWebs();
 
-  #print STDERR "webs=".join(", ", @webs)."\n";
+  # remove non-existing webs
+  my @webs = $searcher->getListOfWebs();
   foreach my $thisWeb (@webs) {
     next if Foswiki::Func::webExists($thisWeb);
     $this->log("$thisWeb doesn't exist anymore ... deleting");
@@ -316,22 +186,23 @@ sub update {
   # of all webs; then possibly delete them
 
   foreach my $web (@webs) {
-    if ($this->isSkippedWeb($web)) {
 
+    $web =~ s/\//./g;
+
+    if ($this->isSkippedWeb($web)) {
       #$this->log("Skipping web $web");
       next;
-    } else {
-
-      #$this->log("Indexing web $web");
     }
 
-    my $start_time = time();
+    # remove all non-existing topics
+    foreach my $topic ($searcher->getListOfTopics($web)) {
+      next if Foswiki::Func::topicExists($web, $topic);
+      $this->log("$web.$topic gone ... deleting");
+      $this->deleteTopic($web, $topic);
+    }
 
     my $found = 0;
     if ($mode eq 'full') {
-
-      # full
-      $this->deleteWeb($web);
       foreach my $topic (Foswiki::Func::getTopicList($web)) {
         next if $this->isSkippedTopic($web, $topic);
         $this->indexTopic($web, $topic);
@@ -340,15 +211,25 @@ sub update {
       }
     } else {
 
-      # delta
-      my $webTime = $this->getTimestamp($web);
+      my %timeStamps = ();
 
+      # get all timestamps for this web
+      $searcher->iterate({
+        query => "web:$web type:topic", 
+        fields => "topic,timestamp", 
+        process => sub {
+          my $doc = shift;
+          my $topic = $this->toSiteCharSet($doc->value_for("topic"));
+          my $time = int(Foswiki::Time::parseTime($doc->value_for("timestamp")));
+          $timeStamps{$topic} = $time;
+        }
+      });
+
+      # delta
       my @topics = Foswiki::Func::getTopicList($web);
       foreach my $topic (@topics) {
         next if $this->isSkippedTopic($web, $topic);
 
-        my $topicTime = $this->getTimestamp($web, $topic);
-        next if $topicTime > $webTime; # this topic has been indexed individually
 
         my $changed;
         if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
@@ -358,18 +239,17 @@ sub update {
           # This is here for old engines
           $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
         }
+
+        my $topicTime = $timeStamps{$topic} || 0;
         next if $topicTime > $changed;
 
-        $this->deleteTopic($web, $topic);
         $this->indexTopic($web, $topic);
 
-        $this->setTimestamp($web, $topic);
         $found = 1;
         last if $this->{_trappedSignal};
       }
     }
     last if $this->{_trappedSignal};
-    $this->setTimestamp($web);# if $found;
   }
 }
 
@@ -386,7 +266,6 @@ sub updateTopic {
   $this->deleteTopic($web, $topic, $meta);
   if (Foswiki::Func::topicExists($web, $topic)) {
     $this->indexTopic($web, $topic, $meta, $text);
-    $this->setTimestamp($web, $topic);
   }
 }
 
@@ -737,8 +616,6 @@ sub indexTopic {
     $this->log("took $elapsed ms to index all attachments at $web.$topic");
     $t1 = [Time::HiRes::gettimeofday];
   }
-
-#print STDERR dump($doc)."\n";
 
   # add the document to the index
   try {
@@ -1113,26 +990,6 @@ sub deleteDocument {
 }
 
 ################################################################################
-sub lock {
-  my $this = shift;
-
-  my $lockfile = $this->{workArea} . "/indexer.lock";
-  open($this->{lock}, ">$lockfile")
-    or die "can't create lockfile $lockfile";
-
-  flock($this->{lock}, LOCK_EX)
-    or die "can't lock indexer: $!";
-}
-
-################################################################################
-sub unlock {
-  my $this = shift;
-
-  flock($this->{lock}, LOCK_UN)
-    or die "unable to unlock: $!";
-}
-
-################################################################################
 sub getStringifiedVersion {
   my ($this, $web, $topic, $attachment) = @_;
 
@@ -1330,7 +1187,6 @@ sub getRevisionInfo {
     $info->{date} = $attachment->{date};
     $info->{author} = $attachment->{author} || $attachment->{user};
 
-    #$info->{date} = $this->getTimestamp() unless defined $info->{date};
     #$info->{author} = $Foswiki::Users::BaseUserMapping::DEFAULT_USER_CUID unless defined $info->{author};
     return $info;
   } else {
@@ -1543,48 +1399,6 @@ sub getAclFields {
   my $grantedUsers = $this->getGrantedUsers(@_);
   return () unless $grantedUsers;
   return ('access_granted' => $grantedUsers);
-}
-
-################################################################################
-sub setTimestamp {
-  my ($this, $web, $topic, $time) = @_;
-
-  return unless $web;
-  return unless Foswiki::Func::webExists($web);
-
-  $time = time() unless defined $time;
-
-  unless (defined $this->{_insert_timestamp}) {
-    my $timestampsTable = $this->{tablePrefix}.'timestamps';
-    $this->{_insert_timestamp} = $this->{dbh}->prepare(<<HERE);
-        replace into $timestampsTable 
-          (web, topic, epoch) values 
-          (?, ?, ?)
-HERE
-  }
-
-  $this->{_insert_timestamp}->execute($web, ($topic||'undef'), $time) or die("Can't execute statement: " . $this->{_insert_timestamp}->errstr);
-
-  return $time;
-}
-
-################################################################################
-sub getTimestamp {
-  my ($this, $web, $topic) = @_;
-
-  #print STDERR "called getTimestamp($web, ".($topic||'').")\n";
-
-  unless (defined $this->{_select_timestamp}) {
-    my $timestampsTable = $this->{tablePrefix}.'timestamps';
-    $this->{_select_timestamp} = $this->{dbh}->prepare(<<HERE);
-      select epoch from $timestampsTable where web = ? and topic = ?
-HERE
-  }
-
-  my ($epoch) = $this->{dbh}->selectrow_array($this->{_select_timestamp}, undef, $web, ($topic||'undef'));
-  $epoch ||= 0;
-
-  return $epoch;
 }
 
 1;
