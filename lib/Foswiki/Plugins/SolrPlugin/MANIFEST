@@ -1,4 +1,3 @@
-bin/solrsearch 0755
 data/System/NatSkinSolrSearchViewTemplate.txt 0644
 data/System/NatSkinWebChangesViewTemplate.txt 0644
 data/System/PatternSkinSolrSearchViewTemplate.txt 0644
@@ -146,7 +145,6 @@ solr/.htaccess 0644
 templates/viewtopbar.solr.tmpl 0644
 tools/solrdelete 0755
 tools/solrindex 0755
-tools/solrindex_all 0755
 tools/solrjob 0755
 tools/virtualhosts-solrdelete 0755
 tools/virtualhosts-solrindex 0755

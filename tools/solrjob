@@ -10,7 +10,7 @@ LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
 
 # number of seconds until solrindex is executed. this helps to keep the indexing burden
 # low when iwatch fires a lot of events in a short period of time
-THROTTLE=10
+THROTTLE=5
 
 # lock file
 LOCKFILE=$FOSWIKI_ROOT/working/tmp/solrindex.lock
