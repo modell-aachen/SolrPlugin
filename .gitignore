@@ -22,3 +22,4 @@ SolrPlugin_installer
 SolrPlugin_installer.pl
 pub/System/SolrPlugin/ajax-solr/README.md
 pub/System/SolrPlugin/ajax-solr/Rakefile
+genpdf_*
