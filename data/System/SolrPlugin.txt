@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425044056" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1425056508" format="1.1" version="1"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -92,6 +92,16 @@ cd <foswiki-dir>/bin
 </verbatim>
 
 ... should return a JSON response from Solr showing the recently indexed topic
+
+---+++ Skin integration
+
+SolrPlugin comes with a skin overlay - called =solr= - that will replace the upper left search boxes in [[Foswiki:Extensions/PatternSkin][PatternSkin]] with a solr-driven auto-suggest search box. To switch that on use
+
+<verbatim>   * Set SKIN = solr, pattern</verbatim>
+
+in your %USERSWEB%.SitePreferences.
+
+%X% Note that you won't need to enable the =solr= skin overlay in case you are using [[Foswiki:Extensions/NatSkin][NatSkin]] as it comes with support for SolrPlugin out of the box.
 
 ---++ Commandline scripts 
 
