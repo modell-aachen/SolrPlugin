@@ -1088,6 +1088,8 @@ sub doSearch {
   my $theWeb = $params->{web};
   my $theFilter = $params->{filter} || '';
   my $theExtraFilter = $params->{extrafilter};
+  my $theRawFilterQuery = $params->{rawfilterquery};
+  my $theRawFilterQuerySplit = $params->{rawfilterquerysplit} = '\\|';
   my $theDisjunktiveFacets = $params->{disjunctivefacets} || '';
   my $theCombinedFacets = $params->{combinedfacets} || '';
   my $theBoostQuery = $params->{boostquery};
@@ -1237,6 +1239,10 @@ sub doSearch {
   if ($theWeb && $theWeb ne 'all') {
     $theWeb =~ s/\//\./g;
     push(@filter, "web:$theWeb");
+  }
+
+  if ($theRawFilterQuery) {
+    push @filter, split(/$theRawFilterQuerySplit/, $theRawFilterQuery);
   }
 
   # extra filter
