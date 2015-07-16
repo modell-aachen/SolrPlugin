@@ -1325,7 +1325,7 @@ AjaxSolr.AbstractFacetWidget = AjaxSolr.AbstractWidget.extend(
         for(var i = 0, l = this.queries.length; i < l; i++) {
           param = this.manager.store.addByValue('facet.query', this.queries[i].value);
           if (this.queries[i].key) {
-            param.local("key", "'"+this.queries[i].key+"'");
+            param.local("key", "'"+this.queries[i].key.replace(/\\/g, "\\\\").replace(/'/g, "\\'")+"'");
             if (this.ex) {
               param.local("ex", this.ex);
             }
