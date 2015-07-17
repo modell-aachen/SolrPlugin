@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425044056" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1" version="1"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchBase"}%
 %{</verbatim>}%
@@ -10,7 +10,7 @@
 %TMPL:DEF{"solr::defaultrows"}%20%TMPL:END%
 %TMPL:DEF{"solr::defaultquerytype"}%standard%TMPL:END%
 %TMPL:DEF{"solr::defaultsort"}%date desc%TMPL:END%
-%TMPL:DEF{"solr::extrafilter"}%%IF{"defined 'SOLR_EXTRAFILTER'" then="%SOLR_EXTRAFILTER%" else="-field_TopicType_lst:Category"}% type:topic%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%%IF{"defined 'SOLR_EXTRAFILTER'" then="%SOLR_EXTRAFILTER%" else="-field_TopicType_lst:Category"}% type:topic web:%FORMATLIST{"%BASEWEB%" split="/" separator="."}%%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%

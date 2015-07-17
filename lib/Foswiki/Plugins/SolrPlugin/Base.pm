@@ -10,7 +10,6 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin::Base;
 
 use strict;
@@ -22,19 +21,9 @@ use Foswiki::Plugins::SolrPlugin ();
 use WebService::Solr ();
 use Error qw( :try );
 use Encode ();
-use HTML::Entities ();
 
 our $STARTWW = qr/^|(?<=[\s\(])/m;
 our $ENDWW = qr/$|(?=[\s,.;:!?)])/m;
-
-
-BEGIN {
-  if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
-    $WebService::Solr::ENCODE = 0;    # don't encode to utf8 in WebService::Solr
-  }
-
-  #print STDERR "Any::Moose prefers $Any::Moose::PREFERRED\n"
-}
 
 ##############################################################################
 sub new {
@@ -75,15 +64,6 @@ sub connect {
         ), 
         autocommit => 0, 
       });
-
-      # SMELL: WebServices::Solr somehow does not degrade nicely
-      if ($this->{solr}->ping()) {
-
-        #$this->log("got ping reply");
-      } else {
-        $this->log("WARNING: can't ping solr");
-        $this->{solr} = undef;
-      }
     };
 
     if ($@) {
@@ -265,12 +245,10 @@ sub inlineError {
 
 ##############################################################################
 sub entityDecode {
-  my ($this, $text, $skipDecode) = @_;
+  my ($this, $text) = @_;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $text = Encode::decode($charset, $text) unless $skipDecode;
-  $text = HTML::Entities::decode_entities($text);
-  $text = Encode::encode($charset, $text) unless $skipDecode;
+  return "" unless defined $text;
+  $text =~ s/&#(\d+);/chr($1)/ge;
 
   return $text;
 }
@@ -365,7 +343,13 @@ sub getTopicTitle {
     $topicTitle = $field->{value} if $field && $field->{value};
   }
 
-  $topicTitle ||= $topic;
+  if (!defined($topicTitle) || $topicTitle eq '') {
+    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
+      $topicTitle = $web;
+    } else {
+      $topicTitle = $topic;
+    }
+  }
 
   # bit of cleanup
   $topicTitle =~ s/<!--.*?-->//g;
@@ -398,11 +382,8 @@ sub getTopicSummary {
 
   return '' unless defined $summary;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $summary = Encode::decode($charset, $summary);
-  $summary = $this->plainify($summary, $web, $topic, 1);
+  $summary = $this->plainify($summary, $web, $topic);
   $summary =~ s/\n/ /g;
-  $summary = Encode::encode($charset, $summary);
 
   return $summary;
 }
@@ -423,7 +404,7 @@ sub getScriptUrlPath {
 
 ################################################################################
 sub plainify {
-  my ($this, $text, $web, $topic, $skipDecode) = @_;
+  my ($this, $text, $web, $topic) = @_;
 
   return '' unless defined $text;
 
@@ -489,34 +470,15 @@ sub plainify {
   $text =~ s/~~~/ /g;
   $text =~ s/^$//gs;
 
-  return $this->discardIllegalChars($text, $skipDecode);
-}
-
-
-################################################################################
-sub substr {
-  my ($this, $string, $offset, $length, $skipDecode) = @_;
-
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-
-  $string = Encode::decode($charset, $string) unless $skipDecode;
-  $string = substr($string, $offset, $length);
-  $string = Encode::encode($charset, $string) unless $skipDecode;
-
-  return $string;
+  return $this->discardIllegalChars($text);
 }
 
 ################################################################################
 sub discardIllegalChars {
-  my ($this, $string, $skipDecode) = @_;
-
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $string = Encode::decode($charset, $string) unless $skipDecode;
+  my ($this, $string) = @_;
 
   # remove illegal characters
   $string =~ s/\p{C}/ /g;
-
-  $string = Encode::encode($charset, $string) unless $skipDecode;
 
   return $string;
 }
@@ -543,10 +505,9 @@ sub fromUtf8 {
 sub toUtf8 {
   my ($this, $string) = @_;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  my $octets = Encode::decode($charset, $string);
-  $octets = Encode::encode('utf-8', $octets);
-  return $octets;
+#  my $charset = $Foswiki::cfg{Site}{CharSet};
+#  $string = Encode::decode($charset, $string);
+  return Encode::encode('utf-8', $string);
 }
 
 1;

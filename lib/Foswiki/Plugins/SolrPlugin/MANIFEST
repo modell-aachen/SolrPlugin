@@ -14,6 +14,8 @@ lib/CharsetDetector.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Autosuggest.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Base.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Config.spec 0644
+lib/Foswiki/Plugins/SolrPlugin/Crawler/FileSystemCrawler.pm 0644
+lib/Foswiki/Plugins/SolrPlugin/Crawler.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/DEPENDENCIES 0644
 lib/Foswiki/Plugins/SolrPlugin/Index.pm 0644
 lib/Foswiki/Plugins/SolrPlugin.pm 0644
@@ -148,4 +150,4 @@ tools/solrindex 0755
 tools/solrjob 0755
 tools/virtualhosts-solrdelete 0755
 tools/virtualhosts-solrindex 0755
-tools/virtualhosts-solrsearch 0755
+WebService-Solr.patch 0644

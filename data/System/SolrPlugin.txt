@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425056508" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1" version="1"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Solr Plugin
 %SHORTDESCRIPTION%
@@ -35,9 +35,9 @@ The current plugin requires *Solr 5.0.0* or later.  Download it from the [[http:
 %JQREQUIRE{"chili"}%
 
 <verbatim class="bash">
-tar xzf solr-5.0.0.tgz solr-5.0.0/bin/install_solr_service.sh
-cd solr-5.0.0/bin/
-./install_solr_service.sh ../../solr-5.0.0.tgz
+tar xzf solr-5.x.x.tgz solr-5.x.x/bin/install_solr_service.sh
+cd solr-5.x.x/bin/
+./install_solr_service.sh ../../solr-5.x.x.tgz
 service solr stop
 </verbatim>
 
@@ -845,6 +845,10 @@ specific search applications. The destination fields are then analysed using the
 |  Home: | Foswiki:Extensions/%TOPIC% |
 |  Support: | Foswiki:Support/%TOPIC% |
 |  Change History: | <!-- versions below in reverse order -->&nbsp; |
+|  17 Jul 2015: | added support for Foswiki-2.0 ;\
+                  indexing workflow and state facets supporting Foswiki:Extensions/WorkflowPlugin; \
+                  added =author_url= to solr schema; \
+                  added google image and video mime types mapping them to "image" while indexing; 
 |  27 Feb 2015: | upgraded to solr-5.0.0 |
 |  29 Sep 2014: | moved to jsrender for templating, replacing the deprecated jquery.tmpl |
 |  29 Aug 2014: | fix mailto links in !WikiUsers view template; \
@@ -923,5 +927,5 @@ specific search applications. The destination fields are then analysed using the
 |  22 Nov 2010: | fixes integration with pattern skin |
 |  18 Nov 2010: | initial public release |
 
-%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1425044056" size="93552" user="ProjectContributor" version="1"}%
-%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1425044056" size="158013" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap1.png" attachment="SolrPluginSnap1.png" attr="" comment="" date="1437153664" size="93552" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="SolrPluginSnap2.png" attachment="SolrPluginSnap2.png" attr="" comment="" date="1437153664" size="158013" user="ProjectContributor" version="1"}%

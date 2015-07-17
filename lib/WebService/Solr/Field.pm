@@ -3,6 +3,7 @@ package WebService::Solr::Field;
 use XML::Easy::Element;
 use XML::Easy::Content;
 use XML::Easy::Text ();
+use Encode();
 
 sub new {
     my ( $class, $name, $value, $opts ) = @_;

@@ -1039,6 +1039,7 @@
    <field name="title" type="string" />
    <field name="summary" type="text_generic" />
    <field name="author" type="string" />
+   <field name="author_url" type="string" /> <!-- url -->
    <field name="contributor" type="string" multiValued="true" />
    <field name="version" type="tint" />
    <field name="text" type="text_generic" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
@@ -1053,7 +1054,7 @@
    <!-- state: used by comments or any other application that tracks specific states of a topic;
         example values are: new, unapproved, approved, draft, unpublished, published, ...
     -->
-   <field name="state" type="string" stored="false" />
+   <field name="state" type="string" />
 
    <!-- TOPICS: -->
    <field name="parent" type="string" />
@@ -1071,7 +1072,7 @@
    <field name="attachment" type="string" multiValued="true" />
 
    <!-- outgoing: list of outgoing links -->
-   <field name="outgoing" type="string" multiValued="true" stored="false" />
+   <field name="outgoing" type="string" multiValued="true" />
 
    <!-- ClassificationPlugin -->
    

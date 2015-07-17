@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425044056" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1" version="1"}%
 %META:TOPICPARENT{name="WebHome"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"SolrSearchView"}%
@@ -69,7 +69,7 @@
 %{<verbatim>}%
 %TMPL:DEF{"solr::templates::userimage"}%<script id="solrHitTemplate_userimage" type="text/x-jsrender">
   <div class='foswikiImage foswikiLeft' style='background-image:url({{if thumbnail}}
-      %SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:~encodeURIComponent(thumbnail)}};size=80x100>;crop=on
+      %SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:~encodeURIComponent(thumbnail)}};size=80x100;crop=on
     {{else}}
       %PUBURLPATH%/%SYSTEMWEB%/JQueryPlugin/images/nobody.gif
     {{/if}})'>

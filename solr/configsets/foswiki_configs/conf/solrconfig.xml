@@ -838,7 +838,7 @@
         <!-- recip(rord(date),1,1000,1000) -->
       </str>
       <!-- boost topics in favor of attachments -->
-      <str name="bq">type:topic^16</str>
+      <str name="bq">type:topic</str>
       <str name="pf">
         title_search^10.0 
         topic_search^8.0 
@@ -895,7 +895,7 @@
         <!-- recip(rord(date),1,1000,1000) -->
       </str>
       <!-- boost topics in favor of attachments -->
-      <str name="bq">type:topic^16</str>
+      <str name="bq">type:topic</str>
       <str name="pf">
         title_search^10.0 
         topic_search^8.0 
@@ -988,7 +988,7 @@
         <!-- recip(rord(date),1,1000,1000) -->
       </str>
       <!-- boost topics in favor of attachments -->
-      <str name="bq">type:topic^16</str>
+      <str name="bq">type:topic</str>
       <str name="pf">
         title_search^10.0 
         topic_search^8.0 

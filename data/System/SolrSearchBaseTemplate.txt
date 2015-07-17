@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425044056" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1"  version="1"}%
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
@@ -503,6 +503,14 @@
   title="%MAKETEXT{"Topic type"}%"
 }%
 %TMPL:P{"solr::facet"
+  id="state"
+  title="%MAKETEXT{"Workflow State"}%"
+}%
+%TMPL:P{"solr::facet"
+  id="preference_WORKFLOW_s"
+  title="%MAKETEXT{"Workflow"}%"
+}%
+%TMPL:P{"solr::facet"
   id="language"
   title="%MAKETEXT{"Language"}%"
 }%
@@ -654,7 +662,7 @@
    solr::selection - renders the "your selection" part in the solr::sidebar
 }%
 %TMPL:DEF{"solr::selection"}%<!-- -->
-<h2>%MAKETEXT{"Filter results"}%</h2>
+<h2 class='solrFilterResultsHeading' >%MAKETEXT{"Filter results"}%</h2>
 <div id='solrCurrentSelection'>
   <h3>%MAKETEXT{"Your selection"}%:</h3>
   <ul>
@@ -685,6 +693,7 @@
       <select class='foswikiSelect' id='solrSorting' data-default-sort="%TMPL:P{"solr::defaultsort"}%">
         <option class='foswikiOption' value='score desc'>%MAKETEXT{"Relevance"}%</option>
         <option class='foswikiOption' value='date desc'>%MAKETEXT{"Last changed"}%</option>
+        <option class='foswikiOption' value='createdate desc'>%MAKETEXT{"Create date"}%</option>
         <option class='foswikiOption' value='title_sort asc'>%MAKETEXT{"Name"}%</option>
       </select>
     </td>

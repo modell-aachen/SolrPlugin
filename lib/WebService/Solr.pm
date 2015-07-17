@@ -12,7 +12,7 @@ use XML::Easy::Element;
 use XML::Easy::Content;
 use XML::Easy::Text ();
 
-our $ENCODE = 0;
+our $ENCODE = 1;
 
 has 'url' => (
     is      => 'ro',

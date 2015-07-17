@@ -10,8 +10,8 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin::Search;
+
 use strict;
 use warnings;
 
@@ -59,8 +59,6 @@ sub handleSOLRSEARCH {
   my $theQuery = $params->{_DEFAULT} || $params->{search} || '';;
   $theQuery = $this->entityDecode($theQuery);
   $params->{search} = $theQuery;
-
-  #$theQuery = $this->toUtf8($theQuery);
 
   my $theJump = Foswiki::Func::isTrue($params->{jump});
 
@@ -169,7 +167,7 @@ sub formatResponse {
     my $correction = $this->getCorrection($response);
     if ($correction) {
       my $tmp = $params->{search};
-      $params->{search} = $this->toSiteCharSet($correction);
+      $params->{search} = $correction;
       my $scriptUrl = $this->getScriptUrl($theWeb, $theTopic, $params, $response);
       $spellcheck = $theCorrection;
       $spellcheck =~ s/\$correction/$correction/g;
@@ -203,9 +201,6 @@ sub formatResponse {
 
         my @values = $doc->values_for($name);
         my $value = join($theValueSep, @values);
-
-#        $name = $this->fromUtf8($name);
-        $value = $this->toSiteCharSet($value);
 
         $web = $value if $name eq 'web';
         $topic = $value if $name eq 'topic';
@@ -337,7 +332,6 @@ sub formatResponse {
             my $key = $facet->[$i];
             my $count = $facet->[$i+1];
             next unless $count;
-#            $key = $this->fromUtf8($key);
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
             $facetTotal += $count;
@@ -373,7 +367,6 @@ sub formatResponse {
             next unless $key;
 
             my $count = $facet->[$i+1];
-#            $key = $this->fromUtf8($key);
 
             next if $theFacetExclude && $key =~ /$theFacetExclude/;
             next if $theFacetInclude && $key !~ /$theFacetInclude/;
@@ -403,8 +396,8 @@ sub formatResponse {
     my @interestingRows = ();
     while (my $termSpec = shift @$interestingTerms) {
       next unless $termSpec =~ /^(.*):(.*)$/g;
-      my $field = $1; #$this->fromUtf8($1);
-      my $term = $2; #$this->fromUtf8($2);
+      my $field = $1; 
+      my $term = $2; 
       my $score = shift @$interestingTerms;
 
       next if $theInterestingExclude && $term =~ /$theInterestingExclude/;
@@ -559,14 +552,14 @@ sub restSOLRPROXY {
 
   my $result = '';
   my $status = 200;
-  my $contentType = "application/json";
+  my $contentType = "application/json; charset=utf8";
 
   try {
     $result = $response->raw_response->content();
   } catch Error::Simple with {
     $result = "Error parsing response";
     $status = 500;
-    $contentType = "text/plain";
+    $contentType = "text/plain; charset=utf8";
   };
 
   $this->{session}->{response}->status($status);
@@ -590,7 +583,7 @@ sub restSOLRPROXY {
     };
   }
 
-  return $result;
+  return Encode::decode_utf8($result);
 }
 
 ##############################################################################
@@ -709,7 +702,10 @@ sub restSOLRAUTOSUGGEST {
   push @filter, "-web:_* -web:$trashWeb"; # exclude some webs 
 
   my $solrExtraFilter = Foswiki::Func::getPreferencesValue("SOLR_EXTRAFILTER");
-  push @filter, $solrExtraFilter if defined $solrExtraFilter && $solrExtraFilter ne '';
+  $solrExtraFilter = Foswiki::Func::expandCommonVariables($solrExtraFilter) 
+    if defined $solrExtraFilter && $solrExtraFilter ne '';
+  push @filter, $solrExtraFilter 
+    if defined $solrExtraFilter && $solrExtraFilter ne '';
 
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)") 
     unless Foswiki::Func::isAnAdmin($wikiUser);
@@ -796,7 +792,7 @@ sub restSOLRAUTOSUGGEST {
         "moreUrl" => $this->getAjaxScriptUrl($Foswiki::cfg{UsersWebName}, $Foswiki::cfg{UsersTopicName}, {
           topic => $Foswiki::cfg{UsersTopicName},
           #fq => $filter{persons},
-          search => $this->fromSiteCharSet($theQuery)
+          search => $theQuery #$this->fromSiteCharSet($theQuery)
         })
       } if @docs;
     }
@@ -819,7 +815,7 @@ sub restSOLRAUTOSUGGEST {
         "moreUrl" => $this->getAjaxScriptUrl($this->{session}{webName}, 'WebSearch', {
           topic => 'WebSearch',
           fq => $filter{topics},
-          search => $this->fromSiteCharSet($theQuery)
+          search => $theQuery #$this->fromSiteCharSet($theQuery)
         })
       } if @docs;
     }
@@ -849,12 +845,12 @@ sub restSOLRAUTOSUGGEST {
         "moreUrl" => $this->getAjaxScriptUrl($this->{session}{webName}, 'WebSearch', {
           topic => 'WebSearch',
           fq => $filter{attachments},
-          search => $this->fromSiteCharSet($theQuery)
+          search => $theQuery #$this->fromSiteCharSet($theQuery)
         })
       } if @docs;
     }
 
-    $result = JSON::to_json(\@autoSuggestions, {utf8=>1, pretty=>1});
+    $result = JSON::to_json(\@autoSuggestions);
   }
   
   $this->{session}->{response}->status($status);
@@ -924,15 +920,12 @@ sub restSOLRAUTOCOMPLETE {
   return '' unless $facets;
 
   # format autocompletion
-  #$theQuery = $this->fromUtf8($theQuery); 
-
   my @result = ();
   foreach my $facet (keys %{$facets->{facet_fields}}) {
     my @facetRows = ();
     my @list = @{$facets->{facet_fields}{$facet}};
     while (my $key = shift @list) {
       my $freq = shift @list;
-      $key = $this->toSiteCharSet($key);
       $key = "$theQuery $key" if $foundPrefix;
       my $title = $key;
       if ($theEllipsis) {
@@ -965,7 +958,6 @@ sub restSOLRSIMILAR {
   my $result = '';
   try {
     $result = $response->raw_response->content();
-    $result = $this->toSiteCharSet($result);
   } catch Error::Simple with {
     $result = "Error parsing result";
   };
@@ -1494,7 +1486,7 @@ sub getHighlights {
       # bit of cleanup in case we only get half the comment
       $hilite =~ s/<!--//g;
       $hilite =~ s/-->//g;
-      $hilites{$id} = $this->fromUtf8($hilite);
+      $hilites{$id} = $hilite;
     }
   }
 
@@ -1539,7 +1531,7 @@ sub getCorrection {
   return '' unless $correction;
 
   #return $correction;
-  return $this->fromUtf8($correction);
+  return $correction;
 }
 
 ##############################################################################
@@ -1682,9 +1674,11 @@ sub getAjaxScriptUrl {
 sub urlEncode {
   my $text = shift;
 
+  # $text = Encode::encode_utf8($text) if $Foswiki::UNICODE; 
   #$text =~ s/([^0-9a-zA-Z-_.:~!*'\/])/'%'.sprintf('%02x',ord($1))/ge;
 
   # the small version
+  $text =~ s/([':"])/'%'.sprintf('%02x',ord($1))/ge;
   $text =~ s/ /%20/g;
 
   return $text;
@@ -1896,7 +1890,7 @@ sub getListOfTopics {
     fields => "webtopic,topic", 
     process => sub {
       my $doc = shift;
-      my $topic = $this->toSiteCharSet((defined $web) ? $doc->value_for("topic") : $doc->value_for("webtopic"));
+      my $topic = (defined $web) ? $doc->value_for("topic") : $doc->value_for("webtopic");
       push @topics, $topic;
     }
   });
@@ -1912,8 +1906,12 @@ sub getListOfWebs {
   $this->iterateFacet({
     field => "web",
     process => sub {
-      my $val = shift;
-      push @webs, $val;
+      my ($val, $count) = @_;
+      if ($count) {
+        push @webs, $val if $count;
+      } else {
+        $this->log("WARNING: found web=$val with count=$count ... index needs optimization");
+      }
     }
   });
 

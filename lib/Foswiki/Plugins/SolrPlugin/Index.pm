@@ -10,8 +10,8 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin::Index;
+
 use strict;
 use warnings;
 
@@ -90,7 +90,7 @@ sub index {
 
   try {
 
-    my $query = Foswiki::Func::getCgiQuery();
+    my $query = Foswiki::Func::getRequestObject();
     my $web = $query->param('web') || 'all';
     my $topic = $query->param('topic');
     my $mode = $query->param('mode') || 'delta';
@@ -112,7 +112,7 @@ sub index {
 
   catch Error::Simple with {
     my $error = shift;
-    print STDERR "Error: " . $error->{-text} . "\n";
+    print STDERR "ERROR: " . $error->{-text} . "\n";
   };
 
 }
@@ -187,6 +187,8 @@ sub update {
 
   foreach my $web (@webs) {
 
+    my $origWeb = $web;
+    $origWeb =~ s/\./\//g;
     $web =~ s/\//./g;
 
     if ($this->isSkippedWeb($web)) {
@@ -204,6 +206,7 @@ sub update {
     my $found = 0;
     if ($mode eq 'full') {
       foreach my $topic (Foswiki::Func::getTopicList($web)) {
+        $this->deleteTopic($web, $topic);
         next if $this->isSkippedTopic($web, $topic);
         $this->indexTopic($web, $topic);
         $found = 1;
@@ -219,8 +222,10 @@ sub update {
         fields => "topic,timestamp", 
         process => sub {
           my $doc = shift;
-          my $topic = $this->toSiteCharSet($doc->value_for("topic"));
-          my $time = int(Foswiki::Time::parseTime($doc->value_for("timestamp")));
+          my $topic = $doc->value_for("topic");
+          my $time = $doc->value_for("timestamp");
+          $time =~ s/\.\d+Z$/Z/g; # remove miliseconds as that's incompatible with perl
+          $time = int(Foswiki::Time::parseTime($time));
           $timeStamps{$topic} = $time;
         }
       });
@@ -230,14 +235,13 @@ sub update {
       foreach my $topic (@topics) {
         next if $this->isSkippedTopic($web, $topic);
 
-
         my $changed;
         if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
-          $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($origWeb, $topic);
         } else {
 
           # This is here for old engines
-          $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($origWeb, $topic);
         }
 
         my $topicTime = $timeStamps{$topic} || 0;
@@ -260,12 +264,15 @@ sub updateTopic {
 
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
+  $this->deleteTopic($web, $topic);
+
   return if $this->isSkippedWeb($web);
   return if $this->isSkippedTopic($web, $topic);
 
-  $this->deleteTopic($web, $topic, $meta);
   if (Foswiki::Func::topicExists($web, $topic)) {
     $this->indexTopic($web, $topic, $meta, $text);
+  } else {
+    $this->log("... topic $web.$topic does not exist") if TRACE;
   }
 }
 
@@ -330,6 +337,8 @@ sub indexTopic {
   $createDate ||= 0;    # prevent formatTime to crap out
   $createDate = Foswiki::Func::formatTime($createDate, 'iso', 'gmtime');
 
+  #print STDERR "createDate=$createDate\n";
+
   # get contributor and most recent author
   my @contributors = $this->getContributors($web, $topic);
   my %contributors = map {$_ => 1} @contributors;
@@ -337,18 +346,6 @@ sub indexTopic {
 
   my $author = $contributors[0];
   my $createAuthor = $contributors[ scalar(@contributors) - 1 ];
-
-  # get TopicTitle
-  my $topicTitle = $this->getTopicTitle($web, $topic, $meta);
-
-  # get summary
-  my $summary = $this->getTopicSummary($web, $topic, $meta, $text);
-
-  # url to topic
-  my $url = $this->getScriptUrlPath($web, $topic, "view");
-
-  my $containerTitle = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
-  $containerTitle = $web if $containerTitle eq $Foswiki::cfg{HomeTopicName};
 
   # gather all webs and parent webs
   my @webCats = ();
@@ -362,14 +359,14 @@ sub indexTopic {
 
     # common fields
     id => "$web.$topic",
-    url => $url,
+    url => $this->getScriptUrlPath($web, $topic, "view"),
     topic => $topic,
     web => $web,
     webcat => [@webCats],
     webtopic => "$web.$topic",
-    title => $topicTitle,
+    title => $this->getTopicTitle($web, $topic, $meta),
     text => $text,
-    summary => $summary,
+    summary => $this->getTopicSummary($web, $topic, $meta, $text),
     author => $author,
     date => $date,
     version => $rev,
@@ -380,7 +377,7 @@ sub indexTopic {
     container_web => $web,
     container_topic => $Foswiki::cfg{HomeTopicName},
     container_url => $this->getScriptUrlPath($web, $Foswiki::cfg{HomeTopicName}, "view"),
-    container_title => $containerTitle,
+    container_title => $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName}),
     icon => $this->mapToIconFileName('topic'),
 
     # topic specific
@@ -471,7 +468,7 @@ sub indexTopic {
           # create a dynamic field indicating the field type to solr
 
           # date
-          if ($type eq 'date') {
+          if ($type =~ /^date/) {
             try {
               my $epoch = $value;
               $epoch = Foswiki::Time::parseTime($value) unless $epoch =~ /^\d+$/;
@@ -539,13 +536,25 @@ sub indexTopic {
   # all prefs are of type _t
   # TODO it may pay off to detect floats and ints
   my @prefs = $meta->find('PREFERENCE');
+  my $foundWorkflow = 0;
   if (@prefs) {
     foreach my $pref (@prefs) {
       my $name = $pref->{name};
       my $value = $pref->{value};
       $doc->add_fields(
-        'preference_' . $name . '_t' => $value,
+        'preference_' . $name . '_s' => $value,
         'preference' => $name,
+      );
+      $foundWorkflow = 1 if $name eq 'WORKFLOW' and $value ne '';
+    }
+  }
+
+  # add support for WorkflowPlugin 
+  if ($foundWorkflow) {
+    my $workflow = $meta->get('WORKFLOW');
+    if ($workflow) {
+      $doc->add_fields(
+        state => $workflow->{name},
       );
     }
   }
@@ -651,7 +660,7 @@ sub getContentLanguage {
   }
 
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
-  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
+  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage};
 
   #$this->log("contentLanguage=$contentLanguage") if TRACE;
 
@@ -757,7 +766,7 @@ sub indexAttachment {
   }
 
   # get summary
-  my $summary = $this->substr($attText, 0, 300);
+  my $summary = "";#substr($attText, 0, 300);
 
   #  my $author = $attachment->{'user'} || $attachment->{'author'} || '';
   #  $author = Foswiki::Func::getWikiName($author) || 'UnknownUser';
@@ -777,9 +786,6 @@ sub indexAttachment {
   #my $url = $this->getScriptUrlPath($web, $topic, 'viewfile', filename => $name);
   my $webDir = $web;
   $webDir =~ s/\./\//g;
-  my $url = $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name;
-
-  my $icon = $this->mapToIconFileName($extension);
 
   # gather all webs and parent webs
   my @webCats = ();
@@ -791,10 +797,9 @@ sub indexAttachment {
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
-
     # common fields
     id => $id,
-    url => $url,
+    url => $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name,
     web => $web,
     webcat => [@webCats],
     topic => $topic,
@@ -811,7 +816,7 @@ sub indexAttachment {
     name => $name,
     comment => $comment,
     size => $size,
-    icon => $icon,
+    icon => $this->mapToIconFileName($extension),
     container_id => $web . '.' . $topic,
     container_web => $web,
     container_topic => $topic,
@@ -925,20 +930,9 @@ sub newDocument {
 
 ################################################################################
 sub deleteTopic {
-  my ($this, $web, $topic, $meta) = @_;
+  my ($this, $web, $topic) = @_;
 
-  $this->deleteDocument($web, $topic);
-
-  if ($meta) {
-    my @attachments = $meta->find('FILEATTACHMENT');
-    if (@attachments) {
-      foreach my $attachment (@attachments) {
-        $this->deleteDocument($web, $topic, $attachment);
-      }
-    }
-  } else {
-    $this->deleteByQuery("web:\"$web\" topic:\"$topic\"");
-  }
+  $this->deleteByQuery("web:\"$web\" topic:\"$topic\"");
 }
 
 ################################################################################
@@ -1116,7 +1110,6 @@ sub getContributors {
   my ($this, $web, $topic, $attachment) = @_;
 
   #my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
-
   my $maxRev;
   try {
     (undef, undef, $maxRev) = $this->getRevisionInfo($web, $topic, undef, $attachment);
@@ -1180,15 +1173,7 @@ sub getRevisionInfo {
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
   if ($attachment && (!defined($rev) || $rev == $maxRev)) {
-
-    # short cut for attachments
-    my $info = {};
-    $info->{version} = $attachment->{version} || $maxRev;
-    $info->{date} = $attachment->{date};
-    $info->{author} = $attachment->{author} || $attachment->{user};
-
-    #$info->{author} = $Foswiki::Users::BaseUserMapping::DEFAULT_USER_CUID unless defined $info->{author};
-    return $info;
+    return ($attachment->{date}, $attachment->{author} || $attachment->{user}, $attachment->{version} || $maxRev);
   } else {
     return Foswiki::Func::getRevisionInfo($web, $topic, $rev, $attachment);
   }

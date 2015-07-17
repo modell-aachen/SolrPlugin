@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1425044056" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1"  version="1"}%
 ---+!! %TOPIC%
 
 This is a set of widgets to be used in a sidebar navigation. This is used like this:
@@ -20,8 +20,10 @@ Default sidebar implementation that includes all of the components listed below.
 
 <verbatim class="tml">
 %STARTINCLUDE%<noautolink>
+<div class="solrSideBar">
 %INCLUDE{"%WEB%.%TOPIC%" section="solrsimilar"}%<!-- -->
 %INCLUDE{"%WEB%.%TOPIC%" section="recentchanges"}%<!-- -->
+</div>
 </noautolink>%STOPINCLUDE%
 </verbatim>
 
@@ -34,7 +36,7 @@ part of the %SYSTEMWEB%.SolrPlugin documentation.
 <verbatim class="tml">
 %STARTSECTION{"solrsimilar"}%<!-- -->
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%" 
-   filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}%"
+   filter="web:%BASEWEB% type:topic %IF{"defined FILTER" then="%FILTER%"}% -preference_BASETRANSLATION_s:%BASETOPIC% -webtopic:%BASEWEB%.%BASETRANSLATION%"
    like="%SOLRSIMILAR_LIKE{default="field_Category_flat_lst^5,tag"}%"
    fields="web,topic,title,score,summary"
    rows="5"
