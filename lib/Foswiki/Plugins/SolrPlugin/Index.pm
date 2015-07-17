@@ -307,6 +307,9 @@ sub indexTopic {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
   }
 
+  # remove inline base64 resources
+  $text =~ s/<[^>]+\s+src=["']data:[^"']+;base64,[a-z0-9+\/=]+["'][^>]+>//gi;
+
   $text = $this->entityDecode($text);
 
   # Eliminate Topic Makup Language elements and newlines.
