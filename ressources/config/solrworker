@@ -1,0 +1,4 @@
+# Config options for Modell Aachen Task and Topic Daemon
+FOSWIKI_ROOT=/var/www/qwikis/qwiki
+MATTW_PARAMS="--department=SolrPlugin"
+
