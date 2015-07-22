@@ -111,6 +111,8 @@ pub/System/SolrPlugin/wikiusers.js.gz 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.css 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.js 0644
 ressources/solrworker 0755
+ressources/systemd/config/solrworker 0644
+ressources/systemd/solrworker.service 0644
 solr/60solr.policy 0644
 solr/etc/jetty.xml 0644
 solr/etc/webdefault.xml 0644
