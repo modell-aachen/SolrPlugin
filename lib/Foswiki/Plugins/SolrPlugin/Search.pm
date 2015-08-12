@@ -26,7 +26,6 @@ use Error qw(:try);
 use JSON ();
 
 use constant DEBUG => 0; # toggle me
-#use Data::Dumper ();
 
 ##############################################################################
 sub new {
@@ -86,8 +85,8 @@ sub handleSOLRSEARCH {
 
   if (defined $theId) {
     $this->{cache}{$theId} = {
-        response=>$response,
-        params=>$params,
+      response=>$response,
+      params=>$params,
     };
   }
 
@@ -481,8 +480,6 @@ sub renderPager {
 
   my $lastPage = $this->lastPage($response);
   return '' unless $lastPage > 0;
-
-  #print STDERR "lastPage=$lastPage\n";
 
   my $currentPage = $this->currentPage($response);
   my $result = '';
@@ -1197,14 +1194,14 @@ sub doSearch {
 
       # disjunctive
       if ($disjunctiveFacets{$facetName} || $this->isDateField($facetName)) {
-	push(@{$seenDisjunctiveFilter{$facetName}}, $facetValue);
-	next;
+        push(@{$seenDisjunctiveFilter{$facetName}}, $facetValue);
+        next;
       }
 
       # combined
       if ($combinedFacets{$facetName}) {
-	push(@{$seenCombinedFilter{$facetValue}}, $facetName);
-	next;
+        push(@{$seenCombinedFilter{$facetValue}}, $facetName);
+        next;
       }
     }
 
@@ -1752,11 +1749,9 @@ sub getScriptUrl {
       $value =~ s/,$//;
       my $item;
       if ($value =~ /\s/ && $value !~ /^["\[].*["\]]$/) {
-	#print STDERR "... adding quotes\n";
-	$item = '$field:"$value"';
+        $item = '$field:"$value"';
       } else {
-	#print STDERR "... adding as is\n";
-       	$item = '$field:$value';
+        $item = '$field:$value';
       }
 
       $item =~ s/\$field/$field/g;
@@ -1778,8 +1773,6 @@ sub parseFilter {
   $filter ||= '';
   $filter = toUtf8($this->urlDecode($this->entityDecode($filter)));
 
-  #print STDERR "parseFilter($filter)\n";
-
   while ($filter =~ /([^\s:]+?):((?:\[[^\]]+?\])|[^\s",\(]+|(?:"[^"]+?")|(?:\([^\)]+?\))),?/g) {
     my $field = $1;
     my $value = $2;
@@ -1791,15 +1784,12 @@ sub parseFilter {
     if ($value) {
       my $item;
       if ($value !~ /^\(/ && $value =~ /\s/ && $value !~ /^["\[].*["\]]$/) {
-	#print STDERR "... adding quotes\n";
-	$item = '$field:"$value"';
+          $item = '$field:"$value"';
       } else {
-	#print STDERR "... adding as is\n";
-       	$item = '$field:$value';
+          $item = '$field:$value';
       }
       $item =~ s/\$field/$field/g;
       $item =~ s/\$value/$value/g;
-      #print STDERR "... adding=$item\n";
       push(@filter, $item);
     }
   }

@@ -19,7 +19,7 @@ use warnings;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
-  
+
 our $VERSION = '2.00';
 our $RELEASE = '2.00';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
@@ -179,7 +179,7 @@ sub getCrawler {
   my ($session , $name) = @_;
 
   throw Error::Simple("no crawler name") unless defined $name;
-    
+
   my $params = $Foswiki::cfg{SolrPlugin}{Crawler}{$name};
 
   throw Error::Simple("unknown crawler $name") unless defined $params;

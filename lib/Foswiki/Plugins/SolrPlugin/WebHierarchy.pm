@@ -26,7 +26,7 @@ sub new {
   my $session = shift;
 
   $session ||= $Foswiki::Plugins::SESSION;
-  
+
   my $this = {
     @_
   };
@@ -80,7 +80,7 @@ sub restWebHierarchy {
         type => 'web',
         icon => $webIcon,
       };
-      
+
       if ($web =~ /^(.*)\.(.*?)$/) {
         $hash->{$web}{parent} = $1;
         $hash->{$web}{name} = $2;
@@ -104,17 +104,16 @@ sub restWebHierarchy {
       foreach my $web (@webs) {
         $web =~ s/\//./g;
         my $hierarchy = Foswiki::Plugins::ClassificationPlugin::getHierarchy($web);
-	my @cats = ();
-	if ($theRoot) {
-	  my $rootCat = $hierarchy->getCategory($theRoot);
+        my @cats = ();
+        if ($theRoot) {
+          my $rootCat = $hierarchy->getCategory($theRoot);
           if ($rootCat) {
             @cats = $rootCat->getSubCategories();
             push @cats,$rootCat;
           }
-	} else {
-	  @cats = $hierarchy->getCategories;
-	}
-	
+        } else {
+          @cats = $hierarchy->getCategories;
+        }
         foreach my $cat (@cats) {
           next if $cat->{name} =~ /^(TopCategory|BottomCategory)$/;
           my $id = $web.'.'.$cat->getBreadCrumbs;
@@ -204,7 +203,7 @@ sub getWebTitle {
   $title =~ s/^\s*//;
 
   return $title;
-} 
+}
 
 1;
 
