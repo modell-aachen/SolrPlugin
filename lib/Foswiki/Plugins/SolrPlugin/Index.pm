@@ -33,8 +33,6 @@ use constant DEBUG => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
 use constant PROFILE => 0;  # toggle me
 
-#use Time::HiRes (); # enable this too when profiling
-
 use constant COMMIT_THRESHOLD => 200;    # commit every x topics on a bulk index job
 use constant WAIT_SEARCHER => "true";
 use constant SOFTCOMMIT => "true";
@@ -66,10 +64,6 @@ sub new {
     $this->log("got interrupted ... finishing work");
     $this->{_trappedSignal} = 1; # will be detected by loops further down
   };
-
-  # TODO: trap SIGALARM
-  # let the indexer run for a maximum timespan, then flag a signal for it
-  # to bail out from work done so far
 
   return $this;
 }
@@ -186,7 +180,6 @@ sub update {
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
   my @webs = $searcher->getListOfWebs();
 
-  #print STDERR "webs=".join(", ", @webs)."\n";
   foreach my $thisWeb (@webs) {
     next if Foswiki::Func::webExists($thisWeb);
     $this->log("$thisWeb doesn't exist anymore ... deleting");
@@ -197,6 +190,7 @@ sub update {
     @webs = Foswiki::Func::getListOfWebs("user");
   } else {
     @webs = ();
+    # Add Web and subwebs to indexing list
     foreach my $item (split(/\s*,\s*/, $web)) {
       push @webs, $item;
       push @webs, Foswiki::Func::getListOfWebs("user", $item);
@@ -220,8 +214,6 @@ sub update {
 
     my $found = 0;
     if ($mode eq 'full') {
-
-      # full
       $this->deleteWeb($web);
       foreach my $topic (Foswiki::Func::getTopicList($web)) {
         next if $this->isSkippedTopic($web, $topic);
@@ -230,8 +222,7 @@ sub update {
         last if $this->{_trappedSignal};
       }
     } else {
-
-      # delta
+      # Delta
       my $since = $this->getTimestamp($web);
 
       my @topics = Foswiki::Func::getTopicList($web);
@@ -291,17 +282,14 @@ sub indexTopic {
 
   my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
 
-  # normalize web name
+  # Normalize web name
   $web =~ s/\//\./g;
 
   if (VERBOSE) {
     $this->log("Indexing topic $web.$topic");
-  } else {
-
-    #$this->log(".", 1);
   }
 
-  # new solr document for the current topic
+  # New Solr document for the current topic
   my $doc = $this->newDocument();
 
   unless (defined $meta && defined $text) {
@@ -1201,15 +1189,12 @@ sub getRevisionInfo {
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
   if ($attachment && (!defined($rev) || $rev == $maxRev)) {
-
     # short cut for attachments
     my $info = {};
     $info->{version} = $attachment->{version} || $maxRev;
     $info->{date} = $attachment->{date};
     $info->{author} = $attachment->{author} || $attachment->{user};
 
-    #$info->{date} = $this->getTimestamp() unless defined $info->{date};
-    #$info->{author} = $Foswiki::Users::BaseUserMapping::DEFAULT_USER_CUID unless defined $info->{author};
     return $info;
   } else {
     return Foswiki::Func::getRevisionInfo($web, $topic, $rev, $attachment);

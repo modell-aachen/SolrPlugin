@@ -57,7 +57,6 @@ $Foswiki::cfg{SolrPlugin}{Timeout} = 180;
 # is restructured with a lot of IO on the disk. 
 $Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
 
-
 # **STRING** 
 # Url of the server to send updates to. Note, you will only need this setting
 # in a solr setup with master-slave replication where all updates are sent to

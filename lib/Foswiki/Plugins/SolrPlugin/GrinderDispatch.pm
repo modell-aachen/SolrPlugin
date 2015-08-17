@@ -113,10 +113,10 @@ sub _restIndex {
 # Copy/Paste KVPPlugin/WorkflowPlugin
 sub _isAllowed {
     my ($allow) = @_;
-    
+
     # Always allow members of the admin group to edit
     return 1 if ( Foswiki::Func::isAnAdmin() );
-    
+
     return 0 if ( ( ! $allow ) || ( $allow =~ /^\s*nobody\s*$/ ) );
     if($allow =~ /\bLOGGEDIN\b/ && not Foswiki::Func::isGuest()) {
         return 1;
