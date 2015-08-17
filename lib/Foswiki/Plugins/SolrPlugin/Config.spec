@@ -133,4 +133,7 @@ $Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Module} = 'Foswiki::Plugins::S
 # **BOOLEAN**
 $Foswiki::cfg{JQueryPlugin}{Plugins}{Autosuggest}{Enabled} = 1;
 
+# **BOOLEAN**
+# Use author instead of last 10 contributors+creator for the rarely used contributors field. Useful to speed up indexing and circumvent broken RCS files.
+$Foswiki::cfg{SolrPlugin}{SimpleContributors} = 0;
 1;

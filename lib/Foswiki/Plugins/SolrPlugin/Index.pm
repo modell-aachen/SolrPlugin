@@ -1,6 +1,7 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
 # Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2013-2015 Modell Aachen GmbH http://modell-aachen.de
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -329,14 +330,13 @@ sub indexTopic {
   $this->extractOutgoingLinks($web, $topic, $origText, \%outgoingLinks);
 
   # all webs
-
   # get date
   my ($date) = $this->getRevisionInfo($web, $topic);
   $date ||= 0;    # prevent formatTime to crap out
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
 
   # get create date
-  my ($createDate) = $this->getRevisionInfo($web, $topic, 1);
+  my ($createDate) = eval{$this->getRevisionInfo($web, $topic, 1)};
   $createDate ||= 0;    # prevent formatTime to crap out
   $createDate = Foswiki::Func::formatTime($createDate, 'iso', 'gmtime');
 
