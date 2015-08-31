@@ -26,8 +26,8 @@ AJAX_SOLR_SOURCE=\
   ajax-solr/core/AbstractTextWidget.js \
   ajax-solr/managers/Manager.jquery.js \
   ajax-solr/helpers/ajaxsolr.support.js \
-  ajax-solr-helpers.js \
-  ajax-solr-dictionary.js
+  ajax-solr-helpers.uncompressed.js \
+  ajax-solr-dictionary.uncompressed.js
 
 AJAX_SOLR_WIDGETS_SOURCE=\
   widgets/AbstractJQueryWidget.uncompressed.js \

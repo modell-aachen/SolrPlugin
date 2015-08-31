@@ -1,5 +1,0 @@
-art, bmp, cdr, cdt, cpt, djv, djvu, gif, ico, ief, jng, jpe, jpeg, jpg, pat, pbm, pcx, pgm, png, pnm, ppm, psd, ras, rgb, svg, svgz, tif, tiff, wbmp, xbm, xpm, xwd => image
-
-3gp, asf, asx, avi, axv, dif, dl, dv, fli, flv, gl, lsf, lsx, m4v, mng, mov, movie, mp4, mpe, mpeg, mpg, mpv, mxu, ogv, qt, wm, wmv, wmx, wvx, swf => video
-
-aif, aifc, aiff, amr, amr, au, awb, awb, axa, flac, gsm, kar, m3u, m3u, m4a, mid, midi, mp2, mp3, mpega, mpga, oga, ogg, pls, ra, ra, ram, rm, sd2, sid, snd, spx, wav, wax, wma => audio

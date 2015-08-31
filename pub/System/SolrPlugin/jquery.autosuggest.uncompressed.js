@@ -1,7 +1,7 @@
 /*
- * jQuery autosuggest plugin 1.00
+ * jQuery autosuggest plugin 2.00
  *
- * Copyright (c) 2013 Michael Daum http://michaeldaumconsulting.com
+ * Copyright (c) 2013-2015 Michael Daum http://michaeldaumconsulting.com
  *
  * Dual licensed under the MIT and GPL licenses:
  *   http://www.opensource.org/licenses/mit-license.php
@@ -9,6 +9,7 @@
  *
  */
 (function($) {
+"use strict";
 
   $.widget( "solr.autosuggest", $.ui.autocomplete, {
     options: {
@@ -34,23 +35,23 @@
       },
 
       templates: {
-        "persons": "<li class='ui-autosuggest-item ${group} ${isFirst} ${isLast}'>{{html header}}"+
-            "{{if phoneNumber}}<a class='ui-autosuggest-phone-number' href='sip:${phoneNumber}'></a>{{/if}}"+
-            "<a href='${url}' class='ui-autosuggest-link'>"+
+        "persons": "<li class='ui-autosuggest-item {{:group}} {{:isFirst}} {{:isLast}}'>{{:header}}"+
+            "{{if phoneNumber}}<a class='ui-autosuggest-phone-number' href='sip:{{:phoneNumber}}'></a>{{/if}}"+
+            "<a href='{{:url}}' class='ui-autosuggest-link'>"+
               "<table class='foswikiNullTable'><tr>"+
-                "<th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th>"+
-                "<td>${title}<div class='foswikiGrayText'>${phoneNumber}</div></td>"+
+                "<th><div><img class='thumbnail' width='48' alt='{{:name}}' src='{{:thumbnail}}' /></div></th>"+
+                "<td>{{:title}}<div class='foswikiGrayText'>{{:phoneNumber}}</div></td>"+
               "</tr></table></a>"+
-            "</li>{{html footer}}",
-        "default": "<li class='ui-autosuggest-item ${group} ${isFirst} ${isLast}'>{{html header}}"+
-            "<a href='${url}' class='ui-autosuggest-link'>"+
+            "</li>{{{:footer}}",
+        "default": "<li class='ui-autosuggest-item {{:group}} {{:isFirst}} {{:isLast}}'>{{:header}}"+
+            "<a href='{{:url}}' class='ui-autosuggest-link'>"+
               "<table class='foswikiNullTable'><tr>"+
-                "<th><div><img class='thumbnail' width='48' alt='${name}' src='${thumbnail}' /></div></th>"+
-                "<td>${title}<div class='foswikiGrayText'>${container_title}</div></td>"+
+                "<th><div><img class='thumbnail' width='48' alt='{{:name}}' src='{{:thumbnail}}' /></div></th>"+
+                "<td>{{:title}}<div class='foswikiGrayText'>{{:container_title}}</div></td>"+
               "</tr></table>"+
-            "</a></li>{{html footer}}",
-        "header": "<div class='ui-autosuggest-title ${group}'>${title}</div>",
-        "footer": "<li class='ui-autosuggest-item ui-autosuggest-more'><a class='ui-autosuggest-link' href='${moreUrl}'>${title}</a></li>"
+            "</a></li>{{:footer}}",
+        "header": "<div class='ui-autosuggest-title {{:group}}'>{{:title}}</div>",
+        "footer": "<li class='ui-autosuggest-item ui-autosuggest-more'><a class='ui-autosuggest-link' href='{{:moreUrl}}'>{{:title}}</a></li>"
       },
 
       focus: function() {
@@ -80,6 +81,9 @@
       if (self.options.menuClass) {
         elem.addClass(self.options.menuClass);
       }
+
+      // compiled templates
+      self.templates = {};
     },
 
     _initSource: function() {
@@ -141,6 +145,22 @@
       };
     },
 
+    // compile templates on demand
+    _getTemplate: function(name) {
+        var self = this, 
+            template = self.templates[name],
+            markup;
+
+        if (typeof(template) === 'undefined') {
+          markup = self.options.templates[name];
+          if (typeof(markup) !== 'undefined') {
+            template = self.templates[name] = $.templates(markup);
+          }
+        }
+
+        return template;
+    },
+
     _renderMenu: function(ul, items) {
         var self = this, 
             term = self.element.val();
@@ -152,24 +172,28 @@
             return
           }
               
-          header = $.tmpl("<div>"+self.options.templates.header+"</div>", {
+          header = self._getTemplate("header").render({
             group: section.group,
             title: self.options.locales[section.group] || section.group
           });
 
-          footer = $.tmpl("<div>"+self.options.templates.footer+"</div>", {
+          footer = self._getTemplate("footer").render({
             moreUrl: section.moreUrl,
             title: self.options.locales['more'] || 'more'
           });
 
           $.each(section.docs, function(index, item) {
 
+            if (section.group === 'topics') {
+              item.url = foswiki.getScriptUrl("view", item.web, item.topic);
+            } 
+
             item.phoneNumber = item.field_Telephone_s || item.field_Phone_s || item.field_Mobile_s;
             item.group = section.group;
 
             if (index == 0) {
               item.isFirst = 'ui-autosuggest-first-in-group';
-              item.header = header.html();
+              item.header = header;
             } else {
               item.isFirst = '';
               item.header = '';
@@ -180,7 +204,7 @@
               if (numDocs < self.options.extraParams.limit) {
                 item.footer = '';
               } else {
-                item.footer = footer.html();
+                item.footer = footer;
               }
             } else {
               item.isLast = '';
@@ -193,20 +217,21 @@
       },
 
       _renderItem: function(ul, item) {
-        var self = this, $row,
-            template = self.options.templates[item.group] || self.options.templates["default"];
+        var self = this, 
+            template = self._getTemplate(item.group) || self._getTemplate("default"),
+            li;
 
         if (typeof(item.thumbnail) !== 'undefined') {
-          if (!/^(\/|http:)/.test(item.thumbnail)) {
+          if (!/^(\/|https?:)/.test(item.thumbnail)) {
             item.thumbnail = self.options.thumbnailBase + '&topic=' + item.web + '.' + item.topic + '&file=' + item.thumbnail;
           }
         } else {
           item.thumbnail = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
         }
 
-        $row = $.tmpl(template, item); 
+        li = $(template.render(item)).data("ui-autocomplete-item", item)
 
-        return $row.appendTo(ul);
+        return ul.append(li);
       },
       _normalize: function( items ) {
         return items; // don't normalize 

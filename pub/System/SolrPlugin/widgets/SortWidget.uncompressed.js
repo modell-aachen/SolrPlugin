@@ -1,4 +1,6 @@
 (function ($) {
+"use strict";
+
   AjaxSolr.SortWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
       defaultSort: 'score desc'

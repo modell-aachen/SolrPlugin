@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2015 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -10,7 +10,6 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin;
 
 use strict;
@@ -19,9 +18,20 @@ use warnings;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Error qw(:try);
+
+use Foswiki::Request();
+
+BEGIN {
+  # Backwards compatibility for Foswiki 1.1.x
+  unless (Foswiki::Request->can('multi_param')) {
+    no warnings 'redefine';
+    *Foswiki::Request::multi_param = \&Foswiki::Request::param;
+    use warnings 'redefine';
+  }
+}
   
-our $VERSION = '2.00';
-our $RELEASE = '2.00';
+our $VERSION = '4.00';
+our $RELEASE = '17 Jul 2015';
 our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://lucene.apache.org/solr/][Solr]]';
 our $NO_PREFS_IN_TOPIC = 1;
 our %searcher;
@@ -60,67 +70,99 @@ sub initPlugin {
 
 
   Foswiki::Func::registerRESTHandler('search', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRSEARCH($web, $topic);
-  });
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRSEARCH($web, $topic);
+    }, 
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('proxy', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRPROXY($web, $topic);
-  });
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRPROXY($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
 
   Foswiki::Func::registerRESTHandler('similar', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRSIMILAR($web, $topic);
-  });
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRSIMILAR($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('autocomplete', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
-  });
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRAUTOCOMPLETE($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('autosuggest', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $web = $session->{webName};
-    my $topic = $session->{topicName};
-    return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
-  });
+      my $web = $session->{webName};
+      my $topic = $session->{topicName};
+      return getSearcher($session)->restSOLRAUTOSUGGEST($web, $topic);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('webHierarchy', sub {
-    my $session = shift;
+      my $session = shift;
 
-    return getWebHierarchy($session)->restWebHierarchy(@_);
-  });
+      return getWebHierarchy($session)->restWebHierarchy(@_);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('optimize', sub {
-    my $session = shift;
-    return getIndexer($session)->optimize();
-  });
+      my $session = shift;
+      return getIndexer($session)->optimize();
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   Foswiki::Func::registerRESTHandler('crawl', sub {
-    my $session = shift;
+      my $session = shift;
 
-    my $query = Foswiki::Func::getCgiQuery();
-    my $name = $query->param("name");
-    my $path = $query->param("path");
-    my $depth = $query->param("depth");
+      my $query = Foswiki::Func::getCgiQuery();
+      my $name = $query->param("name");
+      my $path = $query->param("path");
+      my $depth = $query->param("depth");
 
-    return getCrawler($session, $name)->crawl($path, $depth);
-  });
+      return getCrawler($session, $name)->crawl($path, $depth);
+    },
+    authenticate => 0,
+    validate => 0,
+    http_allow => 'GET,POST',
+  );
 
   if ($Foswiki::cfg{Plugins}{TaskDaemonPlugin}{Enabled}) {
     Foswiki::Func::registerRESTHandler('index', \&_restIndex);

@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   var defaults = {
     "fl": [
@@ -7,6 +8,9 @@
       "topic",
       "type",
       "date",
+      "container_id",
+      "container_web",
+      "container_topic",
       "container_title",
       "container_url",
       "icon",
@@ -91,7 +95,6 @@
 
     if (extraFilter) {
       manager.store.hidden.push("fq="+extraFilter);
-      manager.store.addByValue("fq", extraFilter);
     }
 
     manager.doRequest();

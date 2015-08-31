@@ -1,10 +1,11 @@
-%META:TOPICINFO{author="ProjectContributor" comment="autosave" date="1356278779" format="1.1" version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1437153664" format="1.1" version="1"}%
 %{<verbatim class="tml">}%
 %TMPL:INCLUDE{"WebChangesView"}%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::defaultweb"}%all%TMPL:END%
+%TMPL:DEF{"solr::extrafilter"}%%IF{"defined 'SOLR_EXTRAFILTER'" then="%SOLR_EXTRAFILTER%" else="-field_TopicType_lst:Category"}% type:topic%TMPL:END%
 %{</verbatim>}%
 
 %META:PREFERENCE{name="DENYTOPICVIEW" title="DENYTOPICVIEW" type="Set" value=" "}%

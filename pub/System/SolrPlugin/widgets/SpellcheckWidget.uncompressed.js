@@ -1,4 +1,6 @@
 (function ($) {
+"use strict";
+
   AjaxSolr.SpellcheckWidget = AjaxSolr.AbstractSpellcheckWidget.extend({
     defaults: {
       "spellcheck": true,
@@ -25,7 +27,7 @@
     handleSuggestions: function() {
       var self = this;
       
-      self.$target.empty().append($.tmpl(self.template, {
+      self.$target.html(self.template.render({
         suggestions: self.suggestions
       }));
 
@@ -43,7 +45,7 @@
 
       self.$target = $(self.target);
       self.options = $.extend({}, self.defaults, self.options, self.$target.data());
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
 
       for (var name in self.options) {
         if (name.match(/^spellcheck/)) {

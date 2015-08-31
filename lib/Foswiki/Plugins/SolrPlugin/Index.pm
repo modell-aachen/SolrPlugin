@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2015 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -10,8 +10,8 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin::Index;
+
 use strict;
 use warnings;
 
@@ -28,15 +28,11 @@ use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
 
-use constant DEBUG => 0;    # toggle me
+use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
 use constant PROFILE => 0;  # toggle me
 
 #use Time::HiRes (); # enable this too when profiling
-
-use constant COMMIT_THRESHOLD => 200;    # commit every x topics on a bulk index job
-use constant WAIT_SEARCHER => "true";
-use constant SOFTCOMMIT => "true";
 
 ##############################################################################
 sub new {
@@ -70,17 +66,14 @@ sub new {
   # let the indexer run for a maximum timespan, then flag a signal for it
   # to bail out from work done so far
 
+  $this->{workArea} = Foswiki::Func::getWorkArea('SolrPlugin');
+
   return $this;
 }
 
 ################################################################################
 sub finish {
   my $this = shift;
-
-  $this->commit(1)
-    if $Foswiki::cfg{SolrPlugin}{EnableOnSaveUpdates}
-      || $Foswiki::cfg{SolrPlugin}{EnableOnUploadUpdates}
-      || $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates};
 
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
@@ -102,9 +95,7 @@ sub index {
 
   try {
 
-    #    $this->lock();
-
-    my $query = Foswiki::Func::getCgiQuery();
+    my $query = Foswiki::Func::getRequestObject();
     my $web = $query->param('web') || 'all';
     my $topic = $query->param('topic');
     my $mode = $query->param('mode') || 'delta';
@@ -113,27 +104,22 @@ sub index {
     if ($topic) {
       $web = $this->{session}->{webName} if !$web || $web eq 'all';
 
-      #$this->log("doing a topic index $web.$topic");
+      $this->log("doing a topic index $web.$topic") if TRACE;
       $this->updateTopic($web, $topic);
     } else {
 
-      #$this->log("doing a web index in $mode mode");
+      $this->log("doing a web index in $mode mode") if TRACE;
       $this->update($web, $mode);
     }
 
-    $this->commit(1) if $this->{commitCounter};
     $this->optimize() if $optimize;
   }
 
   catch Error::Simple with {
     my $error = shift;
-    print STDERR "Error: " . $error->{-text} . "\n";
-  }
-
-  finally {
-
-    #    $this->unlock();
+    print STDERR "ERROR: " . $error->{-text} . "\n";
   };
+
 }
 
 ################################################################################
@@ -181,11 +167,10 @@ sub update {
 
   $mode ||= 'full';
 
-  # check if old webs still exist
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
-  my @webs = $searcher->getListOfWebs();
 
-  #print STDERR "webs=".join(", ", @webs)."\n";
+  # remove non-existing webs
+  my @webs = $searcher->getListOfWebs();
   foreach my $thisWeb (@webs) {
     next if Foswiki::Func::webExists($thisWeb);
     $this->log("$thisWeb doesn't exist anymore ... deleting");
@@ -206,23 +191,27 @@ sub update {
   # of all webs; then possibly delete them
 
   foreach my $web (@webs) {
-    if ($this->isSkippedWeb($web)) {
 
+    my $origWeb = $web;
+    $origWeb =~ s/\./\//g;
+    $web =~ s/\//./g;
+
+    if ($this->isSkippedWeb($web)) {
       #$this->log("Skipping web $web");
       next;
-    } else {
-
-      #$this->log("Indexing web $web");
     }
 
-    my $start_time = time();
+    # remove all non-existing topics
+    foreach my $topic ($searcher->getListOfTopics($web)) {
+      next if Foswiki::Func::topicExists($web, $topic);
+      $this->log("$web.$topic gone ... deleting");
+      $this->deleteTopic($web, $topic);
+    }
 
     my $found = 0;
     if ($mode eq 'full') {
-
-      # full
-      $this->deleteWeb($web);
       foreach my $topic (Foswiki::Func::getTopicList($web)) {
+        $this->deleteTopic($web, $topic);
         next if $this->isSkippedTopic($web, $topic);
         $this->indexTopic($web, $topic);
         $found = 1;
@@ -230,36 +219,46 @@ sub update {
       }
     } else {
 
-      # delta
-      my $since = $this->getTimestamp($web);
+      my %timeStamps = ();
 
+      # get all timestamps for this web
+      $searcher->iterate({
+        query => "web:$web type:topic", 
+        fields => "topic,timestamp", 
+        process => sub {
+          my $doc = shift;
+          my $topic = $doc->value_for("topic");
+          my $time = $doc->value_for("timestamp");
+          $time =~ s/\.\d+Z$/Z/g; # remove miliseconds as that's incompatible with perl
+          $time = int(Foswiki::Time::parseTime($time));
+          $timeStamps{$topic} = $time;
+        }
+      });
+
+      # delta
       my @topics = Foswiki::Func::getTopicList($web);
       foreach my $topic (@topics) {
         next if $this->isSkippedTopic($web, $topic);
 
-        my $topicIndexTime = $this->getTimestamp($web, $topic);
-        next if $topicIndexTime > $since;
-
-        my $time;
+        my $changed;
         if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
-          $time = $Foswiki::Plugins::SESSION->getApproxRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($origWeb, $topic);
         } else {
 
           # This is here for old engines
-          $time = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($web, $topic);
+          $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($origWeb, $topic);
         }
-        next if $time < $since;
 
-        $this->deleteTopic($web, $topic);
+        my $topicTime = $timeStamps{$topic} || 0;
+        next if $topicTime > $changed;
+
         $this->indexTopic($web, $topic);
 
-        $this->setTimestamp($web, $topic);
         $found = 1;
         last if $this->{_trappedSignal};
       }
     }
     last if $this->{_trappedSignal};
-    $this->setTimestamp($web) if $found;
   }
 }
 
@@ -270,15 +269,16 @@ sub updateTopic {
 
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
+  $this->deleteTopic($web, $topic);
+
   return if $this->isSkippedWeb($web);
   return if $this->isSkippedTopic($web, $topic);
 
-  $this->deleteTopic($web, $topic, $meta);
   if (Foswiki::Func::topicExists($web, $topic)) {
     $this->indexTopic($web, $topic, $meta, $text);
+  } else {
+    $this->log("... topic $web.$topic does not exist") if TRACE;
   }
-
-  $this->commit();
 }
 
 ################################################################################
@@ -331,14 +331,21 @@ sub indexTopic {
   # all webs
 
   # get date
-  my ($date) = $this->getRevisionInfo($web, $topic);
+  my ($date, undef, $rev) = $this->getRevisionInfo($web, $topic);
   $date ||= 0;    # prevent formatTime to crap out
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
+
+  unless ($rev =~ /^\d+$/) {
+    $this->log("Warning: invalid version '$rev' of $web.$topic");
+    $rev = 1;
+  }
 
   # get create date
   my ($createDate) = $this->getRevisionInfo($web, $topic, 1);
   $createDate ||= 0;    # prevent formatTime to crap out
   $createDate = Foswiki::Func::formatTime($createDate, 'iso', 'gmtime');
+
+  #print STDERR "createDate=$createDate\n";
 
   # get contributor and most recent author
   my @contributors = $this->getContributors($web, $topic);
@@ -347,20 +354,6 @@ sub indexTopic {
 
   my $author = $contributors[0];
   my $createAuthor = $contributors[ scalar(@contributors) - 1 ];
-
-  # get TopicTitle
-  my $topicTitle = $this->getTopicTitle($web, $topic, $meta);
-
-  # get summary
-  my $summary = $this->getTopicSummary($web, $topic, $meta, $text);
-
-  # url to topic
-  my $url = $this->getScriptUrlPath($web, $topic, "view");
-
-  my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-
-  my $containerTitle = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
-  $containerTitle = $web if $containerTitle eq $Foswiki::cfg{HomeTopicName};
 
   # gather all webs and parent webs
   my @webCats = ();
@@ -374,23 +367,25 @@ sub indexTopic {
 
     # common fields
     id => "$web.$topic",
-    collection => $collection,
-    url => $url,
+    url => $this->getScriptUrlPath($web, $topic, "view"),
     topic => $topic,
     web => $web,
     webcat => [@webCats],
     webtopic => "$web.$topic",
-    title => $topicTitle,
+    title => $this->getTopicTitle($web, $topic, $meta),
     text => $text,
-    summary => $summary,
+    summary => $this->getTopicSummary($web, $topic, $meta, $text),
     author => $author,
     date => $date,
+    version => $rev,
     createauthor => $createAuthor,
     createdate => $createDate,
     type => 'topic',
-    container_id => $web,
+    container_id => $web . '.'. $Foswiki::cfg{HomeTopicName},
+    container_web => $web,
+    container_topic => $Foswiki::cfg{HomeTopicName},
     container_url => $this->getScriptUrlPath($web, $Foswiki::cfg{HomeTopicName}, "view"),
-    container_title => $containerTitle,
+    container_title => $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName}),
     icon => $this->mapToIconFileName('topic'),
 
     # topic specific
@@ -452,23 +447,42 @@ sub indexTopic {
           $seenFields{$name} = 1;
 
           my $value = $field->{value};
-          # Modac: disabled for backwards compatibility
-          # if ($isValueMapped) {
-          #   $fieldDef->getOptions(); # load value map
-          #   # SMELL: there's no api to get the mapped display value
-          #   $value = $fieldDef->{valueMap}{$value} if defined $fieldDef->{valueMap} && defined $fieldDef->{valueMap}{$value};
-          # }
+          my $mapped;
+
+          if ($isValueMapped) {
+
+            # get mapped value
+            if ($fieldDef->can('getDisplayValue')) {
+              $mapped = $fieldDef->getDisplayValue($value);
+            } else {
+
+              # backwards compatibility
+              $fieldDef->getOptions();    # load value map
+              if (defined $fieldDef->{valueMap}) {
+                my @values = ();
+                foreach my $v (split(/\s*,\s*/, $value)) {
+                  if (defined $fieldDef->{valueMap}{$v}) {
+                    push @values, $fieldDef->{valueMap}{$v};
+                  } else {
+                    push @values, $v;
+                  }
+                }
+                $mapped = join(", ", @values);
+              }
+            }
+          }
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
 
           # bit of cleanup
           $value =~ s/<!--.*?-->//gs;
+          $mapped =~ s/<!--.*?-->//gs if defined $mapped;
 
           # create a dynamic field indicating the field type to solr
 
           # date
-          if ($type eq 'date') {
+          if ($type =~ /^date/) {
             try {
               my $epoch = $value;
               $epoch = Foswiki::Time::parseTime($value) unless $epoch =~ /^\d+$/;
@@ -481,39 +495,52 @@ sub indexTopic {
           }
 
           # multi-valued types
-          elsif ($isMultiValued || $name =~ /TopicType/) {    # TODO: make this configurable
+          elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
+            my $fieldName = 'field_' . $name;
+            $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
 
-            $doc->add_fields('field_' . $name . '_lst' => [ split(/\s*,\s*/, $value) ]);
+            $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
+            $doc->add_fields($fieldName . '_select_lst' => [ split(/\s*,\s*/, $mapped) ]) if defined $mapped;
           }
 
-          # make it a text field unless its name does not indicate otherwise
-          else {
+          # finally make it a non-list field as well 
+          {
             my $fieldName = 'field_' . $name;
             my $fieldType = '_s';
+
+            # is there an explicit type info part of the formfield name?
             if ($fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//) {
               $fieldType = $1;
             }
+
+            # add an extra check for floats
             if ($fieldType eq '_f') {
               if ($value =~ /^\s*([\-\+]?\d+(\.\d+)?)\s*$/) {
                 $doc->add_fields($fieldName . '_f' => $1,);
+                $doc->add_fields($fieldName . '_select_f' => $1,) if defined $mapped;
               } else {
                 $this->log("WARNING: malformed float value '$value'");
               }
-            } elsif ($fieldType eq '_s') {
+            }
 
-              # applying a full plainify might alter the content too much in some cases. so
-              # we try to remove only those characters that break the json parser
+            # for explicit _s fields apply a full plainify
+            elsif ($fieldType eq '_s') {
+
+              # note this might alter the content too much in some cases.
+              # so we try to remove only those characters that break the json parser
               #$value = $this->plainify($value, $web, $topic);
-              $value =~ s/<!--.*?-->//gs;    # remove all HTML comments
               $value =~ s/<[^>]*>/ /g;       # remove all HTML tags
               $value = $this->discardIllegalChars($value);       # remove illegal characters
 
-              $doc->add_fields(
-                $fieldName . '_s' => $value,
-                $fieldName . '_search' => $value,
-              ) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . '_s' => $value) if defined $value && $value ne '';
+              if(defined $mapped) {
+                $mapped =~ s/<[^>]*>/ /g;       # remove all HTML tags
+                $mapped = $this->discardIllegalChars($mapped);       # remove illegal characters
+                $doc->add_fields($fieldName . '_select_s' => $mapped) if $value ne '';
+              }
             } else {
-              $doc->add_fields($fieldName . $fieldType => $value,) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . $fieldType => $value) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . '_select' . $fieldType => $mapped) if defined $mapped && $mapped ne '';
             }
           }
         }
@@ -530,13 +557,25 @@ sub indexTopic {
   # all prefs are of type _t
   # TODO it may pay off to detect floats and ints
   my @prefs = $meta->find('PREFERENCE');
+  my $foundWorkflow = 0;
   if (@prefs) {
     foreach my $pref (@prefs) {
       my $name = $pref->{name};
       my $value = $pref->{value};
       $doc->add_fields(
-        'preference_' . $name . '_t' => $value,
+        'preference_' . $name . '_s' => $value,
         'preference' => $name,
+      );
+      $foundWorkflow = 1 if $name eq 'WORKFLOW' and $value ne '';
+    }
+  }
+
+  # add support for WorkflowPlugin 
+  if ($foundWorkflow) {
+    my $workflow = $meta->get('WORKFLOW');
+    if ($workflow) {
+      $doc->add_fields(
+        state => $workflow->{name},
       );
     }
   }
@@ -628,8 +667,6 @@ sub indexTopic {
     $this->log("ERROR: " . $e->{-text});
   };
 
-  $this->commit();
-
   if (PROFILE) {
     my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
     $this->log("took $elapsed ms to index topic $web.$topic");
@@ -655,9 +692,9 @@ sub getContentLanguage {
   }
 
   my $prefsLanguage = Foswiki::Func::getPreferencesValue('CONTENT_LANGUAGE') || '';
-  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage} || 'detect';
+  my $contentLanguage = $Foswiki::cfg{SolrPlugin}{SupportedLanguages}{$prefsLanguage};
 
-  #$this->log("contentLanguage=$contentLanguage") if DEBUG;
+  #$this->log("contentLanguage=$contentLanguage") if TRACE;
 
   Foswiki::Func::popTopicContext() if $donePush;
 
@@ -720,7 +757,7 @@ sub indexAttachment {
   # SMELL: while the below test weeds out attachments that somehow where gone physically it is too expensive for the
   # average case to open all attachments
   #unless (defined(Foswiki::Func::readAttachment($web, $topic, $name))) {
-  #  $this->log("... attachment $web.$topic.$name not found") if DEBUG;
+  #  $this->log("... attachment $web.$topic.$name not found") if TRACE;
   #  return;
   #}
 
@@ -753,9 +790,15 @@ sub indexAttachment {
   my $date = $attachment->{'date'} || 0;
   $date = Foswiki::Func::formatTime($date, 'iso', 'gmtime');
   my $author = getWikiName($attachment->{user});
+  my $rev = $attachment->{'version'} || 1;
+
+  unless ($rev =~ /^\d+$/) {
+    $this->log("Warning: invalid version '$rev' of attachment $name in $web.$topic");
+    $rev = 1;
+  }
 
   # get summary
-  my $summary = $this->substr($attText, 0, 300);
+  my $summary = "";#substr($attText, 0, 300);
 
   #  my $author = $attachment->{'user'} || $attachment->{'author'} || '';
   #  $author = Foswiki::Func::getWikiName($author) || 'UnknownUser';
@@ -775,10 +818,6 @@ sub indexAttachment {
   #my $url = $this->getScriptUrlPath($web, $topic, 'viewfile', filename => $name);
   my $webDir = $web;
   $webDir =~ s/\./\//g;
-  my $url = $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name;
-
-  my $collection = $Foswiki::cfg{SolrPlugin}{DefaultCollection} || "wiki";
-  my $icon = $this->mapToIconFileName($extension);
 
   # gather all webs and parent webs
   my @webCats = ();
@@ -790,11 +829,9 @@ sub indexAttachment {
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
-
     # common fields
     id => $id,
-    collection => $collection,
-    url => $url,
+    url => $Foswiki::cfg{PubUrlPath}.'/'.$webDir.'/'.$topic.'/'.$name,
     web => $web,
     webcat => [@webCats],
     topic => $topic,
@@ -805,13 +842,16 @@ sub indexAttachment {
     summary => $summary,
     author => $author,
     date => $date,
+    version => $rev,
 
     # attachment fields
     name => $name,
     comment => $comment,
     size => $size,
-    icon => $icon,
+    icon => $this->mapToIconFileName($extension),
     container_id => $web . '.' . $topic,
+    container_web => $web,
+    container_topic => $topic,
     container_url => $this->getScriptUrlPath($web, $topic, "view"),
     container_title => $this->getTopicTitle($web, $topic),
   );
@@ -846,8 +886,6 @@ sub indexAttachment {
     $this->log("ERROR: " . $e->{-text});
   };
 
-  $this->commit();
-
   #if (PROFILE) {
   #  my $elapsed = int(Time::HiRes::tv_interval($t0) * 1000);
   #  $this->log("took $elapsed ms to index attachment $web.$topic.$name");
@@ -879,44 +917,37 @@ sub optimize {
 
   $agent->timeout($this->{optimizeTimeout});
 
-  $this->{solr}->commit();
   $this->log("Optimizing index");
   $this->{solr}->optimize({
-    waitSearcher => WAIT_SEARCHER,
-    softCommit => SOFTCOMMIT,
+    waitSearcher => "true",
+    softCommit => "true",
   });
 
   $agent->timeout($oldTimeout);
 }
 
 ################################################################################
-# commit every COMMIT_THRESHOLD times
 sub commit {
   my ($this, $force) = @_;
 
   return unless $this->{solr};
 
-  $this->{commitCounter}++;
+  $this->log("Committing index") if VERBOSE;
+  $this->{solr}->commit({
+      waitSearcher => "true",
+      softCommit => "true",
+  });
 
-  if ($this->{commitCounter} > 1 && ($this->{commitCounter} >= COMMIT_THRESHOLD || $force)) {
-    $this->log("Committing index") if VERBOSE;
-    $this->{solr}->commit({
-        waitSearcher => WAIT_SEARCHER,
-        softCommit => SOFTCOMMIT,
-    });
-    $this->{commitCounter} = 0;
+  # invalidate page cache for all search interfaces
+  if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
+    my @webs = Foswiki::Func::getListOfWebs("user, public");
+    foreach my $web (@webs) {
+      next if $web eq $Foswiki::cfg{TrashWebName};
 
-    # invalidate page cache for all search interfaces
-    if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
-      my @webs = Foswiki::Func::getListOfWebs("user, public");
-      foreach my $web (@webs) {
-        next if $web eq $Foswiki::cfg{TrashWebName};
+      #$this->log("firing dependencies in $web");
+      $this->{session}->{cache}->fireDependency($web, "WebSearch");
 
-        #$this->log("firing dependencies in $web");
-        $this->{session}->{cache}->fireDependency($web, "WebSearch");
-
-        # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
-      }
+      # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
     }
   }
 }
@@ -931,20 +962,9 @@ sub newDocument {
 
 ################################################################################
 sub deleteTopic {
-  my ($this, $web, $topic, $meta) = @_;
+  my ($this, $web, $topic) = @_;
 
-  $this->deleteDocument($web, $topic);
-
-  if ($meta) {
-    my @attachments = $meta->find('FILEATTACHMENT');
-    if (@attachments) {
-      foreach my $attachment (@attachments) {
-        $this->deleteDocument($web, $topic, $attachment);
-      }
-    }
-  } else {
-    $this->deleteByQuery("web:\"$web\" topic:\"$topic\"");
-  }
+  $this->deleteByQuery("web:\"$web\" topic:\"$topic\"");
 }
 
 ################################################################################
@@ -966,7 +986,6 @@ sub deleteByQuery {
   my $success;
   try {
     $success = $this->{solr}->delete_by_query($query);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
@@ -988,33 +1007,12 @@ sub deleteDocument {
 
   try {
     $this->{solr}->delete_by_id($id);
-    $this->commit();
   }
   catch Error::Simple with {
     my $e = shift;
     $this->log("ERROR: " . $e->{-text});
   };
 
-}
-
-################################################################################
-sub lock {
-  my $this = shift;
-
-  my $lockfile = Foswiki::Func::getWorkArea('SolrPlugin') . "/indexer.lock";
-  open($this->{lock}, ">$lockfile")
-    or die "can't create lockfile $lockfile";
-
-  flock($this->{lock}, LOCK_EX)
-    or die "can't lock indexer: $!";
-}
-
-################################################################################
-sub unlock {
-  my $this = shift;
-
-  flock($this->{lock}, LOCK_UN)
-    or die "unable to unlock: $!";
 }
 
 ################################################################################
@@ -1037,7 +1035,7 @@ sub getStringifiedVersion {
 
   #print STDERR "filename=$filename, mime=$mime\n";
 
-  my $workArea = Foswiki::Func::getWorkArea('SolrPlugin');
+  my $workArea = $this->{workArea};
   my $cachedFilename = "$workArea/$web/$topic/$attachment.txt";
 
   # untaint..
@@ -1072,6 +1070,13 @@ sub getStringifiedVersion {
   my $utf8Text = eval { Encode::decode('utf-8', $attText, 1) };
   $attText = (defined $utf8Text ? $utf8Text : Encode::decode('Windows-1252', $attText));
   $attText = Encode::encode($Foswiki::cfg{Site}{CharSet}, $attText);
+
+  # only cache the first 10MB at most, TODO: make size configurable
+  if (length($attText) > 1014*1000*10) {
+    $this->log("Warning: ignoring attachment $attachment at $web.$topic larger than 10MB");
+    $attText = '';
+  }
+
   return $attText;
 }
 
@@ -1121,10 +1126,11 @@ sub getListOfUsers {
     my $it = Foswiki::Func::eachUser();
     while ($it->hasNext()) {
       my $user = $it->next();
+      next if $user eq 'UnknownUser';
       $this->{_knownUsers}{$user} = 1;# if Foswiki::Func::topicExists($Foswiki::cfg{UsersWebName}, $user);
     }
 
-    #$this->log("known users=".join(", ", sort keys %{$this->{_knownUsers}})) if DEBUG;
+    #$this->log("known users=".join(", ", sort keys %{$this->{_knownUsers}})) if TRACE;
     $this->{_nrKnownUsers} = scalar(keys %{ $this->{_knownUsers} });
 
     #$this->log("found ".$this->{_nrKnownUsers}." users");
@@ -1138,7 +1144,6 @@ sub getContributors {
   my ($this, $web, $topic, $attachment) = @_;
 
   #my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
-
   my $maxRev;
   try {
     (undef, undef, $maxRev) = $this->getRevisionInfo($web, $topic, undef, $attachment);
@@ -1201,16 +1206,7 @@ sub getRevisionInfo {
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
   if ($attachment && (!defined($rev) || $rev == $maxRev)) {
-
-    # short cut for attachments
-    my $info = {};
-    $info->{version} = $attachment->{version} || $maxRev;
-    $info->{date} = $attachment->{date};
-    $info->{author} = $attachment->{author} || $attachment->{user};
-
-    #$info->{date} = $this->getTimestamp() unless defined $info->{date};
-    #$info->{author} = $Foswiki::Users::BaseUserMapping::DEFAULT_USER_CUID unless defined $info->{author};
-    return $info;
+    return ($attachment->{date}, $attachment->{author} || $attachment->{user}, $attachment->{version} || $maxRev);
   } else {
     return Foswiki::Func::getRevisionInfo($web, $topic, $rev, $attachment);
   }
@@ -1227,10 +1223,13 @@ sub getGrantedUsers {
   my $allow = $this->getACL($meta, 'ALLOWTOPICVIEW');
   my $deny = $this->getACL($meta, 'DENYTOPICVIEW');
 
-  if (DEBUG) {
+  if (TRACE) {
     $this->log("topicAllow=@$allow") if defined $allow;
     $this->log("topicDeny=@$deny") if defined $deny;
   }
+
+  my $isDeprecatedEmptyDeny =
+    !defined($Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny}) || $Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny};
 
   # Check DENYTOPIC
   if (defined $deny) {
@@ -1238,34 +1237,47 @@ sub getGrantedUsers {
       $forbiddenUsers = $this->expandUserList(@$deny);
     } else {
 
-      $this->log("empty deny -> grant all access") if DEBUG;
+      if ($isDeprecatedEmptyDeny) {
+        $this->log("empty deny -> grant all access") if TRACE;
 
-      # Empty deny
-      return ['all'];
+        # Empty deny
+        return ['all'];
+      } else {
+        $deny = undef;
+      }
     }
   }
-  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
+  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   # Check ALLOWTOPIC
   if (defined($allow)) {
     if (scalar(@$allow)) {
-      $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$allow)};
 
-      if (defined $forbiddenUsers) {
-        delete $grantedUsers{$_} foreach @$forbiddenUsers;
+      if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
+        $this->log("access * -> grant all access") if TRACE;
+
+        # Empty deny
+        return ['all'];
+      } else {
+      
+        $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
+
+        if (defined $forbiddenUsers) {
+          delete $grantedUsers{$_} foreach @$forbiddenUsers;
+        }
+        my @grantedUsers = keys %grantedUsers;
+
+        $this->log("(1) granting access for @grantedUsers") if TRACE;
+
+        # A non-empty ALLOW is final
+        return \@grantedUsers;
       }
-      my @grantedUsers = keys %grantedUsers;
-
-      $this->log("(1) granting access for @grantedUsers") if DEBUG;
-
-      # A non-empty ALLOW is final
-      return \@grantedUsers;
     }
   }
 
   # use cache if possible (no topic-level perms set)
   if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
-    $this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if DEBUG;
+    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if TRACE;
     return $this->{_webACLCache}{$web};
   }
 
@@ -1273,7 +1285,7 @@ sub getGrantedUsers {
   my $webAllow = $this->getACL($webMeta, 'ALLOWWEBVIEW');
   my $webDeny = $this->getACL($webMeta, 'DENYWEBVIEW');
 
-  if (DEBUG) {
+  if (TRACE) {
     $this->log("webAllow=@$webAllow") if defined $webAllow;
     $this->log("webDeny=@$webDeny") if defined $webDeny;
   }
@@ -1282,13 +1294,13 @@ sub getGrantedUsers {
   if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
     push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
   }
-  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if DEBUG && defined $forbiddenUsers;
+  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   if (defined($webAllow) && scalar(@$webAllow)) {
-    $grantedUsers{$_} = 1 foreach @{$this->expandUserList(@$webAllow)};
+    $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
   } elsif (!defined($deny) && !defined($webDeny)) {
 
-    $this->log("no denies, no allows -> grant all access") if DEBUG;
+    #$this->log("no denies, no allows -> grant all access") if TRACE;
 
     # No denies, no allows -> open door policy
     $this->{_webACLCache}{$web} = ['all'];
@@ -1312,12 +1324,15 @@ sub getGrantedUsers {
     push @grantedUsers, $user if $grantedUsers{$user} > 1;
   }
 
+  #$this->log("grantedUsers=@grantedUsers");
+
+  $this->log("nr granted users=".scalar(@grantedUsers).", nr known users=".$this->nrKnownUsers) if TRACE;
   @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
 
   # can't cache when there are topic-level perms
   $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
 
-  $this->log("(2) granting access for ".join(", ", sort @grantedUsers)) if DEBUG;
+  $this->log("(2) granting access for ".scalar(@grantedUsers)." users") if TRACE;
 
   return \@grantedUsers;
 }
@@ -1402,52 +1417,6 @@ sub getAclFields {
   my $grantedUsers = $this->getGrantedUsers(@_);
   return () unless $grantedUsers;
   return ('access_granted' => $grantedUsers);
-}
-
-################################################################################
-sub getTimestampFile {
-  my ($this, $web, $topic) = @_;
-
-  return unless $web;
-  return unless Foswiki::Func::webExists($web);
-
-  $web =~ s/\//./g;
-
-  my $timestampsDir = Foswiki::Func::getWorkArea('SolrPlugin') . '/timestamps';
-  mkdir $timestampsDir unless -d $timestampsDir;
-
-  return $timestampsDir . '/' . $web . '.timestamp' unless defined $topic;
-
-  $timestampsDir .= '/' . $web;
-  mkdir $timestampsDir unless -d $timestampsDir;
-
-  return $timestampsDir . '/' . $topic . '.timestamp';
-}
-
-################################################################################
-sub setTimestamp {
-  my ($this, $web, $topic, $time) = @_;
-
-  $time = time() unless defined $time;
-
-  my $timestampFile = $this->getTimestampFile($web, $topic);
-  return 0 unless $timestampFile;
-
-  Foswiki::Func::saveFile($timestampFile, $time);
-
-  return $time;
-}
-
-################################################################################
-sub getTimestamp {
-  my ($this, $web, $topic) = @_;
-
-  my $timestampFile = $this->getTimestampFile($web, $topic);
-
-  return 0 unless $timestampFile;
-
-  my $data = Foswiki::Func::readFile($timestampFile);
-  return ($data || 0);
 }
 
 ################################################################################

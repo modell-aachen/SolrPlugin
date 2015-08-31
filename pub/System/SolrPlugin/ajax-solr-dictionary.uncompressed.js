@@ -9,6 +9,8 @@ var _ = function(key, id) {
 };
 
 (function($) {
+"use strict";
+
   AjaxSolr.Dictionary = function(elem, opts) {
     var self = this, 
         $elem = $(elem),
@@ -52,6 +54,7 @@ var _ = function(key, id) {
   AjaxSolr.Dictionary.prototype.set = function(key, val) {
     var self = this;
     key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    val = val.replace(/^\s*(.*?)\s*$/, "$1");
     self.data[key] = val;
   };
 

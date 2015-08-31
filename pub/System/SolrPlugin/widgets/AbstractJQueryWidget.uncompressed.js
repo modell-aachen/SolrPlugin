@@ -1,4 +1,6 @@
 (function($) {
+"use strict";
+
   AjaxSolr.AbstractJQueryWidget = AjaxSolr.AbstractWidget.extend({
     defaults: {},
     options: {},

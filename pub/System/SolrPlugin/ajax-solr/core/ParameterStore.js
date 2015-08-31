@@ -287,16 +287,27 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * </tt>. So, we need to choose another name for toString().</p>
    */
   string: function () {
-    var params = [];
+    var params = [], string, param;
     for (var name in this.params) {
       if (this.isMultiple(name)) {
         for (var i = 0, l = this.params[name].length; i < l; i++) {
-          params.push(this.params[name][i].string());
+	  string = this.params[name][i].string();
+	  if (string) {
+	    params.push(string);
+	  }
         }
       }
       else {
-        params.push(this.params[name].string());
+	string = this.params[name].string();
+	if (string) {
+	  params.push(string);
+	}
       }
+    }
+    for (var i = 0, l = this.hidden.length; i < l; i++) {
+      param = new AjaxSolr.Parameter();
+      param.parseString(this.hidden[i]);
+      params.push(param.string());
     }
     return AjaxSolr.compact(params).join('&');
   },
@@ -325,19 +336,21 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * @returns {String} A string representation of the exposed parameters.
    */
   exposedString: function () {
-    var params = [];
+    var params = [], string;
     for (var i = 0, l = this.exposed.length; i < l; i++) {
       if (this.params[this.exposed[i]] !== undefined) {
         if (this.isMultiple(this.exposed[i])) {
           for (var j = 0, m = this.params[this.exposed[i]].length; j < m; j++) {
-            if (!this.isHidden(this.params[this.exposed[i]][j])) {
-              params.push(this.params[this.exposed[i]][j].string());
+	    string = this.params[this.exposed[i]][j].string();
+            if (string && !this.isHidden(string)) {
+              params.push(string);
             }
           }
         }
         else {
-          if (!this.isHidden(this.params[this.exposed[i]])) {
-            params.push(this.params[this.exposed[i]].string());
+	  string = this.params[this.exposed[i]].string();
+          if (string && !this.isHidden(string)) {
+            params.push(string);
           }
         }
       }

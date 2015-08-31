@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.HierarchyWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
@@ -66,7 +67,7 @@
     },
 
     afterRequest: function () {
-      var self = this, currrent, children = [], facetCounts = {}, breadcrumbs = [], prefix = [];
+      var self = this, currrent, children = [], facetCounts = {}, breadcrumbs = [], prefix = [], current;
 
       self.$target.hide();
       self.facetCounts = self.getFacetCounts();
@@ -121,7 +122,7 @@
 
       // okay lets do it
       self.$target.show();
-      self.container.html($.tmpl(self.template, children, {
+      self.container.html(self.template.render(children, {
         renderFacetCount: function(facet) {
           var count = self.facetCounts[facet];
           return count?"<span class='solrHierarchyFacetCount'>("+count+")</span>":""; 
@@ -155,7 +156,7 @@
       var self = this;
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.container = self.$target.find(self.options.container);
       self.breadcrumbs = self.$target.find(self.options.breadcrumbs);
       self.updateHierarchy();
