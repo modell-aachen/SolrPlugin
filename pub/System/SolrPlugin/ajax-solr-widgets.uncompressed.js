@@ -250,7 +250,8 @@
         },
         getFacetKey: function(facet) {
           return self.getFacetKey(facet);
-        }
+        },
+        foswiki: window.foswiki
       }));
       self.$target.fadeIn();
 
@@ -378,7 +379,8 @@
       self._super();
       self.$target.append($(self.options.templateName).render({
         id: AjaxSolr.Helpers.getUniqueID(),
-        title: self.options.title
+        title: self.options.title,
+        foswiki: window.foswiki
       }));
 
       self.checkbox = 
@@ -551,7 +553,8 @@
       self.$target.append(self.template.render({
         from: from+1,
         to: to,
-        count: numFound
+        count: numFound,
+        foswiki: window.foswiki
       }));
 
       if (numFound > 0) {
@@ -767,7 +770,8 @@
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
             //return moment(dateString).calendar();
-          }
+          },
+          foswiki: window.foswiki
         }
       ));
 
@@ -981,7 +985,8 @@
       self.selectionContainer.append($(self.template.render({
         id: AjaxSolr.Helpers.getUniqueID(),
         field: _(field),
-        facet: value
+        facet: value,
+        foswiki: window.foswiki
       })).change(handler));
     },
 
@@ -1322,7 +1327,8 @@
         },
         getChildren: function() {
           return self.getChildren(this.data.id);
-        }
+        },
+        foswiki: window.foswiki
       }));
 
       if (typeof(current) !== 'undefined') {
