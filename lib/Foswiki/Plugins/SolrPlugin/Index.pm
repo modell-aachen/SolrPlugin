@@ -448,6 +448,7 @@ sub indexTopic {
 
           my $value = $field->{value};
           my $mapped;
+          my $escaped = $value;
 
           if ($isValueMapped) {
 
@@ -470,14 +471,15 @@ sub indexTopic {
                 $mapped = join(", ", @values);
               }
             }
+            $mapped = $value unless defined $mapped;
           }
 
           # extract outgoing links for formfield values
           $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
 
           # bit of cleanup
-          $value =~ s/<!--.*?-->//gs;
-          $mapped =~ s/<!--.*?-->//gs if defined $mapped;
+          $mapped = $this->escapeHtml($mapped) if defined $mapped;
+          $escaped = $this->escapeHtml($value) if defined $value;
 
           # create a dynamic field indicating the field type to solr
 
@@ -500,6 +502,7 @@ sub indexTopic {
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
+            $doc->add_fields($fieldName . '_escaped_lst' => [ split(/\s*,\s*/, $escaped) ]);
             $doc->add_fields($fieldName . '_select_lst' => [ split(/\s*,\s*/, $mapped) ]) if defined $mapped;
           }
 
@@ -517,29 +520,12 @@ sub indexTopic {
             if ($fieldType eq '_f') {
               if ($value =~ /^\s*([\-\+]?\d+(\.\d+)?)\s*$/) {
                 $doc->add_fields($fieldName . '_f' => $1,);
-                $doc->add_fields($fieldName . '_select_f' => $1,) if defined $mapped;
               } else {
                 $this->log("WARNING: malformed float value '$value'");
               }
-            }
-
-            # for explicit _s fields apply a full plainify
-            elsif ($fieldType eq '_s') {
-
-              # note this might alter the content too much in some cases.
-              # so we try to remove only those characters that break the json parser
-              #$value = $this->plainify($value, $web, $topic);
-              $value =~ s/<[^>]*>/ /g;       # remove all HTML tags
-              $value = $this->discardIllegalChars($value);       # remove illegal characters
-
-              $doc->add_fields($fieldName . '_s' => $value) if defined $value && $value ne '';
-              if(defined $mapped) {
-                $mapped =~ s/<[^>]*>/ /g;       # remove all HTML tags
-                $mapped = $this->discardIllegalChars($mapped);       # remove illegal characters
-                $doc->add_fields($fieldName . '_select_s' => $mapped) if $value ne '';
-              }
             } else {
               $doc->add_fields($fieldName . $fieldType => $value) if defined $value && $value ne '';
+              $doc->add_fields($fieldName . '_escaped' . $fieldType => $escaped) if defined $escaped && $escaped ne '';
               $doc->add_fields($fieldName . '_select' . $fieldType => $mapped) if defined $mapped && $mapped ne '';
             }
           }

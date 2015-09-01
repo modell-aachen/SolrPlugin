@@ -757,6 +757,13 @@ Similarly topic preferences are indexed using a =preference_*= prefix.
 | *_search | text_generic | | stored | generic text, optimized for searching |
 | *_sort | text_sort | | stored | text optimized for sorting alphabetically |
 
+Additionally some fields are created for easy displaying of values. All these fields are stored, unsafe characters =&lt;&gt;&quot;&#39;= are escaped and html comments =&lt;!-- ... --&gt;= are removed.
+
+| *Name* | *Type* | *Multivalued* | *Stored* | *Description* |
+| *_select_lst | string | multivalued | stored | in select+values formfields this stores the select string |
+| *_escaped_lst | string | multivalued | stored | stores an escaped version of multivalued values |
+| *_escaped_s | string | | stored | stores an escaped version of a string |
+
 ---+++ Copy fields
 
 Finally, after having defined all field type there are some fields that are created by copying some

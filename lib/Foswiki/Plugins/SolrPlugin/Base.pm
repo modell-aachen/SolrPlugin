@@ -474,6 +474,20 @@ sub plainify {
 }
 
 ################################################################################
+sub escapeHtml {
+  my ($this, $string) = @_;
+
+  $string =~ s/<!--.*?-->//gs;
+  $string =~ s/</&lt;/g;
+  $string =~ s/>/&gt;/g;
+  $string =~ s/"/&quot;/g;
+  $string =~ s/'/&#39;/g;
+  $string = $this->discardIllegalChars($string);
+
+  return $string;
+}
+
+################################################################################
 sub discardIllegalChars {
   my ($this, $string) = @_;
 
