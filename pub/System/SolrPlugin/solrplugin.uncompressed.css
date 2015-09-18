@@ -270,3 +270,6 @@
 .solrHierarchyBreadcrumbs a {
   text-decoration:none;
 }
+input.solrTextInput {
+    background-color: white;
+}
