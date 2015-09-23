@@ -1142,6 +1142,7 @@ sub getContributors {
   # get most recent
   my (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, $maxRev, $attachment, $maxRev);
   my $mostRecent = getWikiName($user);
+  return ($mostRecent) if $Foswiki::cfg{SolrPlugin}{SimpleContributors};
   $contributors{$mostRecent} = 1;
 
   # get creator
