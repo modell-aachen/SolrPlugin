@@ -1,4 +1,6 @@
 (function($) {
+"use strict";
+
   AjaxSolr.AbstractJQueryWidget = AjaxSolr.AbstractWidget.extend({
     defaults: {},
     options: {},
@@ -12,6 +14,8 @@
 })(jQuery);
 
 (function($) {
+"use strict";
+
   AjaxSolr.AbstractJQueryFacetWidget = AjaxSolr.AbstractFacetWidget.extend({
     defaults: {
       facetType: 'facet_fields',
@@ -71,7 +75,7 @@
 
     getFacetCounts: function() {
       var self = this,
-          allFacetCounts = this._super();
+          allFacetCounts = this._super(),
           facetCounts = [];
 
       if (self.options.facetMincount == 0) {
@@ -169,6 +173,7 @@
   });
 })(jQuery);
 (function ($) {
+"use strict";
 
   AjaxSolr.FacetFieldWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
@@ -231,7 +236,7 @@
         return;
       } 
 
-      self.container.html($.tmpl(self.template, {
+      self.container.html(self.template.render({
         widget: self
       }, {
         checked: function(facet) {
@@ -245,7 +250,8 @@
         },
         getFacetKey: function(facet) {
           return self.getFacetKey(facet);
-        }
+        },
+        foswiki: window.foswiki
       }));
       self.$target.fadeIn();
 
@@ -257,20 +263,27 @@
         if (self.facetType == 'facet_ranges') {
           value = value+' TO '+value+self["facet.range.gap"];
           if (title) {
-            AjaxSolr.Dict['default'].set(value, title);
+            AjaxSolr.Dicts['default'].set(value, title);
           }
           value = '['+value+']';
         }
 
         if (value == '') {
           self.clear();
-          self.doRequest(0);
+          self.manager.doRequest(0);
         } else {
           if ($this.is(":checked, select")) {
             self.clickHandler(value).call(self);
           } else {
             self.unclickHandler(value).call(self);
           }
+        }
+      });
+
+      self.$target.children("h2").each(function() {
+        var text = $(this).text();
+        if (text) {
+          AjaxSolr.Dicts['default'].set(self.field,text);
         }
       });
     },
@@ -281,7 +294,7 @@
       self.initQueries();
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.container = self.$target.find(self.options.container);
       self.inputType = 'checkbox'; //(self.options.multiSelect)?'checkbox':'radio';
       self.$target.addClass("solrFacetContainer");
@@ -294,6 +307,8 @@
 
 })(jQuery);
 (function($) {
+"use strict";
+
   AjaxSolr.WebFacetWidget = AjaxSolr.FacetFieldWidget.extend({
     facetType: 'facet_fields',
     keyOfValue: {},
@@ -311,7 +326,7 @@
       for (var i = 0, l = facetCounts.length; i < l; i++) {
         facet = facetCounts[i].facet;
         //self.keyOfValue[facet] = facetCounts[i].key = _(facet.slice(facet.lastIndexOf('.') + 1));
-        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./,"/"));
+        self.keyOfValue[facet] = facetCounts[i].key = _(facet.replace(/\./g,"/"));
       }
 
       facetCounts.sort(function(a,b) {
@@ -330,6 +345,7 @@
 
 })(jQuery);
 (function ($) {
+"use strict";
 
   AjaxSolr.ToggleFacetWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     options: {
@@ -361,9 +377,10 @@
       var self = this;
 
       self._super();
-      self.$target.append($(self.options.templateName).tmpl({
+      self.$target.append($(self.options.templateName).render({
         id: AjaxSolr.Helpers.getUniqueID(),
-        title: self.options.title
+        title: self.options.title,
+        foswiki: window.foswiki
       }));
 
       self.checkbox = 
@@ -397,6 +414,7 @@
 
 
 (function ($) {
+"use strict";
 
   AjaxSolr.PagerWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults:  {
@@ -508,6 +526,7 @@
 
 })(jQuery);
 (function ($) {
+"use strict";
   
   AjaxSolr.ResultsPerPageWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
@@ -531,10 +550,11 @@
 
       self.$target.empty();
 
-      self.$target.append($.tmpl(self.template, {
+      self.$target.append(self.template.render({
         from: from+1,
         to: to,
-        count: numFound
+        count: numFound,
+        foswiki: window.foswiki
       }));
 
       if (numFound > 0) {
@@ -556,7 +576,7 @@
       var self = this;
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       if (!self.template) {
         throw "template "+self.options.templateName+" not found";
       }
@@ -569,6 +589,7 @@
 })(jQuery);
 
 (function ($) {
+"use strict";
 
   AjaxSolr.ResultWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
@@ -613,11 +634,35 @@
         $("#solrSearch").fadeIn();
       }
 
-      self.$target.html($("#solrHitTemplate").tmpl(
+      // rewrite view urls
+      $.each(response.response.docs, function(index,doc) {
+        var containerWeb = doc.container_web, 
+            containerTopic = doc.container_topic;
+
+        if (doc.type === "topic") {
+          doc.url = foswiki.getScriptUrl("view", doc.web, doc.topic);
+        }
+
+        if (typeof(containerWeb) === 'undefined' || typeof(containerTopic) === 'undefined') {
+          if (doc.container_id.match(/^(.*)\.(.*)$/)) {
+            containerWeb = RegExp.$1;
+            containerTopic = RegExp.$2;
+          }
+        }
+
+        if (typeof(containerWeb) !== 'undefined' && typeof(containerTopic) !== 'undefined') {
+          doc.container_url = foswiki.getScriptUrl("view", containerWeb, containerTopic);
+        }
+      });
+
+      self.$target.html($("#solrHitTemplate").render(
         response.response.docs, {
           debug:function(msg) {
-            //console.log(msg||'',this);
+            console.log(msg||'',this);
             return "";
+          },
+          encodeURIComponent: function(text) {
+            return encodeURIComponent(text);
           },
           getTemplateName: function() {
             var type = this.data.type, 
@@ -648,7 +693,7 @@
             return "#solrHitTemplate_misc";
           },
           renderList: function(fieldName, separator, limit) {
-            var list = this.data[fieldName], result = '';
+            var list = this.data[fieldName], result = '', lines;
 
             separator = separator || ', ';
             limit = limit || 10;
@@ -720,12 +765,13 @@
             }
 
             if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "<span class='solrUnknownDate'>???</span>";
+              return "???";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
             //return moment(dateString).calendar();
-          }
+          },
+          foswiki: window.foswiki
         }
       ));
 
@@ -763,6 +809,8 @@
 
 })(jQuery);
 (function ($) {
+"use strict";
+
   AjaxSolr.SearchBoxWidget = AjaxSolr.AbstractTextWidget.extend({
     defaults: {
       instantSearch: false,
@@ -837,14 +885,15 @@
 
 
 (function ($) {
+"use strict";
 
   AjaxSolr.CurrentSelectionWidget = AjaxSolr.AbstractJQueryWidget.extend({
     options: {
       defaultQuery: "",
-      currentSelectionTemplate: "#solrCurrentSelectionTemplate",
+      templateName: "#solrCurrentSelectionTemplate",
       keywordText: "keyword"
     },
-    selectionTemplate: null,
+    template: null,
     selectionContainer: null,
 
     getKeyOfValue: function(field, value) {
@@ -897,7 +946,7 @@
         count++;
         self.addSelection(self.options.keywordText, q, function() {
           self.manager.store.get('q').val(self.options.defaultQuery);
-          self.doRequest(0);
+          self.manager.doRequest(0);
         });
       }
 
@@ -933,11 +982,12 @@
         value = RegExp.$1 + value;
       }
       
-      self.selectionContainer.append($.tmpl(self.selectionTemplate, {
+      self.selectionContainer.append($(self.template.render({
         id: AjaxSolr.Helpers.getUniqueID(),
         field: _(field),
-        facet: value
-      }).change(handler));
+        facet: value,
+        foswiki: window.foswiki
+      })).change(handler));
     },
 
     removeFacet: function (field, value) {
@@ -945,7 +995,7 @@
 
       return function() {
         if (self.manager.store.removeByValue('fq', field + ':' + AjaxSolr.Parameter.escapeValue(value))) {
-          self.doRequest(0);
+          self.manager.doRequest(0);
         }
       }
     },
@@ -954,7 +1004,7 @@
       var self = this;
 
       self._super();
-      self.selectionTemplate = $(self.options.currentSelectionTemplate).template();
+      self.template = $.templates(self.options.templateName);
       self.selectionContainer = self.$target.children("ul:first");
       self.$target.find(".solrClear").click(function() {
         self.clearSelection();
@@ -969,6 +1019,8 @@
 })(jQuery);
 
 (function ($) {
+"use strict";
+
   AjaxSolr.SortWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
       defaultSort: 'score desc'
@@ -1018,6 +1070,8 @@
 
 })(jQuery);
 (function ($) {
+"use strict";
+
   AjaxSolr.TagCloudWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
       title: 'title not set',
@@ -1109,7 +1163,7 @@
       if (facetCounts.length) {
         self.$target.show();
         self.$container.empty();
-        self.$container.append($.tmpl(self.template, facetCounts));
+        self.$container.append(self.template.render(facetCounts));
         self.$container.find("a").click(function() {
           var $this = $(this),
               term = $(this).text();
@@ -1130,7 +1184,7 @@
 
       self._super();
       self.$container = self.$target.find(self.options.container);
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.multivalue = true;
     }
   });
@@ -1140,6 +1194,7 @@
 })(jQuery);
 
 (function ($) {
+"use strict";
 
   AjaxSolr.HierarchyWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
@@ -1207,7 +1262,7 @@
     },
 
     afterRequest: function () {
-      var self = this, currrent, children = [], facetCounts = {}, breadcrumbs = [], prefix = [];
+      var self = this, currrent, children = [], facetCounts = {}, breadcrumbs = [], prefix = [], current;
 
       self.$target.hide();
       self.facetCounts = self.getFacetCounts();
@@ -1262,7 +1317,7 @@
 
       // okay lets do it
       self.$target.show();
-      self.container.html($.tmpl(self.template, children, {
+      self.container.html(self.template.render(children, {
         renderFacetCount: function(facet) {
           var count = self.facetCounts[facet];
           return count?"<span class='solrHierarchyFacetCount'>("+count+")</span>":""; 
@@ -1272,7 +1327,8 @@
         },
         getChildren: function() {
           return self.getChildren(this.data.id);
-        }
+        },
+        foswiki: window.foswiki
       }));
 
       if (typeof(current) !== 'undefined') {
@@ -1296,7 +1352,7 @@
       var self = this;
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.container = self.$target.find(self.options.container);
       self.breadcrumbs = self.$target.find(self.options.breadcrumbs);
       self.updateHierarchy();
@@ -1310,6 +1366,8 @@
 
 })(jQuery);
 (function ($) {
+"use strict";
+
   AjaxSolr.SpellcheckWidget = AjaxSolr.AbstractSpellcheckWidget.extend({
     defaults: {
       "spellcheck": true,
@@ -1336,7 +1394,7 @@
     handleSuggestions: function() {
       var self = this;
       
-      self.$target.empty().append($.tmpl(self.template, {
+      self.$target.html(self.template.render({
         suggestions: self.suggestions
       }));
 
@@ -1354,7 +1412,7 @@
 
       self.$target = $(self.target);
       self.options = $.extend({}, self.defaults, self.options, self.$target.data());
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
 
       for (var name in self.options) {
         if (name.match(/^spellcheck/)) {

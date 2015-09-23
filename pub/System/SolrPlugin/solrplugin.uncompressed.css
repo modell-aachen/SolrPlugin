@@ -16,19 +16,6 @@
   padding:0px;
 }
 
-.solrSearchHits h3 a {
-  text-decoration:underline;
-}
-.solrSearchHits h3 a:hover {
-  text-decoration:inherit;
-}
-.solrSearchHits h3 span a {
-  text-decoration:none;
-}
-.solrSearchHits h3 span a:hover {
-  text-decoration:none;
-}
-
 .solrSearchHitsList .solrSearchHit {
   margin:1.3864em 0em;
 }

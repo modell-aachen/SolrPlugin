@@ -22,12 +22,12 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
   suggestions: [],
 
   afterRequest: function () {
-    var suggestions, record;
+    var suggestions;
 
     this.suggestions = []
 
-    if (this.manager.response.spellcheck && this.manager.response.spellcheck.suggestions) {
-      suggestions = this.manager.response.spellcheck.suggestions;
+    if (this.manager.response.spellcheck && this.manager.response.spellcheck.collations) {
+      suggestions = this.manager.response.spellcheck.collations;
 
       //console.log("suggestions=",suggestions);
 

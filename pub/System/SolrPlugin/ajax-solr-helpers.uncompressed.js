@@ -1,4 +1,6 @@
 (function($) {
+"use strict";
+
   AjaxSolr.Helpers = {
     getUniqueID: function() {
       var uid = new Date().getTime().toString(32), i;

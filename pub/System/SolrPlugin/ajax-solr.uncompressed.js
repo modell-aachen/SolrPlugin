@@ -712,16 +712,27 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * </tt>. So, we need to choose another name for toString().</p>
    */
   string: function () {
-    var params = [];
+    var params = [], string, param;
     for (var name in this.params) {
       if (this.isMultiple(name)) {
         for (var i = 0, l = this.params[name].length; i < l; i++) {
-          params.push(this.params[name][i].string());
+	  string = this.params[name][i].string();
+	  if (string) {
+	    params.push(string);
+	  }
         }
       }
       else {
-        params.push(this.params[name].string());
+	string = this.params[name].string();
+	if (string) {
+	  params.push(string);
+	}
       }
+    }
+    for (var i = 0, l = this.hidden.length; i < l; i++) {
+      param = new AjaxSolr.Parameter();
+      param.parseString(this.hidden[i]);
+      params.push(param.string());
     }
     return AjaxSolr.compact(params).join('&');
   },
@@ -750,19 +761,21 @@ AjaxSolr.ParameterStore = AjaxSolr.Class.extend(
    * @returns {String} A string representation of the exposed parameters.
    */
   exposedString: function () {
-    var params = [];
+    var params = [], string;
     for (var i = 0, l = this.exposed.length; i < l; i++) {
       if (this.params[this.exposed[i]] !== undefined) {
         if (this.isMultiple(this.exposed[i])) {
           for (var j = 0, m = this.params[this.exposed[i]].length; j < m; j++) {
-            if (!this.isHidden(this.params[this.exposed[i]][j])) {
-              params.push(this.params[this.exposed[i]][j].string());
+	    string = this.params[this.exposed[i]][j].string();
+            if (string && !this.isHidden(string)) {
+              params.push(string);
             }
           }
         }
         else {
-          if (!this.isHidden(this.params[this.exposed[i]])) {
-            params.push(this.params[this.exposed[i]].string());
+	  string = this.params[this.exposed[i]].string();
+          if (string && !this.isHidden(string)) {
+            params.push(string);
           }
         }
       }
@@ -1801,12 +1814,12 @@ AjaxSolr.AbstractSpellcheckWidget = AjaxSolr.AbstractWidget.extend(
   suggestions: [],
 
   afterRequest: function () {
-    var suggestions, record;
+    var suggestions;
 
     this.suggestions = []
 
-    if (this.manager.response.spellcheck && this.manager.response.spellcheck.suggestions) {
-      suggestions = this.manager.response.spellcheck.suggestions;
+    if (this.manager.response.spellcheck && this.manager.response.spellcheck.collations) {
+      suggestions = this.manager.response.spellcheck.collations;
 
       //console.log("suggestions=",suggestions);
 
@@ -2034,4 +2047,117 @@ String.prototype.strtr = function (replacePairs) {
   }
   return str;
 };
-(function(a){AjaxSolr.Helpers={getUniqueID:function(){var a=(new Date).getTime().toString(32),b;for(b=0;b<5;b++)a+=Math.floor(Math.random()*65535).toString(32);return a},build:function(b){a.fn["solr"+b]=function(c,d){return this.each(function(){var e=a(this),f=e.data("field"),g=e.attr("id"),h;typeof g=="undefined"&&(g=AjaxSolr.Helpers.getUniqueID(),e.attr("id",g)),h=new AjaxSolr[b]({id:g,target:"#"+g,field:f,options:d}),e.data("widget",h),c.addWidget(h)})}}}})(jQuery);var _=function(a,b){b=b||"default";var c=AjaxSolr.Dicts[b];return typeof c!="undefined"?c.get(a):a};(function(a){AjaxSolr.Dictionary=function(b,c){var d=this,e=a(b),f=a.extend({},e.data(),c);d.id=e.attr("id")||f.id||"default",d.data={},d.container=e,d.opts=f,d.init()},AjaxSolr.Dictionary.prototype.init=function(){var b=this;b.text=b.container.text(),b.data=a.parseJSON(b.text)},AjaxSolr.Dictionary.prototype.get=function(a){var b=this,c,d;return a=a.replace(/^\s*(.*?)\s*$/,"$1"),c=b.data[a],typeof c!="undefined"?c:typeof b.opts.subDictionary=="undefined"?a:(d=AjaxSolr.Dicts[b.opts.subDictionary],typeof d!="undefined"?d.get(a):a)},AjaxSolr.Dictionary.prototype.set=function(a,b){var c=this;a=a.replace(/^\s*(.*?)\s*$/,"$1"),c.data[a]=b},a(function(){var b;AjaxSolr.Dicts={},a(".solrDictionary").each(function(){var a=new AjaxSolr.Dictionary(this);b||(b=a),AjaxSolr.Dicts[a.id]=a}),AjaxSolr.Dicts["default"]=AjaxSolr.Dicts["default"]||b})})(jQuery);
+(function($) {
+"use strict";
+
+  AjaxSolr.Helpers = {
+    getUniqueID: function() {
+      var uid = new Date().getTime().toString(32), i;
+      for (i = 0; i < 5; i++) {
+        uid += Math.floor(Math.random() * 65535).toString(32);
+      }
+      return uid;
+    },
+
+    build: function(widgetName) {
+      $.fn["solr"+widgetName] = function(manager, opts) {
+        return this.each(function() {
+          var $this = $(this),
+              field = $this.data('field'),
+              id = $this.attr('id'),
+              widget;
+
+          if(typeof(id) === 'undefined') {
+            id = AjaxSolr.Helpers.getUniqueID();
+            $this.attr('id', id);
+          }
+
+          widget = new AjaxSolr[widgetName]({
+            id: id,
+            target: '#'+id,
+            field: field,
+            options: opts
+          });
+
+          $this.data('widget', widget);
+          manager.addWidget(widget);
+        });
+      };
+    }
+  };
+})(jQuery);
+var _ = function(key, id) {
+  id = id || 'default'
+  var dict = AjaxSolr.Dicts[id];
+  if (typeof(dict) !== 'undefined') {
+    return dict.get(key);
+  } 
+  return key;
+
+};
+
+(function($) {
+"use strict";
+
+  AjaxSolr.Dictionary = function(elem, opts) {
+    var self = this, 
+        $elem = $(elem),
+        thisOpts = $.extend({}, $elem.data(), opts);
+
+    self.id = $elem.attr('id') || thisOpts.id || 'default';
+    self.data = {};
+    self.container = $elem;
+    self.opts = thisOpts;
+    self.init();
+  };
+
+  AjaxSolr.Dictionary.prototype.init = function() {
+    var self = this;
+    self.text = self.container.text();
+    self.data = $.parseJSON(self.text);
+  };
+
+  AjaxSolr.Dictionary.prototype.get = function(key) {
+    var self = this, val, subDict;
+
+    key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    val = self.data[key];
+
+    if (typeof(val) !== 'undefined') {
+      return val;
+    }
+
+    if (typeof(self.opts.subDictionary) === 'undefined') {
+      return key;
+    }
+
+    subDict = AjaxSolr.Dicts[self.opts.subDictionary];
+    if (typeof(subDict) !== 'undefined') {
+      return subDict.get(key);
+    }
+
+    return key;
+  };
+
+  AjaxSolr.Dictionary.prototype.set = function(key, val) {
+    var self = this;
+    key = key.replace(/^\s*(.*?)\s*$/, "$1");
+    val = val.replace(/^\s*(.*?)\s*$/, "$1");
+    self.data[key] = val;
+  };
+
+  $(function() {
+    var first;
+
+    AjaxSolr.Dicts = {};
+
+    $(".solrDictionary").each(function() {
+      var dict = new AjaxSolr.Dictionary(this);
+      if(!first) first = dict;
+      AjaxSolr.Dicts[dict.id] = dict;
+    });
+
+    AjaxSolr.Dicts['default'] = AjaxSolr.Dicts['default'] || first;
+
+  });
+})(jQuery);

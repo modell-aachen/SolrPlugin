@@ -1,4 +1,6 @@
 (function ($) {
+"use strict";
+
   AjaxSolr.SearchBoxWidget = AjaxSolr.AbstractTextWidget.extend({
     defaults: {
       instantSearch: false,

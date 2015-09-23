@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2009-2013 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2009-2015 Michael Daum http://michaeldaumconsulting.com
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -10,7 +10,6 @@
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
 package Foswiki::Plugins::SolrPlugin::Base;
 
 use strict;
@@ -22,19 +21,9 @@ use Foswiki::Plugins::SolrPlugin ();
 use WebService::Solr ();
 use Error qw( :try );
 use Encode ();
-use HTML::Entities ();
 
 our $STARTWW = qr/^|(?<=[\s\(])/m;
 our $ENDWW = qr/$|(?=[\s,.;:!?)])/m;
-
-
-BEGIN {
-  if ($Foswiki::cfg{Site}{CharSet} =~ /^utf-?8$/i) {
-    $WebService::Solr::ENCODE = 0;    # don't encode to utf8 in WebService::Solr
-  }
-
-  #print STDERR "Any::Moose prefers $Any::Moose::PREFERRED\n"
-}
 
 ##############################################################################
 sub new {
@@ -59,39 +48,6 @@ sub new {
 }
 
 ##############################################################################
-sub startDaemon {
-  my ($this) = @_;
-
-  my $maxStartRetries = 3;
-
-  my $toolsDir = $Foswiki::cfg{ToolsDir} || $Foswiki::cfg{WorkingDir} . "/../tools";    # try to cope with old foswikis w/o a ToolsDir setting
-  my $autoStartCmd = $Foswiki::cfg{SolrPlugin}{SolrStartCmd} || $toolsDir . '/solrstart %SOLRHOME|F%';
-  my $solrHome = $Foswiki::cfg{SolrPlugin}{SolrHome} || $Foswiki::cfg{WorkingDir} . "/../solr";
-
-  for (my $tries = 1; $tries <= $maxStartRetries; $tries++) {
-
-    # trying to autostart
-    $this->log("autostarting solr at $solrHome");
-
-    unless (-f $solrHome . "/start.jar") {
-      $this->log("ERROR: start.jar not found ... aborting autostart");
-      last;
-    }
-
-    my ($stdout, $exit, $stderr) = Foswiki::Sandbox::sysCommand(undef, $autoStartCmd, SOLRHOME => $solrHome);
-
-    if ($exit) {
-      $this->log("ERROR: $stderr");
-      sleep 1;
-    } else {
-      $this->log("... waiting for solr to start up");
-      sleep 5;
-      last;
-    }
-  }
-}
-
-##############################################################################
 sub connect {
   my ($this) = @_;
 
@@ -108,15 +64,6 @@ sub connect {
         ),
         autocommit => 0,
       });
-
-      # SMELL: WebServices::Solr somehow does not degrade nicely
-      if ($this->{solr}->ping()) {
-
-        #$this->log("got ping reply");
-      } else {
-        $this->log("WARNING: can't ping solr");
-        $this->{solr} = undef;
-      }
     };
 
     if ($@) {
@@ -298,12 +245,10 @@ sub inlineError {
 
 ##############################################################################
 sub entityDecode {
-  my ($this, $text, $skipDecode) = @_;
+  my ($this, $text) = @_;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $text = Encode::decode($charset, $text) unless $skipDecode;
-  $text = HTML::Entities::decode_entities($text);
-  $text = Encode::encode($charset, $text) unless $skipDecode;
+  return "" unless defined $text;
+  $text =~ s/&#(\d+);/chr($1)/ge;
 
   return $text;
 }
@@ -398,7 +343,13 @@ sub getTopicTitle {
     $topicTitle = $field->{value} if $field && $field->{value};
   }
 
-  $topicTitle ||= $topic;
+  if (!defined($topicTitle) || $topicTitle eq '') {
+    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
+      $topicTitle = $web;
+    } else {
+      $topicTitle = $topic;
+    }
+  }
 
   # bit of cleanup
   $topicTitle =~ s/<!--.*?-->//g;
@@ -431,11 +382,8 @@ sub getTopicSummary {
 
   return '' unless defined $summary;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $summary = Encode::decode($charset, $summary);
-  $summary = $this->plainify($summary, $web, $topic, 1);
+  $summary = $this->plainify($summary, $web, $topic);
   $summary =~ s/\n/ /g;
-  $summary = Encode::encode($charset, $summary);
 
   return $summary;
 }
@@ -456,7 +404,7 @@ sub getScriptUrlPath {
 
 ################################################################################
 sub plainify {
-  my ($this, $text, $web, $topic, $skipDecode) = @_;
+  my ($this, $text, $web, $topic) = @_;
 
   return '' unless defined $text;
 
@@ -522,36 +470,58 @@ sub plainify {
   $text =~ s/~~~/ /g;
   $text =~ s/^$//gs;
 
-  return $this->discardIllegalChars($text, $skipDecode);
+  return $this->discardIllegalChars($text);
 }
 
-
 ################################################################################
-sub substr {
-  my ($this, $string, $offset, $length, $skipDecode) = @_;
+sub escapeHtml {
+  my ($this, $string) = @_;
 
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-
-  $string = Encode::decode($charset, $string) unless $skipDecode;
-  $string = substr($string, $offset, $length);
-  $string = Encode::encode($charset, $string) unless $skipDecode;
+  $string =~ s/<!--.*?-->//gs;
+  $string =~ s/</&lt;/g;
+  $string =~ s/>/&gt;/g;
+  $string =~ s/"/&quot;/g;
+  $string =~ s/'/&#39;/g;
+  $string = $this->discardIllegalChars($string);
 
   return $string;
 }
 
 ################################################################################
 sub discardIllegalChars {
-  my ($this, $string, $skipDecode) = @_;
-
-  my $charset = $Foswiki::cfg{Site}{CharSet};
-  $string = Encode::decode($charset, $string) unless $skipDecode;
+  my ($this, $string) = @_;
 
   # remove illegal characters
   $string =~ s/\p{C}/ /g;
 
-  $string = Encode::encode($charset, $string) unless $skipDecode;
-
   return $string;
+}
+
+##############################################################################
+sub fromSiteCharSet {
+  my $this = shift;
+  return Encode::decode($Foswiki::cfg{Site}{CharSet}, $_[0]);
+}
+
+##############################################################################
+sub toSiteCharSet {
+  my $this = shift;
+  return Encode::encode($Foswiki::cfg{Site}{CharSet}, $_[0]);
+}
+
+##############################################################################
+sub fromUtf8 {
+  my $this = shift;
+  return Encode::decode_utf8($_[0]);
+}
+
+##############################################################################
+sub toUtf8 {
+  my ($this, $string) = @_;
+
+#  my $charset = $Foswiki::cfg{Site}{CharSet};
+#  $string = Encode::decode($charset, $string);
+  return Encode::encode('utf-8', $string);
 }
 
 1;

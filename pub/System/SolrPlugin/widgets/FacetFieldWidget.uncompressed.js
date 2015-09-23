@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.FacetFieldWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     defaults: {
@@ -61,7 +62,7 @@
         return;
       } 
 
-      self.container.html($.tmpl(self.template, {
+      self.container.html(self.template.render({
         widget: self
       }, {
         checked: function(facet) {
@@ -87,20 +88,27 @@
         if (self.facetType == 'facet_ranges') {
           value = value+' TO '+value+self["facet.range.gap"];
           if (title) {
-            AjaxSolr.Dict['default'].set(value, title);
+            AjaxSolr.Dicts['default'].set(value, title);
           }
           value = '['+value+']';
         }
 
         if (value == '') {
           self.clear();
-          self.doRequest(0);
+          self.manager.doRequest(0);
         } else {
           if ($this.is(":checked, select")) {
             self.clickHandler(value).call(self);
           } else {
             self.unclickHandler(value).call(self);
           }
+        }
+      });
+
+      self.$target.children("h2").each(function() {
+        var text = $(this).text();
+        if (text) {
+          AjaxSolr.Dicts['default'].set(self.field,text);
         }
       });
     },
@@ -111,7 +119,7 @@
       self.initQueries();
 
       self._super();
-      self.template = $(self.options.templateName).template();
+      self.template = $.templates(self.options.templateName);
       self.container = self.$target.find(self.options.container);
       self.inputType = 'checkbox'; //(self.options.multiSelect)?'checkbox':'radio';
       self.$target.addClass("solrFacetContainer");

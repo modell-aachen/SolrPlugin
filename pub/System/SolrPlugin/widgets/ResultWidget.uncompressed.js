@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.ResultWidget = AjaxSolr.AbstractJQueryWidget.extend({
     defaults: {
@@ -43,11 +44,35 @@
         $("#solrSearch").fadeIn();
       }
 
-      self.$target.html($("#solrHitTemplate").tmpl(
+      // rewrite view urls
+      $.each(response.response.docs, function(index,doc) {
+        var containerWeb = doc.container_web, 
+            containerTopic = doc.container_topic;
+
+        if (doc.type === "topic") {
+          doc.url = foswiki.getScriptUrl("view", doc.web, doc.topic);
+        }
+
+        if (typeof(containerWeb) === 'undefined' || typeof(containerTopic) === 'undefined') {
+          if (doc.container_id.match(/^(.*)\.(.*)$/)) {
+            containerWeb = RegExp.$1;
+            containerTopic = RegExp.$2;
+          }
+        }
+
+        if (typeof(containerWeb) !== 'undefined' && typeof(containerTopic) !== 'undefined') {
+          doc.container_url = foswiki.getScriptUrl("view", containerWeb, containerTopic);
+        }
+      });
+
+      self.$target.html($("#solrHitTemplate").render(
         response.response.docs, {
           debug:function(msg) {
-            //console.log(msg||'',this);
+            console.log(msg||'',this);
             return "";
+          },
+          encodeURIComponent: function(text) {
+            return encodeURIComponent(text);
           },
           getTemplateName: function() {
             var type = this.data.type, 
@@ -75,7 +100,7 @@
             return "#solrHitTemplate_misc";
           },
           renderList: function(fieldName, separator, limit) {
-            var list = this.data[fieldName], result = '';
+            var list = this.data[fieldName], result = '', lines;
 
             separator = separator || ', ';
             limit = limit || 10;
@@ -147,7 +172,7 @@
             }
 
             if (typeof(dateString) === 'undefined' || dateString == '' || dateString == '0' || dateString == '1970-01-01T00:00:00Z') {
-              return "<span class='solrUnknownDate'>???</span>";
+              return "???";
             }
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);

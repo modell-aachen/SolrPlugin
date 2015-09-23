@@ -1,4 +1,5 @@
 (function ($) {
+"use strict";
 
   AjaxSolr.ToggleFacetWidget = AjaxSolr.AbstractJQueryFacetWidget.extend({
     options: {
@@ -30,7 +31,7 @@
       var self = this;
 
       self._super();
-      self.$target.append($(self.options.templateName).tmpl({
+      self.$target.append($(self.options.templateName).render({
         id: AjaxSolr.Helpers.getUniqueID(),
         title: self.options.title
       }));
