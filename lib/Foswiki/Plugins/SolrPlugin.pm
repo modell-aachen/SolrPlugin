@@ -165,7 +165,11 @@ sub initPlugin {
   );
 
   if ($Foswiki::cfg{Plugins}{TaskDaemonPlugin}{Enabled}) {
-    Foswiki::Func::registerRESTHandler('index', \&_restIndex);
+    Foswiki::Func::registerRESTHandler('index', \&_restIndex,
+        authenticate => 1,
+        validate => 0,
+        http_allow => 'GET,POST',
+    );
   }
 
   Foswiki::Func::addToZone("script", "SOLRPLUGIN::SEARCHBOX", <<'HERE', "JQUERYPLUGIN");
