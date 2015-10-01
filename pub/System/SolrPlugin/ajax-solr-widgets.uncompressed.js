@@ -1,6 +1,18 @@
 (function($) {
 "use strict";
 
+  AjaxSolr.getWebMapping = function(web) {
+      if(!AjaxSolr.Dicts.webmappings) return web;
+      var mappings = [];
+      web.split(/\./).forEach(function(eachWeb, idx){
+          mappings[idx] = AjaxSolr.Dicts.webmappings.get(eachWeb);
+      });
+      return mappings.join('/');
+  };
+})(jQuery);
+(function($) {
+"use strict";
+
   AjaxSolr.AbstractJQueryWidget = AjaxSolr.AbstractWidget.extend({
     defaults: {},
     options: {},
@@ -251,6 +263,7 @@
         getFacetKey: function(facet) {
           return self.getFacetKey(facet);
         },
+        getWebMapping: AjaxSolr.getWebMapping,
         foswiki: window.foswiki
       }));
       self.$target.fadeIn();
@@ -312,6 +325,9 @@
   AjaxSolr.WebFacetWidget = AjaxSolr.FacetFieldWidget.extend({
     facetType: 'facet_fields',
     keyOfValue: {},
+    options: {
+        templateName: '#solrWebFacetFieldTemplate'
+    },
 
     getFacetKey: function(facet) {
       var self = this, key = self.keyOfValue[facet];
@@ -771,6 +787,11 @@
             return moment(dateString).format(dateFormat || self.options.dateFormat);
             //return moment(dateString).calendar();
           },
+          getWebMapping: AjaxSolr.getWebMapping,
+          getFromDictionary: function(dictionary, string) {
+              if(!AjaxSolr.Dicts[dictionary]) return string;
+              return AjaxSolr.Dicts[dictionary].get(string);
+          },
           foswiki: window.foswiki
         }
       ));
@@ -981,11 +1002,13 @@
         field = field.substr(1);
         value = RegExp.$1 + value;
       }
-      
+
       self.selectionContainer.append($(self.template.render({
         id: AjaxSolr.Helpers.getUniqueID(),
         field: _(field),
-        facet: value,
+        facet: value
+      }, {
+        getWebMapping: AjaxSolr.getWebMapping,
         foswiki: window.foswiki
       })).change(handler));
     },

@@ -97,6 +97,9 @@
               return "#solrHitTemplate_comment";
             } 
 
+            var other = 'script#solrHitTemplate_'+type;
+            if($(other).length) return other;
+
             return "#solrHitTemplate_misc";
           },
           renderList: function(fieldName, separator, limit) {
@@ -177,7 +180,13 @@
 
             return moment(dateString).format(dateFormat || self.options.dateFormat);
             //return moment(dateString).calendar();
-          }
+          },
+          getWebMapping: AjaxSolr.getWebMapping,
+          getFromDictionary: function(dictionary, string) {
+              if(!AjaxSolr.Dicts[dictionary]) return string;
+              return AjaxSolr.Dicts[dictionary].get(string);
+          },
+          foswiki: window.foswiki
         }
       ));
 

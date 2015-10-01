@@ -30,6 +30,7 @@ AJAX_SOLR_SOURCE=\
   ajax-solr-dictionary.uncompressed.js
 
 AJAX_SOLR_WIDGETS_SOURCE=\
+  widgets/getWebMapping.uncompressed.js \
   widgets/AbstractJQueryWidget.uncompressed.js \
   widgets/AbstractJQueryFacetWidget.uncompressed.js \
   widgets/FacetFieldWidget.uncompressed.js \

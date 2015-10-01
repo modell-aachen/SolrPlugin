@@ -76,7 +76,9 @@
         },
         getFacetKey: function(facet) {
           return self.getFacetKey(facet);
-        }
+        },
+        getWebMapping: AjaxSolr.getWebMapping,
+        foswiki: window.foswiki
       }));
       self.$target.fadeIn();
 

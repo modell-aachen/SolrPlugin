@@ -95,11 +95,14 @@
         field = field.substr(1);
         value = RegExp.$1 + value;
       }
-      
+
       self.selectionContainer.append($(self.template.render({
         id: AjaxSolr.Helpers.getUniqueID(),
         field: _(field),
         facet: value
+      }, {
+        getWebMapping: AjaxSolr.getWebMapping,
+        foswiki: window.foswiki
       })).change(handler));
     },
 

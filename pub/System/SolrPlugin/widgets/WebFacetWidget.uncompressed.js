@@ -4,6 +4,9 @@
   AjaxSolr.WebFacetWidget = AjaxSolr.FacetFieldWidget.extend({
     facetType: 'facet_fields',
     keyOfValue: {},
+    options: {
+        templateName: '#solrWebFacetFieldTemplate'
+    },
 
     getFacetKey: function(facet) {
       var self = this, key = self.keyOfValue[facet];
