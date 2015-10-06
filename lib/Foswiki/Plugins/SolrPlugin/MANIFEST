@@ -76,6 +76,7 @@ pub/System/SolrPlugin/widgets/DefaultFacetWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/FacetFieldWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/HierarchyWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/PagerWidget.uncompressed.js 0644
+pub/System/SolrPlugin/widgets/RedirectFacetWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/ResultWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/ResultsPerPageWidget.uncompressed.js 0644
 pub/System/SolrPlugin/widgets/SearchBoxWidget.uncompressed.js 0644

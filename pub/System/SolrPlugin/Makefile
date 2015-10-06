@@ -46,7 +46,8 @@ AJAX_SOLR_WIDGETS_SOURCE=\
   widgets/TagCloudWidget.uncompressed.js \
   widgets/HierarchyWidget.uncompressed.js \
   widgets/SpellcheckWidget.uncompressed.js \
-  widgets/TextInputWidget.uncompressed.js
+  widgets/TextInputWidget.uncompressed.js \
+  widgets/RedirectFacetWidget.uncompressed.js
 
 ajax-solr:
 	git clone https://github.com/evolvingweb/ajax-solr.git

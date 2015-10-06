@@ -113,6 +113,7 @@
 %TMPL:P{"solr::templates::resultsperpage"}%
 %TMPL:P{"solr::templates::spellcorrection"}%
 %TMPL:P{"solr::templates::textinputfacet"}%
+%TMPL:P{"solr::templates::redirectfacet"}%
 <!-- -->%TMPL:END%
 %{</verbatim>}%
 
@@ -311,6 +312,12 @@
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::textinputfacet"}%<script id="solrTextInputFacetTemplate" type="text/x-jsrender">
 <input type="text" value="" class="solrTextInput" />
+</script>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim class="tml">}%
+%TMPL:DEF{"solr::templates::redirectfacet"}%<script id="solrRedirectFacetTemplate" type="text/x-jsrender">
+<input type="checkbox" value="1" class="foswikiCheckbox" id='{{:id}}' {{if checked}}checked='checked'{{/if}}/><label for='{{:id}}'>{{:~foswiki.jsi18n.get('solr', 'Search only here')}}</label>
 </script>%TMPL:END%
 %{</verbatim>}%
 
