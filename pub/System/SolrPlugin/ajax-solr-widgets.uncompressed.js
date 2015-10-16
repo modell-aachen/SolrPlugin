@@ -1443,9 +1443,11 @@
 
     handleSuggestions: function() {
       var self = this;
-      
+
       self.$target.html(self.template.render({
         suggestions: self.suggestions
+      },{
+        foswiki: window.foswiki
       }));
 
       //console.log("suggestions=",self.suggestions);
