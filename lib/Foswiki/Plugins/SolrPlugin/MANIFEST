@@ -148,6 +148,7 @@ solr/configsets/foswiki_configs/conf/lang/stopwords_ur.txt 0644
 solr/configsets/foswiki_configs/conf/lang/stopwords_zh.txt 0644
 solr/configsets/foswiki_configs/conf/lang/userdict_ja.txt 0644
 solr/configsets/foswiki_configs/conf/mapping-ISOLatin1Accent.txt 0644
+solr/configsets/foswiki_configs/conf/mapping-ISOLatin1AccentModac.txt 0644
 solr/configsets/foswiki_configs/conf/protwords.txt 0644
 solr/configsets/foswiki_configs/conf/schema.xml 0644
 solr/configsets/foswiki_configs/conf/solrconfig.xml 0644
