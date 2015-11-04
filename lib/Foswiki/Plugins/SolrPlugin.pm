@@ -277,4 +277,24 @@ sub finishPlugin {
   undef $hierarchy{$Foswiki::cfg{DefaultUrlHost}};
 }
 
+# MaintenancePlugin compatibility
+sub maintenanceHandler {
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:mattcrontab", {
+        name => "Restart cronjob established",
+        description => "Crontab matt_restart should be existiant.",
+        check => sub {
+            require File::Spec;
+            unless( -f File::Spec->catfile('/', 'etc', 'cron.d', 'matt_restart')) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Add crontab matt_restart according to documentation."
+                }
+            } else {
+                return { result => 0 };
+            }
+        }
+    });
+}
+
 1;
