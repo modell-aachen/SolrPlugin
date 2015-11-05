@@ -724,7 +724,7 @@ When !SolrPlugin is about to index a !DataForm attached to a topic, it tries to
 guess the data type of each formfield. Normally, Foswiki does not specify any
 type information within a !DataForm definition. Exceptions are (1) date: these
 are mapped to a *_dt field and (2) checkbox, select, radio, textboxlist: these
-are potentially multi-value fields and are thus indexed in a *_lst field.
+are potentially multi-value fields and are thus indexed in a *_lst and *_msearch field.
 
 Every other formfield is stored into an *_s field as well as into a *_search field.
 The former captures the exact content while the latter analyses the text more thoroughly
@@ -755,6 +755,7 @@ Similarly topic preferences are indexed using a =preference_*= prefix.
 | *_lst | string | multivalued | stored | this field is used for any multi-valued formfield in !DataForms like, select, radio, checkbox, textboxlist |
 | preference_* | string | | stored | preference values such as =preference_NAMEOFPREFERENCE_t= |
 | *_search | text_generic | | stored | generic text, optimized for searching |
+| *_msearch | text_generic | multivalued | stored | generic text, optimized for searching |
 | *_sort | text_sort | | stored | text optimized for sorting alphabetically |
 
 Additionally some fields are created for easy displaying of values. All these fields are stored, unsafe characters =&lt;&gt;&quot;&#39;= are escaped and html comments =&lt;!-- ... --&gt;= are removed.

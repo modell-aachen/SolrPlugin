@@ -509,6 +509,7 @@ sub indexTopic {
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
+            $doc->add_fields($fieldName . '_lst_msearch' => [ split(/\s*,\s*/, $value) ]);
             $doc->add_fields($fieldName . '_escaped_lst' => [ split(/\s*,\s*/, $escaped) ]);
             $doc->add_fields($fieldName . '_select_lst' => [ split(/\s*,\s*/, $mapped) ]) if defined $mapped;
           }

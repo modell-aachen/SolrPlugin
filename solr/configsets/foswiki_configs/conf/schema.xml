@@ -1129,6 +1129,7 @@
 
    <!-- search & sort fields  -->
    <dynamicField name="*_search" type="text_generic" stored="false" termVectors="true" />
+   <dynamicField name="*_msearch" type="text_generic" stored="false" termVectors="true" multiValued="true" />
    <dynamicField name="*_sort" type="text_sort" stored="false" />
 
    <!-- fields for specific applications -->
