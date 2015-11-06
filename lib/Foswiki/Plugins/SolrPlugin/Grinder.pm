@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+use Encode;
+
 {
     cache_fields => ['groups_members', 'web_acls'],
     handle_message => sub {
@@ -29,6 +31,9 @@ use warnings;
         my $indexer = Foswiki::Plugins::SolrPlugin::getIndexer($session);
         $indexer->groupsCache($caches->{groups_members}) if $caches->{groups_members};
         $indexer->webACLsCache($caches->{web_acls}) if $caches->{web_acls};
+
+        # Workaround for excessive Unicodization in JSON layer
+        $data = Encode::encode_utf8($data);
 
         if ($type eq 'update_topic') {
             $indexer->updateTopic(undef, $data);
