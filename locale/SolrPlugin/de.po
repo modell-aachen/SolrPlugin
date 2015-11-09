@@ -280,3 +280,7 @@ msgstr "heute"
 #: data/System/SolrSearchBaseTemplate.txt
 msgid "topic type"
 msgstr "Topic Typ"
+
+#: data/System/SolrSearchBaseTemplate.txt
+msgid "Create date"
+msgstr "Erstellungsdatum"
