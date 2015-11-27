@@ -91,10 +91,10 @@ pub/System/SolrPlugin/wikiusers.js 0644
 pub/System/SolrPlugin/wikiusers.js.gz 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.css 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.js 0644
-ressources/SolrPlugin/systemd/config/solrworker 0644
-ressources/SolrPlugin/systemd/solrworker.service 0644
-ressources/SolrPlugin/sysvinit/solrworker.debian7 0755
-ressources/SolrPlugin/sysvinit/solrworker.redhat5 0755
+resources/SolrPlugin/systemd/config/solrworker 0644
+resources/SolrPlugin/systemd/solrworker.service 0644
+resources/SolrPlugin/sysvinit/solrworker.debian7 0755
+resources/SolrPlugin/sysvinit/solrworker.redhat5 0755
 solr/.htaccess 0644
 solr/configsets/foswiki_configs/conf/admin-extra.html 0644
 solr/configsets/foswiki_configs/conf/admin-extra.menu-bottom.html 0644
