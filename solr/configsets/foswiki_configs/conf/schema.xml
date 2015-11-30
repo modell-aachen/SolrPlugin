@@ -168,6 +168,7 @@
     <!-- a general unstemmed text field; see below for language specific field types -->
     <fieldType name="text_generic" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.WordDelimiterFilterFactory" 
           splitOnCaseChange="1" 
@@ -183,6 +184,7 @@
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
       <analyzer type="query">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.WordDelimiterFilterFactory" 
           splitOnCaseChange="1" 
@@ -1127,6 +1129,7 @@
 
    <!-- search & sort fields  -->
    <dynamicField name="*_search" type="text_generic" stored="false" termVectors="true" />
+   <dynamicField name="*_msearch" type="text_generic" stored="false" termVectors="true" multiValued="true" />
    <dynamicField name="*_sort" type="text_sort" stored="false" />
 
    <!-- fields for specific applications -->
