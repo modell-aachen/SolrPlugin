@@ -362,6 +362,9 @@ sub indexTopic {
     push @webCats, join(".", @prefix);
   }
 
+  my $title = $this->getTopicTitle($web, $topic, $meta);
+  my $container_title = $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName});
+
   $doc->add_fields(
 
     # common fields
@@ -371,7 +374,8 @@ sub indexTopic {
     web => $web,
     webcat => [@webCats],
     webtopic => "$web.$topic",
-    title => $this->getTopicTitle($web, $topic, $meta),
+    title => $title,
+    title_escaped_s => $this->escapeHtml($title),
     text => $text,
     summary => $this->getTopicSummary($web, $topic, $meta, $text),
     author => $author,
@@ -384,7 +388,8 @@ sub indexTopic {
     container_web => $web,
     container_topic => $Foswiki::cfg{HomeTopicName},
     container_url => $this->getScriptUrlPath($web, $Foswiki::cfg{HomeTopicName}, "view"),
-    container_title => $this->getTopicTitle($web, $Foswiki::cfg{HomeTopicName}),
+    container_title => $container_title,
+    container_title_escaped_s => $this->escapeHtml($container_title),
     icon => $this->mapToIconFileName('topic'),
 
     # topic specific
@@ -893,6 +898,8 @@ sub indexAttachment {
     push @webCats, join(".", @prefix);
   }
 
+  my $container_title = $this->getTopicTitle($web, $topic);
+
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
     # common fields
@@ -903,6 +910,7 @@ sub indexAttachment {
     topic => $topic,
     webtopic => "$web.$topic",
     title => $title,
+    title_escaped_s => $this->escapeHtml($title),
     type => $extension,
     text => $attText,
     summary => $summary,
@@ -912,14 +920,17 @@ sub indexAttachment {
 
     # attachment fields
     name => $name,
+    name_escaped_s => $this->escapeHtml($name),
     comment => $comment,
+    comment_scaped_s => $this->escapeHtml($comment),
     size => $size,
     icon => $this->mapToIconFileName($extension),
     container_id => $web . '.' . $topic,
     container_web => $web,
     container_topic => $topic,
     container_url => $this->getScriptUrlPath($web, $topic, "view"),
-    container_title => $this->getTopicTitle($web, $topic),
+    container_title => $container_title,
+    container_title_escaped_s => $this->escapeHtml($container_title),
   );
 
   # tag and analyze language
