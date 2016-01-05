@@ -5,6 +5,8 @@ use warnings;
     cache_fields => ['groups_members', 'web_acls'],
     handle_message => sub {
         my ($host, $t, $hdl, $run_engine, $json) = @_;
+        my $core = $Foswiki::cfg{ScriptDir};
+        $core =~ s#/bin/?$##;
         if ($t =~ m'delete_topic|update_topic|update_web') {
             $main::mattworker_data{caches} = $json->{cache};
             eval { $run_engine->(); };
@@ -17,10 +19,10 @@ use warnings;
             }
         } elsif ($t eq 'flush_acls') {
             print STDERR "Flush web ACL cache\n";
-            $hdl->push_write(json => {type => 'clear_cache', host => $host});
+            $hdl->push_write(json => {type => 'clear_cache', host => $host, core => $core});
         } elsif ($t eq 'flush_groups') {
             print STDERR "Flush group membership cache\n";
-            $hdl->push_write(json => {type => 'clear_cache', host => $host});
+            $hdl->push_write(json => {type => 'clear_cache', host => $host, core => $core});
         }
         return {};
     },

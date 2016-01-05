@@ -1,0 +1,12 @@
+[Unit]
+Description=Solrworker for MATTDaemon
+After=network.target mattdaemon.service
+Requires=mattdaemon.service
+
+[Service]
+EnvironmentFile=/etc/default/solrworker-%i
+User=www-data
+ExecStart=/usr/local/bin/mattworker
+
+[Install]
+WantedBy=multi-user.target
