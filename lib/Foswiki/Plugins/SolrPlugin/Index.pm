@@ -304,6 +304,7 @@ sub indexTopic {
 
   unless (defined $meta && defined $text) {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+    $text = '' unless defined $text; # not sure why this happens, but it does
   }
 
   # remove inline base64 resources
