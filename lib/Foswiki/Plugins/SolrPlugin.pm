@@ -341,6 +341,86 @@ sub maintenanceHandler {
             }
         }
     });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:schema:current", {
+        name => "Solr schema is current",
+        description => "Check if schema is current",
+        check => sub {
+            require File::Spec;
+            require Digest::SHA;
+
+            # This is a list of possible schema locations:
+            my @schemas = (
+                File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'schema.xml'),
+            );
+
+            # These schemas can be safely updated
+            my %outdatedversions = (
+                    'c0275bccfeb7324f04eb0633393749925522e06b3924cade011f95893f6f8414' => 1, # Riga 1.1
+                    'fe0e1e7bf884725416c11ba9ad33c267cb1d910de03bdce2fcf0f56025bf1959' => 1, # Riga 1.0
+            );
+            # These schemas are current
+            my %goodversions = (
+                    '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
+            );
+
+            # Schemas that passed the tests:
+            my @goodSchemas = ();
+            # Schemas that failed and the reason:
+            my %badSchemas = ();
+
+            foreach my $schema ( @schemas ) {
+                next unless( -f $schema );
+                my $IN_FILE;
+                unless ( open( $IN_FILE, '<', $schema ) ) {
+                    $badSchemas{$schema} = "failed to read $schema: $!";
+                    next;
+                };
+                binmode($IN_FILE);
+                local $/ = undef;
+                my $data = <$IN_FILE>;
+                close($IN_FILE);
+
+                my $hash = Digest::SHA::sha256_hex($data);
+
+                if( $goodversions{$hash} ) {
+                    push( @goodSchemas, $schema );
+                    next;
+                }
+
+                if( $outdatedversions{$hash} ) {
+                    $badSchemas{$schema} = "This schema is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/schema.xml= from your foswiki directory to =$schema=.";
+                    next;
+                }
+
+                # We do not know this schema (probably customized). Let's see if it contains the things we need...
+                if( $data !~ m#name="catchall_autocomplete"# ) {
+                    $badSchemas{$schema} = "This schema seems to be outdated (no =catchall_autocomplete=) *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                } elsif ( $data !~ m#<dynamicField name="\*_msearch"# ) {
+                    $badSchemas{$schema} = "This schema seems to be outdated (no =*_msearch=)  *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                } else {
+                    push( @goodSchemas, $schema );
+                }
+            }
+
+            unless ( scalar @goodSchemas || scalar keys %badSchemas ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not find a schema, please check your configuration manually."
+                }
+            }
+            if ( scalar keys %badSchemas ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "The following schemas need to be checked:<br/>"
+                        . join( "<br/>", map { " =$_=: $badSchemas{$_}" } keys %badSchemas),
+                }
+            } else {
+                return { result => 0 };
+            }
+        }
+    });
 }
 
 1;

@@ -1041,7 +1041,7 @@ sub newDocument {
 sub deleteTopic {
   my ($this, $web, $topic) = @_;
 
-  $this->deleteByQuery("web:\"$web\" topic:\"$topic\"");
+  $this->deleteByQuery("web:\"$web\" topic:\"$topic\" -task_id_s:*");
 }
 
 ################################################################################
@@ -1049,7 +1049,7 @@ sub deleteWeb {
   my ($this, $web) = @_;
 
   $web =~ s/\//./g;
-  $this->deleteByQuery("web:\"$web\"");
+  $this->deleteByQuery("web:\"$web\" -task_id_s:*");
 }
 
 ################################################################################
