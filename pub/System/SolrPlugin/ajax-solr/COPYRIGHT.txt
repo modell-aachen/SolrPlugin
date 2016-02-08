@@ -1,1 +1,2 @@
 AJAX Solr is licensed under the Apache License (ASL) v2.0. See ASL-LICENSE.
+
