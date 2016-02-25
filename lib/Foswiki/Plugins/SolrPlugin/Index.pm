@@ -485,8 +485,8 @@ sub indexTopic {
               my $webtopic = $value;
               $webtopic =~ s#[?\#].*##;
               my ($vweb, $vtopic) = Foswiki::Func::normalizeWebTopicName(undef, $webtopic);
-              if(Foswiki::Func::topicExists($vweb, $vtopic)) {
-                  $outgoingWikiLinks{$webtopic} = 1;
+              if(Foswiki::Func::isValidWebName($vweb) && Foswiki::Func::isValidTopicName($vtopic, 1)) {
+                  $outgoingWikiLinks{$webtopic} = 1 if Foswiki::Func::topicExists($vweb, $vtopic);
               }
           }
 
