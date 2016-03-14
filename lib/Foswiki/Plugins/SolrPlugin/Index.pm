@@ -304,6 +304,7 @@ sub indexTopic {
 
   unless (defined $meta && defined $text) {
     ($meta, $text) = Foswiki::Func::readTopic($web, $topic);
+    $text = '' unless defined $text; # not sure why this happens, but it does
   }
 
   # remove inline base64 resources
@@ -484,8 +485,8 @@ sub indexTopic {
               my $webtopic = $value;
               $webtopic =~ s#[?\#].*##;
               my ($vweb, $vtopic) = Foswiki::Func::normalizeWebTopicName(undef, $webtopic);
-              if(Foswiki::Func::topicExists($vweb, $vtopic)) {
-                  $outgoingWikiLinks{$webtopic} = 1;
+              if(Foswiki::Func::isValidWebName($vweb) && Foswiki::Func::isValidTopicName($vtopic, 1)) {
+                  $outgoingWikiLinks{$webtopic} = 1 if Foswiki::Func::topicExists($vweb, $vtopic);
               }
           }
 
@@ -736,8 +737,11 @@ sub extractOutgoingLinks {
 sub extractOutgoingWikiLinks {
   my ($this, $web, $topic, $text, $outgoingLinks, $outgoingLinksAttachments, $outgoingLinksAttachmentTopics) = @_;
 
-  my $attachmentUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%|\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
-  my $attachmentBracketRegex = "$attachmentUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
+  my $pubUrlRegex = "(?:\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
+  my $pubBracketRegex = "$pubUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
+
+  my $attachUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%)/";
+  my $attachBracketRegex = "$attachUrlRegex([^\]\[\n/]+)";
 
   # topics
   # square brackets
@@ -750,17 +754,25 @@ sub extractOutgoingWikiLinks {
 
   # attachments:
   # square brackets
-  while($text =~ m#\[\[$attachmentBracketRegex\]\]#g) {
+  while($text =~ m#\[\[$pubBracketRegex\]\]#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
   }
-  while($text =~ m#\[\[$attachmentBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
+  while($text =~ m#\[\[$pubBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
+  }
+  while($text =~ m#\[\[$attachBracketRegex\]\]#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $1);
+  }
+  while($text =~ m#\[\[$attachBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $1);
   }
   # img tags etc.
-  while($text =~ m#(?:src|href)\s*=\s*('|")$attachmentUrlRegex([^\n]+?)/([^\n/]+?)\1#g) {
+  while($text =~ m#(?:src|href)\s*=\s*('|")$pubUrlRegex([^\n]+?)/([^\n/]+?)\1#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $2, $3);
   }
-
+  while($text =~ m#(?:src|href)\s*=\s*('|")$attachUrlRegex([^\n/]+?)\1#g) {
+      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $2);
+  }
 }
 
 sub _addAttachmentLink {
