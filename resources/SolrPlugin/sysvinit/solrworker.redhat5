@@ -17,7 +17,7 @@ PIDFILE="/var/run/solrworker.pid"
 # -d [PIDFILE]                  Start as daemon with [PIDFILE].
 # --department=\"[DEPARTMENT\"  Run worker in [DEPARTMENT]. Should be \"SolrPlugin\".
 # --virtualhosts                Run SolrWorker in VirtualHostingContrib mode.
-PARAMS="--virtualhosts --department=\"SolrPlugin\" -d $PIDFILE"
+PARAMS="--department=\"SolrPlugin\" -d $PIDFILE"
 WORKER_USER=apache
 LOGFILE=$FOSWIKI_ROOT/working/logs/solrindex.log
 
