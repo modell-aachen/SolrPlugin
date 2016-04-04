@@ -327,7 +327,7 @@ sub finishPlugin {
 sub maintenanceHandler {
     Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:mattcrontab", {
         name => "Restart cronjob established",
-        description => "Crontab matt_restart should be existiant.",
+        description => "Crontab matt_restart should be existent.",
         check => sub {
             require File::Spec;
             unless( -f File::Spec->catfile('/', 'etc', 'cron.d', 'matt_restart')) {
@@ -343,7 +343,7 @@ sub maintenanceHandler {
     });
     Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:schema:current", {
         name => "Solr schema is current",
-        description => "Check if schema is current",
+        description => "Check if schema is up to date.",
         check => sub {
             require File::Spec;
             require Digest::SHA;
