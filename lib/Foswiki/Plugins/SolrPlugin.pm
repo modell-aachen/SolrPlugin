@@ -327,7 +327,7 @@ sub finishPlugin {
 sub maintenanceHandler {
     Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:mattcrontab", {
         name => "Restart cronjob established",
-        description => "Crontab matt_restart should be existiant.",
+        description => "Crontab matt_restart should be existent.",
         check => sub {
             require File::Spec;
             unless( -f File::Spec->catfile('/', 'etc', 'cron.d', 'matt_restart')) {
@@ -343,7 +343,7 @@ sub maintenanceHandler {
     });
     Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:schema:current", {
         name => "Solr schema is current",
-        description => "Check if schema is current",
+        description => "Check if schema is up to date.",
         check => sub {
             require File::Spec;
             require Digest::SHA;
@@ -419,6 +419,68 @@ sub maintenanceHandler {
             } else {
                 return { result => 0 };
             }
+        }
+    });
+
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:config:ram", {
+        name => "Solr configuration: RAM",
+        description => "Check if Solr has enough RAM allocated in configuration.",
+        check => sub {
+            require File::Spec;
+            require Digest::SHA;
+
+            my $solrram = File::Spec->catfile('/', 'var', 'solr', 'solr.in.sh');
+            # Good and bad file versions
+            my $badversions = {
+                "f6efb9745ee0293119f45550ac40d30d2ee769ddef9fb7609d75c5754a341457" => 1
+            };
+            my $goodversions = {
+                "d8aef1acc0e56aaca29de623e1566d7116530929e5434cda8ec927e40dfede38" => 1
+            };
+
+            # Check existance
+            unless ( -f $solrram) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not find file $solrram. Check if Solr is correctly installed."
+                }
+            }
+
+            # Checksum
+            my $fh;
+            unless (open($fh, '<', $solrram) ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not open file $solrram: $!."
+                }
+            };
+            my $data;
+            binmode($fh);
+            {
+                local $/ = undef;
+                $data = <$fh>;
+            }
+            close($fh);
+
+            my $hash = Digest::SHA::sha256_hex($data);
+            if ($goodversions->{$hash}) {
+                return { result => 0 };
+            } elsif ($badversions->{$hash}) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "File $solrram is known as bad. Please update to file \'resources/SolrPlugin/solr.in.sh\' in Foswiki directory."
+                }
+            } else {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::WARN,
+                    solution => "File $solrram is unknown as bad and has checksum \'$hash\'."
+                }
+            }
+
         }
     });
 }

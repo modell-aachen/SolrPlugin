@@ -746,14 +746,21 @@ sub extractOutgoingWikiLinks {
   # topics
   # square brackets
   while($text =~ m#\[\[([^\]\[\n]+)\]\]#g) {
-      $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
   }
   while($text =~ m#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#g) {
-      $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+  }
+  while($text =~ m#href='([^']+)'#g) {
+    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
+  }
+  while($text =~ m#href="([^"]+)"#g) {
+    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
   }
 
   # attachments:
   # square brackets
+
   while($text =~ m#\[\[$pubBracketRegex\]\]#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
   }
@@ -773,6 +780,7 @@ sub extractOutgoingWikiLinks {
   while($text =~ m#(?:src|href)\s*=\s*('|")$attachUrlRegex([^\n/]+?)\1#g) {
       $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $2);
   }
+
 }
 
 sub _addAttachmentLink {
@@ -1523,4 +1531,3 @@ sub webACLsCache {
 }
 
 1;
-
