@@ -477,7 +477,67 @@ sub maintenanceHandler {
                 return {
                     result => 1,
                     priority => $Foswiki::Plugins::MaintenancePlugin::WARN,
-                    solution => "File $solrram is unknown as bad and has checksum \'$hash\'."
+                    solution => "File $solrram is unknown and has checksum \'$hash\'. Please review the file and decide if it is necessary to update SolrPlugin accordingly."
+                }
+            }
+
+        }
+    });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("SolrPlugin:config:listener", {
+        name => "Solr configuration: Jetty listening on localhost.",
+        description => "Check if Jetty only listens on localhost.",
+        check => sub {
+            require File::Spec;
+            require Digest::SHA;
+
+            my $jettyconf = File::Spec->catfile('/', 'opt', 'solr', 'server', 'etc', 'jetty-http.xml');
+            # Good and bad file versions
+            my $badversions = {
+            };
+            my $goodversions = {
+                "da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1
+            };
+
+            # Check existance
+            unless ( -f $jettyconf) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not find file $jettyconf. Check if Solr is correctly installed."
+                }
+            }
+
+            # Checksum
+            my $fh;
+            unless (open($fh, '<', $jettyconf) ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not open file $jettyconf: $!."
+                }
+            };
+            my $data;
+            binmode($fh);
+            {
+                local $/ = undef;
+                $data = <$fh>;
+            }
+            close($fh);
+
+            my $hash = Digest::SHA::sha256_hex($data);
+            if ($goodversions->{$hash}) {
+                return { result => 0 };
+            } elsif ($badversions->{$hash}) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "File $jettyconf is known as bad. Please update to file \'resources/SolrPlugin/jetty-http.xml\' in Foswiki directory."
+                }
+            } else {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::WARN,
+                    solution => "File $jettyconf is unknown and has checksum \'$hash\'. Please review the file and decide if it is necessary to update SolrPlugin accordingly."
                 }
             }
 
