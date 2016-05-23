@@ -96,6 +96,7 @@ resources/SolrPlugin/systemd/solrworker.service 0644
 resources/SolrPlugin/systemd/solrworker@.service 0644
 resources/SolrPlugin/sysvinit/solrworker.debian7 0755
 resources/SolrPlugin/sysvinit/solrworker.redhat5 0755
+resources/SolrPlugin/jetty-http.xml 644
 resources/SolrPlugin/solr.in.sh 755
 solr/.htaccess 0644
 solr/configsets/foswiki_configs/conf/admin-extra.html 0644
