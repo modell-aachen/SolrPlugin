@@ -7,6 +7,7 @@ Requires=mattdaemon.service
 EnvironmentFile=/etc/default/solrworker
 User=www-data
 ExecStart=/usr/local/bin/mattworker
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
