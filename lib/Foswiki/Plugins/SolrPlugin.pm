@@ -436,7 +436,13 @@ sub maintenanceHandler {
         {"da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1},
         {"d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1}
     );
-    my ( $name, $file, $correctresource, $goodversions, $badversions, @bad ) = @_;
+    Foswiki::Plugins::MaintenancePlugin::registerFileCheck(
+        "SolrPlugin:config:solrconfigxml",
+        File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
+        'solr/configsets/foswiki_configs/conf/solrconfig.xml',
+        {"97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814" => 1},
+        {"d0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e" => 1},
+    );
 }
 
 1;
