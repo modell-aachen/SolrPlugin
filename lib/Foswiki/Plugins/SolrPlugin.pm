@@ -357,10 +357,12 @@ sub maintenanceHandler {
             my %outdatedversions = (
                     'c0275bccfeb7324f04eb0633393749925522e06b3924cade011f95893f6f8414' => 1, # Riga 1.1
                     'fe0e1e7bf884725416c11ba9ad33c267cb1d910de03bdce2fcf0f56025bf1959' => 1, # Riga 1.0
+                    '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
+                    '61395eea5989b31aeae00e7af594298b21abe218499a8f1fcc9209821759b83e' => 1, # Riga 1.3, alternative version
             );
             # These schemas are current
             my %goodversions = (
-                    '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
+                    'ee6a92157f764df3c79764c94de0b7c454ef39a05bc49a24dee8a146d102ad6f' => 1, # Riga 1.8, with new field 'host'
             );
 
             # Schemas that passed the tests:
@@ -383,22 +385,21 @@ sub maintenanceHandler {
                 my $hash = Digest::SHA::sha256_hex($data);
 
                 if( $goodversions{$hash} ) {
+                    # Known good version
                     push( @goodSchemas, $schema );
-                    next;
-                }
-
-                if( $outdatedversions{$hash} ) {
+                } elsif( $outdatedversions{$hash} ) {
+                    # Known bad versions
                     $badSchemas{$schema} = "This schema is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/schema.xml= from your foswiki directory to =$schema=.";
-                    next;
-                }
-
-                # We do not know this schema (probably customized). Let's see if it contains the things we need...
-                if( $data !~ m#name="catchall_autocomplete"# ) {
-                    $badSchemas{$schema} = "This schema seems to be outdated (no =catchall_autocomplete=) *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
-                } elsif ( $data !~ m#<dynamicField name="\*_msearch"# ) {
-                    $badSchemas{$schema} = "This schema seems to be outdated (no =*_msearch=)  *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
                 } else {
-                    push( @goodSchemas, $schema );
+                    # Unknown versions
+                    # We do not know this schema (probably customized). 
+                    if( $data !~ m#name="catchall_autocomplete"# ) {
+                        $badSchemas{$schema} = "This schema seems to be outdated (no =catchall_autocomplete=) *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                    } elsif ( $data !~ m#<dynamicField name="\*_msearch"# ) {
+                        $badSchemas{$schema} = "This schema seems to be outdated (no =*_msearch=)  *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                    } else {
+                        $badSchemas{$schema} = "The schema is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/schema.xml= from the foswiki directory. Checksum: =$hash=.";
+                    }
                 }
             }
 
