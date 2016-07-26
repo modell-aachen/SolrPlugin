@@ -3,9 +3,23 @@
 
 # **STRING**
 # Url where to find the solr server. The url has got the format <code>http://&lt;domain>:&lt;port>/solr/&lt;core></code>. 
-# The default core name is <code>foswiki</code>. When you installed VirtualHostingContrib then use the virtual domain as the core name per convention, 
-# e.g. <code>http://localhost:8983/solr/www.foswiki.org</code>
+# The default core name is <code>foswiki</code>.
 $Foswiki::cfg{SolrPlugin}{Url} = 'http://localhost:8983/solr/foswiki';
+
+# **STRING EXPERT**
+# Hostname to be indexed with documents. This exists to be overridden for
+# individual hosts in VirtualHostingContrib.
+$Foswiki::cfg{SolrPlugin}{WikiHost} = 'foswiki';
+
+# **PERL EXPERT**
+# Mapping of web names to primary host for each web.
+# This allows you to index symlinked webs in only one host, and reuse that
+# part of the index for all of the other hosts, saving indexing time.
+# Subweb names should contain dots rather than slashes, as in most parts of
+# SolrPlugin.
+$Foswiki::cfg{SolrPlugin}{WikiHostMap} = {
+  'System' => 'foswiki',
+};
 
 # **NUMBER CHECK='undefok'**
 # default timeout in seconds for an HTTP transaction to the SOLR server 

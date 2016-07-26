@@ -158,6 +158,15 @@ sub afterUploadHandler {
   $this->indexAttachment($web, $topic, $attachment, \@aclFields);
 }
 
+sub _filterMappedWebs {
+  my ($this, $web, $skipLog) = @_;
+
+  my $targetHost = $this->{wikiHostMap}{$_} || $this->{wikiHost};
+  return 1 if $this->{wikiHost} eq $targetHost;
+  $this->log("$_: not indexing because it belongs to $targetHost") unless $skipLog;
+  0;
+}
+
 ################################################################################
 # update documents of a web - either in fully or incremental
 # on a full update, the complete web is removed from the index prior to updating it;
@@ -170,7 +179,8 @@ sub update {
   my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
 
   # remove non-existing webs
-  my @webs = $searcher->getListOfWebs();
+  my @webs = grep { $this->_filterMappedWebs($_, 1) } $searcher->getListOfWebs();
+
   foreach my $thisWeb (@webs) {
     next if Foswiki::Func::webExists($thisWeb);
     $this->log("$thisWeb doesn't exist anymore ... deleting");
@@ -187,6 +197,7 @@ sub update {
       push @webs, Foswiki::Func::getListOfWebs("user", $item);
     }
   }
+  @webs = grep { $this->_filterMappedWebs($_) } @webs;
 
   # TODO: check the list of webs we had the last time we did a full index
   # of all webs; then possibly delete them
@@ -1000,6 +1011,9 @@ sub add {
   #my ($package, $file, $line) = caller;
   #print STDERR "called add from $package:$line\n";
 
+  my $web = $doc->value_for('web');
+  $doc->add_fields(host => $this->{wikiHostMap}{$web} || $this->{wikiHost});
+
   return unless $this->{solr};
   my $res = $this->{solr}->add($doc);
 
@@ -1092,7 +1106,9 @@ sub deleteByQuery {
 
   my $success;
   try {
-    $success = $this->{solr}->delete_by_query($query);
+    $success = $this->{solr}->delete_by_query($query .
+      $this->buildHostFilter
+    );
   }
   catch Error::Simple with {
     my $e = shift;

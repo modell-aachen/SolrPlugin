@@ -1040,6 +1040,7 @@
 
    <!-- id: Main.WebHome, Main.WebHome.logo.png -->
    <field name="id" type="string" required="true" /> 
+   <field name="host" type="string" required="true" />
 
    <!-- language: language of this document -->
    <field name="language" type="string" /> 

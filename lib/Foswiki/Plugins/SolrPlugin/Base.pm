@@ -35,6 +35,8 @@ sub new {
   my $this = {
     session => $session,
     url => $Foswiki::cfg{SolrPlugin}{Url},    # || 'http://localhost:8983',
+    wikiHost => $Foswiki::cfg{SolrPlugin}{WikiHost} || 'foswiki',
+    wikiHostMap => $Foswiki::cfg{SolrPlugin}{WikiHostMap} || {},
     timeout => $Foswiki::cfg{SolrPlugin}{Timeout},
     optimizeTimeout => $Foswiki::cfg{SolrPlugin}{OptimizeTimeout},
     @_
@@ -522,6 +524,21 @@ sub toUtf8 {
 #  my $charset = $Foswiki::cfg{Site}{CharSet};
 #  $string = Encode::decode($charset, $string);
   return Encode::encode('utf-8', $string);
+}
+
+##############################################################################
+sub buildHostFilter {
+  my ($this, $skipMapping) = @_;
+  my $host = $this->{wikiHost};
+  return "host:$host" if $skipMapping;
+
+  my $mapping = $this->{wikiHostMap};
+  my @filters = "host:$host";
+  while (my ($k, $v) = each %$mapping) {
+    push @filters, "(web:$k host:$v)";
+  }
+
+  "(". join(" OR ", @filters) .")";
 }
 
 1;
