@@ -43,6 +43,7 @@ sub new {
 
   $this->{url} = $Foswiki::cfg{SolrPlugin}{UpdateUrl} || $Foswiki::cfg{SolrPlugin}{Url};
 
+  $this->{_addCount} = 0;
   $this->{_groupCache} = {};
   $this->{_webACLCache} = {};
 
@@ -72,6 +73,7 @@ sub new {
 sub finish {
   my $this = shift;
 
+  undef $this->{_addCount};
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
   undef $this->{_webACLCache};
@@ -109,6 +111,7 @@ sub index {
       $this->update($web, $mode);
     }
 
+    $this->commit(1);
     $this->optimize() if $optimize;
   }
 
@@ -998,7 +1001,14 @@ sub add {
   #print STDERR "called add from $package:$line\n";
 
   return unless $this->{solr};
-  return $this->{solr}->add($doc);
+  my $res = $this->{solr}->add($doc);
+
+  if (++($this->{_addCount}) >= 100) {
+    $this->{_addCount} = 0;
+    $this->commit;
+  }
+
+  $res;
 }
 
 ################################################################################
@@ -1025,14 +1035,14 @@ sub optimize {
 
 ################################################################################
 sub commit {
-  my ($this, $force) = @_;
+  my ($this, $hard) = @_;
 
   return unless $this->{solr};
 
   $this->log("Committing index") if VERBOSE;
   $this->{solr}->commit({
       waitSearcher => "true",
-      softCommit => "true",
+      softCommit => $hard ? "false" : "true",
   });
 
   # invalidate page cache for all search interfaces
