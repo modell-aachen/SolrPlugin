@@ -1106,7 +1106,7 @@ sub deleteByQuery {
 
   my $success;
   try {
-    $success = $this->{solr}->delete_by_query($query .
+    $success = $this->{solr}->delete_by_query("($query) ".
       $this->buildHostFilter
     );
   }

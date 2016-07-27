@@ -552,7 +552,7 @@ sub restSOLRPROXY {
   unless (Foswiki::Func::isAnAdmin($wikiUser)) { # add ACLs
     push @{$params{fq}}, " (access_granted:$wikiUser OR access_granted:all)"
   }
-  push @{$params{fq}}, " ". $this->buildHostFilter;
+  push @{$params{fq}}, $this->buildHostFilter;
 
 
   #print STDERR "fq=$params{fq}\n";
@@ -722,7 +722,7 @@ sub restSOLRAUTOSUGGEST {
 
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
     unless Foswiki::Func::isAnAdmin($wikiUser);
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   my %params = (
     q => $theQuery,
@@ -891,7 +891,7 @@ sub restSOLRAUTOCOMPLETE {
   my @filter = $this->parseFilter($theFilter);
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
     unless Foswiki::Func::isAnAdmin($wikiUser);
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   # tokenize here as well to separate query and prefix
   $theQuery =~ s/[\!"§\$%&\/\(\)=\?{}\[\]\*\+~#',\.;:\-_]/ /g;
@@ -1026,7 +1026,7 @@ sub doSimilar {
   my @filter = $this->parseFilter($theFilter);
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
     unless Foswiki::Func::isAnAdmin($wikiUser);
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   my $solrParams = {
     "q" => $theQuery,
@@ -1240,7 +1240,7 @@ sub doSearch {
   push(@filter, $this->parseFilter($theExtraFilter));
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
     unless Foswiki::Func::isAnAdmin($wikiUser); # add ACLs
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   $solrParams->{"fq"} = \@filter if @filter;
 
@@ -1817,7 +1817,7 @@ sub iterate {
   my $wikiUser = Foswiki::Func::getWikiName();
   push @filter, " (access_granted:$wikiUser OR access_granted:all)"
     unless Foswiki::Func::isAnAdmin($wikiUser);
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   do {
     my $response = $this->solrSearch(
@@ -1857,7 +1857,7 @@ sub iterateFacet {
   my $wikiUser = Foswiki::Func::getWikiName();
   push @filter, " (access_granted:$wikiUser OR access_granted:all)"
     unless Foswiki::Func::isAnAdmin($wikiUser);
-  push @filter, " ". $this->buildHostFilter;
+  push @filter, $this->buildHostFilter;
 
   my $len = 0;
   my $offset = 0;

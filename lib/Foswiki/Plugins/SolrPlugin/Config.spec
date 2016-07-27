@@ -17,9 +17,11 @@ $Foswiki::cfg{SolrPlugin}{WikiHost} = 'foswiki';
 # part of the index for all of the other hosts, saving indexing time.
 # Subweb names should contain dots rather than slashes, as in most parts of
 # SolrPlugin.
-$Foswiki::cfg{SolrPlugin}{WikiHostMap} = {
-  'System' => 'foswiki',
-};
+# At present, if one of the webs configured here uses access restrictions, the
+# set of permitted users must be identical in all of the wikis. Specifically,
+# restricting access to logged in users only works if the set of users is the
+# same in all wikis.
+$Foswiki::cfg{SolrPlugin}{WikiHostMap} = {};
 
 # **NUMBER CHECK='undefok'**
 # default timeout in seconds for an HTTP transaction to the SOLR server 
