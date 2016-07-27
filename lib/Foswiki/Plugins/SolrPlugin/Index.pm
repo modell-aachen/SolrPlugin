@@ -111,7 +111,7 @@ sub index {
       $this->update($web, $mode);
     }
 
-    $this->commit(1) if $mode eq 'full' && !$topic;
+    $this->commit($mode eq 'full' && !$topic);
     $this->optimize() if $optimize;
   }
 
