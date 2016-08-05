@@ -1022,6 +1022,8 @@ sub doSimilar {
   my @filter = $this->parseFilter($theFilter);
   push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
     unless Foswiki::Func::isAnAdmin($wikiUser);
+  # this one doesn't use the solrSearch method, so add host filter here
+  push @filter, $this->buildHostFilter;
 
   my $solrParams = {
     "q" => $theQuery,
@@ -1275,6 +1277,8 @@ sub solrSearch {
 
   $params ||= {};
   $params->{'q'} = $query if $query;
+  $params->{fq} ||= [];
+  push @{$params->{fq}}, $this->buildHostFilter;
 
   #print STDERR "solrSearch($query), params=".dump($params)."\n";
 
