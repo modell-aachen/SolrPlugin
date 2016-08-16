@@ -420,12 +420,12 @@ sub plainify {
 
   # from Fosiki::Render
   $text =~ s/\r//g;                         # SMELL, what about OS10?
-  $text =~ s/%META:[A-Z].*?}%//g;
+  $text =~ s/%META:[A-Z].*?\}%//g;
 
   $text =~ s/%WEB%/$web/g;
   $text =~ s/%TOPIC%/$topic/g;
   $text =~ s/%WIKITOOLNAME%/$wtn/g;
-  $text =~ s/%$Foswiki::regex{tagNameRegex}({.*?})?%//g;    # remove
+  $text =~ s/%$Foswiki::regex{tagNameRegex}(\{.*?\})?%//g;  # remove
 
   # Format e-mail to add spam padding (HTML tags removed later)
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
@@ -462,10 +462,10 @@ sub plainify {
   # remove/escape special chars
   $text =~ s/\\//g;
   $text =~ s/"//g;
-  $text =~ s/%{//g;
-  $text =~ s/}%//g;
+  $text =~ s/%\{//g;
+  $text =~ s/\}%//g;
   $text =~ s/%//g;
-  $text =~ s/{\s*}//g;
+  $text =~ s/\{\s*\}//g;
   $text =~ s/#+//g;
   $text =~ s/\$perce?nt//g;
   $text =~ s/\$dollar//g;
