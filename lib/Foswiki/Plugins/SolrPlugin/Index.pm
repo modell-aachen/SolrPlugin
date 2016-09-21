@@ -340,7 +340,14 @@ sub indexTopic {
   }
 
   # get all outgoing links from topic text
-  $this->extractOutgoingWikiLinks($web, $topic, $origText, \%outgoingWikiLinks, \%outgoingAttachmentLinks, \%outgoingAttachmentTopicLinks);
+  my $outgoing = {
+    topic => \%outgoingWikiLinks,
+    topicred => {},
+    attachment => \%outgoingAttachmentLinks,
+    attachmentred => {},
+    attachmenttopic => \%outgoingAttachmentTopicLinks,
+  };
+  $this->extractOutgoingWikiLinks($web, $topic, $origText, $outgoing);
   $this->extractOutgoingLinks($web, $topic, $origText, \%outgoingLinks);
 
   # all webs
@@ -584,6 +591,13 @@ sub indexTopic {
     $doc->add_fields(outgoingAttachment_lst => $link);
   }
 
+  foreach my $link (keys %{$outgoing->{topicred}}) {
+    $doc->add_fields(outgoingWiki_broken_lst => $link);
+  }
+  foreach my $link (keys %{$outgoing->{attachmentred}}) {
+    $doc->add_fields(outgoingAttachment_broken_lst => $link);
+  }
+
   # all prefs are of type _t
   # TODO it may pay off to detect floats and ints
   my @prefs = $meta->find('PREFERENCE');
@@ -739,17 +753,16 @@ sub extractOutgoingLinks {
 
   # normal wikiwords
   $text = $this->takeOutBlocks($text, 'noautolink', $removed);
-  $text =~ s#(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#$this->_addLink($outgoingLinks, $web, $topic, $1, $2)#gexom;
+  $text =~ s#(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#$this->_addLink({topic => $outgoingLinks}, $web, $topic, $1, $2), ''#gexm;
   $this->putBackBlocks(\$text, $removed, 'noautolink');
 
   # square brackets
-  $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink($outgoingLinks, $web, $topic, undef, $1)#ge;
-  $text =~ s#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#$this->_addLink($outgoingLinks, $web, $topic, undef, $1)#ge;
-
+  $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
+  $text =~ s#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
 }
 
 sub extractOutgoingWikiLinks {
-  my ($this, $web, $topic, $text, $outgoingLinks, $outgoingLinksAttachments, $outgoingLinksAttachmentTopics) = @_;
+  my ($this, $web, $topic, $text, $outgoing) = @_;
 
   my $pubUrlRegex = "(?:\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
   my $pubBracketRegex = "$pubUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
@@ -757,91 +770,96 @@ sub extractOutgoingWikiLinks {
   my $attachUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%)/";
   my $attachBracketRegex = "$attachUrlRegex([^\]\[\n/]+)";
 
-  # topics
   # square brackets
-  while($text =~ m#\[\[([^\]\[\n]+)\]\]#g) {
-    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
-  }
-  while($text =~ m#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#g) {
-    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
-  }
-  while($text =~ m#href='([^']+)'#g) {
-    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
-  }
-  while($text =~ m#href="([^"]+)"#g) {
-    $this->_addLink($outgoingLinks, $web, $topic, undef, $1);
-  }
-
-  # attachments:
-  # square brackets
-
-  while($text =~ m#\[\[$pubBracketRegex\]\]#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
-  }
-  while($text =~ m#\[\[$pubBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $1, $2);
-  }
-  while($text =~ m#\[\[$attachBracketRegex\]\]#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $1);
-  }
-  while($text =~ m#\[\[$attachBracketRegex\]\[(?:[^\]\n]+)\]\]#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $1);
-  }
-  # img tags etc.
-  while($text =~ m#(?:src|href)\s*=\s*('|")$pubUrlRegex([^\n]+?)/([^\n/]+?)\1#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, $2, $3);
-  }
-  while($text =~ m#(?:src|href)\s*=\s*('|")$attachUrlRegex([^\n/]+?)\1#g) {
-      $this->_addAttachmentLink($outgoingLinksAttachments, $outgoingLinksAttachmentTopics, $web, $topic, undef, "$web.$topic", $2);
+  while ($text =~ m{\[\[  ([^\]\[\n]+) \]
+      (?: \[        # optional link title
+        ([^\]\n]+)
+      \])?
+      \]}gx) {
+    my $link = $1;
+    if ($link =~ /^$pubBracketRegex$/) {
+      $this->_addAttachmentLink($outgoing, $web, $topic, undef, $1, $2);
+    } elsif ($link =~ /^$attachBracketRegex$/) {
+      $this->_addAttachmentLink($outgoing, $web, $topic, undef, "$web.$topic", $1);
+    } else {
+      $this->_addLink($outgoing, $web, $topic, undef, $link);
+    }
   }
 
+  # links, img tags, ...
+  while ($text =~ m#(?:src|href)=(["'])([^"']+)\1#g) {
+    my $link = $2;
+    if ($link =~ m#^$pubUrlRegex([^\n]+?)/([^\n/]+)$#) {
+      $this->_addAttachmentLink($outgoing, $web, $topic, undef, $1, $2);
+    } elsif ($link =~ m#^$attachUrlRegex([^\n/]+)$#) {
+      $this->_addAttachmentLink($outgoing, $web, $topic, undef, "$web.$topic", $1);
+    } else {
+      $this->_addLink($outgoing, $web, $topic, undef, $link);
+    }
+  }
 }
 
 sub _addAttachmentLink {
-  my ($this, $links, $topiclinks, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
-
-  # TODO: url escapes
+  my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
 
   $topic = "$web.$topic" if $web;
-  $topic =~ s/\%SCRIPTURL(PATH)?{.*?}\%\///g;
   $topic =~ s/%WEB%/$baseWeb/g;
   $topic =~ s/%TOPIC%/$baseTopic/g;
+  return if $topic =~ /[\[\]<>{}#?\$! ]/;
+  $topic = Foswiki::urlDecode($topic);
+  # try and detect any macros left in link, in which case there's little we can do
+  return if $topic =~ /\%/;
 
-  ($web, $topic) = $this->normalizeWebTopicName($web || $baseWeb, $topic);
+  ($web, $topic) = $this->normalizeWebTopicName($baseWeb, $topic);
+  $web =~ s#/#.#g;
+  return if $web =~ /^\./;
 
   $attachment =~ s/\?.*//;
   $attachment =~ s/#.*//;
+  return if $attachment =~ /[{}\$]/;
 
   my $link = "$web.$topic/$attachment";
-  return '' unless Foswiki::Func::topicExists($web, $topic);
 
-  $links->{$link} = 1;
-  $topiclinks->{"$web.$topic"} = 1;
+  unless (Foswiki::Func::topicExists($web, $topic)) {
+    $outgoing->{attachmentred}{$link} = 1;
+    return;
+  }
+  unless (Foswiki::Func::attachmentExists($web, $topic, $attachment)) {
+    $outgoing->{attachmentred}{$link} = 1;
+    # TODO 'attachmenttopic'?
+    return;
+  }
 
-  return $link;
+  $outgoing->{attachment}{$link} = 1;
+  $outgoing->{attachmenttopic}{"$web.$topic"} = 1;
 }
 
 sub _addLink {
-  my ($this, $links, $baseWeb, $baseTopic, $web, $topic) = @_;
+  my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic) = @_;
 
-  # TODO: url escapes
+  $topic =~ s/\%SCRIPTURL(PATH)?{"?view"?}\%\///g;
+  $topic =~ s/%WEB%/$baseWeb/g;
+  $topic =~ s/%TOPIC%/$baseTopic/g;
+  return if $topic =~ /[\[\]<>{}#?\$!: ]/ || $topic =~/^_\d+$/;
+  $topic = Foswiki::urlDecode($topic);
+  # try and detect any macros left in link, in which case there's little we can do
+  return if $topic =~ /\%/;
 
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
+  $web =~ s#/#.#g;
+  return if $web =~ /^\./;
+
   my $link = $web . "." . $topic;
-  return '' if $link =~ /^http|ftp/;    # don't index external links
-  return '' unless Foswiki::Func::topicExists($web, $topic);
+  return if $link =~ /^[A-Za-z-]+:/;    # don't index links with protocol prefixes
 
-  $link =~ s/\%SCRIPTURL(PATH)?{.*?}\%\///g;
-  $link =~ s/%WEB%/$baseWeb/g;
-  $link =~ s/%TOPIC%/$baseTopic/g;
+  unless (Foswiki::Func::topicExists($web, $topic)) {
+    $outgoing->{topicred}{$link} = 1 if $outgoing->{topicred};
+    return;
+  }
 
-  #print STDERR "link=$link\n" unless defined $links->{$link};
-
-  $links->{$link} = 1;
-
-  return $link;
+  $outgoing->{topic}{$link} = 1;
 }
 
 ################################################################################
