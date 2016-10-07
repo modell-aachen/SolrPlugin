@@ -1030,7 +1030,13 @@ sub add {
   #print STDERR "called add from $package:$line\n";
 
   my $web = $doc->value_for('web');
-  $doc->add_fields(host => $this->{wikiHostMap}{$web} || $this->{wikiHost});
+  my $host = $this->{wikiHostMap}{$web} || $this->{wikiHost};
+  $doc->add_fields(host => $host);
+  foreach my $field (@{$doc->fields}) {
+      if($field->{name} && $field->{name} eq 'id') {
+          $field->{value} = "$host#$field->{value}";
+      }
+  }
 
   return unless $this->{solr};
   my $res = $this->{solr}->add($doc);

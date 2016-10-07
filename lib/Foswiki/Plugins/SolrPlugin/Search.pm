@@ -960,7 +960,7 @@ sub restSOLRSIMILAR {
   return '' unless defined $this->{solr};
   my $query = Foswiki::Func::getCgiQuery();
   my $theQuery = $query->param('q');
-  $theQuery =  "id:$theWeb.$theTopic" unless defined $theQuery;
+  $theQuery =  "id:".($this->{wikiHostMap}{$theWeb} || $this->{wikiHost})."#$theWeb.$theTopic" unless defined $theQuery;
   my %params = map {$_ => join(" " , @{[$query->param($_)]})} $query->param();
   delete $params{'q'};
 
@@ -983,7 +983,7 @@ sub handleSOLRSIMILAR {
   return $this->inlineError("can't connect to solr server") unless defined $this->{solr};
 
   my $theQuery = $params->{_DEFAULT};
-  $theQuery = "id:$theWeb.$theTopic" unless defined $theQuery;
+  $theQuery =  "id:".($this->{wikiHostMap}{$theWeb} || $this->{wikiHost})."#$theWeb.$theTopic" unless defined $theQuery;
 
   my $response = $this->doSimilar($theQuery, $params);
 
