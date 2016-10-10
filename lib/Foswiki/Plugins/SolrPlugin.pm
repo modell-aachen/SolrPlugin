@@ -426,8 +426,8 @@ sub maintenanceHandler {
         "solrplugin:config:ram",
         File::Spec->catfile('/', 'var', 'solr', 'solr.in.sh'),
         'resources/SolrPlugin/solr.in.sh',
+        {"d8aef1acc0e56aaca29de623e1566d7116530929e5434cda8ec927e40dfede38" => 1},
         {"f6efb9745ee0293119f45550ac40d30d2ee769ddef9fb7609d75c5754a341457" => 1},
-        {"2d66842f26c6438d70705a88daae6e8919d9e833778d4c91d910ef30bf900e78" => 1}, # riga 10
     );
 
     Foswiki::Plugins::MaintenancePlugin::registerFileCheck(
