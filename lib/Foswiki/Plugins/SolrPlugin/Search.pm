@@ -395,7 +395,7 @@ sub formatResponse {
         $line =~ s/\$id\b/$facetID/g;
         $line =~ s/\$total\b/$facetTotal/g;
         $line =~ s/\$rows\b/$nrRows/g;
-        $facetResult .= $line;
+        $facetResult .= $line if $facetTotal;
       }
     }
   }
