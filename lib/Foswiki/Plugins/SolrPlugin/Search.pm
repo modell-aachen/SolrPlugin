@@ -395,7 +395,7 @@ sub formatResponse {
         $line =~ s/\$id\b/$facetID/g;
         $line =~ s/\$total\b/$facetTotal/g;
         $line =~ s/\$rows\b/$nrRows/g;
-        $facetResult .= $line if $facetTotal;
+        $facetResult .= $line;
       }
     }
   }
@@ -1280,6 +1280,13 @@ sub solrSearch {
   $params->{fq} ||= [];
   push @{$params->{fq}}, $this->buildHostFilter;
 
+  while (my ($k, $v) = each %$params) {
+    next unless $k =~ /^(f\.[a-zA-Z_0-9]+\.facet\.mincount)$/;
+    my $field = $1;
+    my $val = shift @{$params->{$field}};
+    push @{$params->{$field}}, $val || 1;
+  }
+
   #print STDERR "solrSearch($query), params=".dump($params)."\n";
 
 
@@ -1307,7 +1314,7 @@ sub getFacetParams {
   my $theFacetLimit = $params->{facetlimit};
   my $theFacetSort = $params->{facetsort} || '';
   my $theFacetOffset = $params->{facetoffset};
-  my $theFacetMinCount = $params->{facetmincount};
+  my $theFacetMinCount = $params->{facetmincount} || 1;
   my $theFacetPrefix = $params->{facetprefix};
   my $theFacetMethod = $params->{facetmethod};
 
