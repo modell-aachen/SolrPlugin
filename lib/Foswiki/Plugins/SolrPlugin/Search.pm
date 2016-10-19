@@ -1281,10 +1281,9 @@ sub solrSearch {
   push @{$params->{fq}}, $this->buildHostFilter;
 
   while (my ($k, $v) = each %$params) {
-    next unless $k =~ /^(f\.[a-zA-Z_0-9]+\.facet\.mincount)$/;
-    my $field = $1;
-    my $val = shift @{$params->{$field}};
-    push @{$params->{$field}}, $val || 1;
+    next unless $k =~ /^f\.[a-zA-Z_0-9]+\.facet\.mincount$/;
+    my $val = shift @{$v};
+    push @{$params->{$k}}, $val || 1;
   }
 
   #print STDERR "solrSearch($query), params=".dump($params)."\n";
