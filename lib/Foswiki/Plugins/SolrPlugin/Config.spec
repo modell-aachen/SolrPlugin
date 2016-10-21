@@ -129,10 +129,18 @@ $Foswiki::cfg{SolrPlugin}{SupportedLanguages} = {
 
 # **PERL H EXPERT**
 # This setting is required to enable executing the solrsearch script from the bin directory
-$Foswiki::cfg{SwitchBoard}{solrsearch} = ['Foswiki::Plugins::SolrPlugin', 'searchCgi', { 'solrsearch' => 1 }];
+$Foswiki::cfg{SwitchBoard}{solrsearch} = {
+    package => 'Foswiki::Plugins::SolrPlugin',
+    function => 'searchCgi',
+    context => { 'solrsearch' => 1 },
+};
 
 # **PERL H EXPERT**
-$Foswiki::cfg{SwitchBoard}{solrindex} = ['Foswiki::Plugins::SolrPlugin', 'indexCgi', { 'solrindex' => 1 }];
+$Foswiki::cfg{SwitchBoard}{solrindex} = {
+    package => 'Foswiki::Plugins::SolrPlugin',
+    function => 'indexCgi',
+    context => { 'solrindex' => 1 },
+};
 
 # **STRING**
 # Usernames and groups, that are allowed to access the rest interface when TaskDaemonPlugin is active.

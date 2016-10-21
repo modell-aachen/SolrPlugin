@@ -6,6 +6,7 @@ use warnings;
 use Foswiki::Func ();
 
 my @flushCmd;
+my $isNewTopic;
 
 sub _send {
     my ($message, $type, $wait) = @_;
@@ -16,6 +17,7 @@ sub _send {
 sub beforeSaveHandler {
     my ( $text, $topic, $web, $meta ) = @_;
 
+    $isNewTopic = !Foswiki::Func::topicExists($web, $topic);
     return unless $topic eq $Foswiki::cfg{WebPrefsTopicName};
 
     my ($oldMeta) = Foswiki::Func::readTopic($web, $topic);
@@ -37,6 +39,7 @@ sub afterSaveHandler {
     }
     if (!@flushCmd) {
         _send("$web.$topic", 'update_topic');
+        _send("$web.$topic", 'check_backlinks') if $isNewTopic;
     }
     undef @flushCmd;
 }
@@ -47,6 +50,8 @@ sub afterRenameHandler {
 
     if( not $oldTopic ) {
         _send("$newWeb", 'update_web'); # old web will be deleted automatically
+        _send("$oldWeb", 'web_check_backlinks');
+        _send("$newWeb", 'web_check_backlinks');
     } else {
         # If attachment moved (i.e. $oldAttachment is not false), update oldtopic. Otherwise, topic moved: Delete oldtopic.
         # Attachment moving or updating does not trigger afterSaveHandler.
@@ -57,6 +62,8 @@ sub afterRenameHandler {
            _send("$oldWeb.$oldTopic", 'delete_topic');
         }
         _send("$newWeb.$newTopic", 'update_topic');
+        _send("$oldWeb.$oldTopic", 'check_backlinks');
+        _send("$newWeb.$newTopic", 'check_backlinks');
     }
 }
 

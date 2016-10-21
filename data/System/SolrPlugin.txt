@@ -705,6 +705,11 @@ useful for spatial search.
 | preference | string | multivalued | stored | this field catches all topic preferences. each preference is captured in a dynamic field as well (see dynamic fields below) |
 | attachment | string | multivalued | stored | list of all attachment names of this topic |
 | outgoing | string | multivalued | stored | list of all outgoing links; this information is used to detect backlinks |
+| outgoingWiki_lst | string | multivalued | stored | list of all outgoing links, including resource links and HTML links |
+| outgoingWiki_broken_lst | string | multivalued | stored | list of all outgoing links to topics that do not exist, including resource links and HTML links |
+| outgoingAttachment_lst | string | multivalued | stored | list of all outgoing links to attachments, including resource links and HTML links |
+| outgoingAttachment_broken_lst | string | multivalued | stored | list of all outgoing links to attachments that do not exist, including resource links and HTML links |
+| outgoingAttachmentTopic_lst | string | multivalued | stored | list of all topics containing attachments for which we have outgoing links, including resource links and HTML links |
 | category | string | multivalued | stored | list of categories this document is in; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; it will populate it with the list of all categories up to !TopCategory; content of this field is copied to =category_search= as well (see generic fields below) |
 | tag | string | multivalued | stored | list of tags assigned to this document; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; content of this field is copied to =category_search= as well (see generic fields below) |
 | name | string | | stored | filename of an attachment |

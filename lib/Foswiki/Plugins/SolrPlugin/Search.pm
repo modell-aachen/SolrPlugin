@@ -1280,6 +1280,12 @@ sub solrSearch {
   $params->{fq} ||= [];
   push @{$params->{fq}}, $this->buildHostFilter;
 
+  while (my ($k, $v) = each %$params) {
+    next unless $k =~ /^f\.[a-zA-Z_0-9]+\.facet\.mincount$/;
+    my $val = shift @{$v};
+    push @{$params->{$k}}, $val || 1;
+  }
+
   #print STDERR "solrSearch($query), params=".dump($params)."\n";
 
 
@@ -1307,7 +1313,7 @@ sub getFacetParams {
   my $theFacetLimit = $params->{facetlimit};
   my $theFacetSort = $params->{facetsort} || '';
   my $theFacetOffset = $params->{facetoffset};
-  my $theFacetMinCount = $params->{facetmincount};
+  my $theFacetMinCount = $params->{facetmincount} || 1;
   my $theFacetPrefix = $params->{facetprefix};
   my $theFacetMethod = $params->{facetmethod};
 
