@@ -325,6 +325,21 @@ sub finishPlugin {
 
 # MaintenancePlugin compatibility
 sub maintenanceHandler {
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:simplecontributors", {
+        name => "SimpleContributors enabled",
+        description => "Check if {SolrPlugin}{SimpleContributors} is enabled.",
+        check => sub {
+            if( $Foswiki::cfg{SolrPlugin}{SimpleContributors} ) {
+                return { result => 0 };
+            } else {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::WARN,
+                    solution => "Unless there is any reason for it: enable {SolrPlugin}{SimpleContributors} in configure.",
+                };
+            }
+        }
+    });
     Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:mattcrontab", {
         name => "Restart cronjob established",
         description => "Crontab matt_restart should be existent.",
@@ -335,7 +350,7 @@ sub maintenanceHandler {
                     result => 1,
                     priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
                     solution => "Add crontab matt_restart according to documentation."
-                }
+                };
             } else {
                 return { result => 0 };
             }
