@@ -671,7 +671,7 @@ sub indexTopic {
         my @arr = split( '\.', $attachment->{name} );
         my $name = $arr[0];
         my $pattern = "%PROCESS{.*name=\"$name\".*}%";
-        if ( $origText !~ m/$pattern/ ) {
+        if ( $origText !~ m/\Q$pattern\E/ ) {
           next;
         }
       }
