@@ -752,13 +752,15 @@ sub extractOutgoingLinks {
   my $removed = {};
 
   # normal wikiwords
+  # Must take care not to take out macros as well ... which is difficult.
+  # Checking for a leading % is not optimal, but should cover most cases.
   $text = $this->takeOutBlocks($text, 'noautolink', $removed);
-  $text =~ s#(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#$this->_addLink({topic => $outgoingLinks}, $web, $topic, $1, $2), ''#gexm;
+  $text =~ s#(\%?)(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#($1)?$1 . ($2 || '') . ($3 || ''):($this->_addLink({topic => $outgoingLinks}, $web, $topic, $2, $3), '')#gexm;
   $this->putBackBlocks(\$text, $removed, 'noautolink');
 
   # square brackets
   $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
-  $text =~ s#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
+  $text =~ s#\[\[([^\]\[\n]+)\]\[(?:[^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
 }
 
 sub extractOutgoingWikiLinks {
@@ -803,8 +805,8 @@ sub _addAttachmentLink {
   my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
 
   $topic = "$web.$topic" if $web;
-  $topic =~ s/%WEB%/$baseWeb/g;
-  $topic =~ s/%TOPIC%/$baseTopic/g;
+  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
+  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$! ]/;
   $topic = Foswiki::urlDecode($topic);
   # try and detect any macros left in link, in which case there's little we can do
@@ -837,9 +839,9 @@ sub _addAttachmentLink {
 sub _addLink {
   my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic) = @_;
 
-  $topic =~ s/\%SCRIPTURL(PATH)?{"?view"?}\%\///g;
-  $topic =~ s/%WEB%/$baseWeb/g;
-  $topic =~ s/%TOPIC%/$baseTopic/g;
+  $topic =~ s/\%SCRIPTURL(?:PATH)?(?:\{"?view"?\})?\%\///g;
+  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
+  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$!: ]/ || $topic =~/^_\d+$/;
   $topic = Foswiki::urlDecode($topic);
   # try and detect any macros left in link, in which case there's little we can do
