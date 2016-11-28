@@ -259,10 +259,23 @@ sub entityDecode {
 sub urlDecode {
   my ($this, $text) = @_;
 
-  # SMELL: not utf8-safe
-  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
+  my $decoded = $text =~ s/%([\da-fA-F]{2})/chr(hex($1))/ger;
 
-  return $text;
+  if( $decoded ne $text && $Foswiki::UNICODE ) {
+    eval {
+        return Encode::decode_utf8( $decoded, Encode::FB_CROAK );
+    };
+    # try different other encodings
+    foreach my $encoding ( qw(Windows-1252 7bit-jis GB18030 euc-jp shiftjis) ) {
+      eval {
+        return Encode::decode($encoding, $decoded, Encode::FB_CROAK);
+      };
+    }
+    # still did not get it, giving up and escape it again, so at
+    # least we won't crash
+    return $text;
+  }
+  return $decoded;
 }
 
 ###############################################################################

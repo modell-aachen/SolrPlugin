@@ -808,9 +808,8 @@ sub _addAttachmentLink {
   $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
   $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$! ]/;
-  $topic = Foswiki::urlDecode($topic);
-  # try and detect any macros left in link, in which case there's little we can do
-  return if $topic =~ /\%/;
+  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
+  $topic = $this->urlDecode($topic);
 
   ($web, $topic) = $this->normalizeWebTopicName($baseWeb, $topic);
   $web =~ s#/#.#g;
@@ -843,9 +842,8 @@ sub _addLink {
   $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
   $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$!: ]/ || $topic =~/^_\d+$/;
-  $topic = Foswiki::urlDecode($topic);
-  # try and detect any macros left in link, in which case there's little we can do
-  return if $topic =~ /\%/;
+  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
+  $topic = $this->urlDecode($topic);
 
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
