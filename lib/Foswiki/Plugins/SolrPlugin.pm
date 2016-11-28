@@ -374,10 +374,11 @@ sub maintenanceHandler {
                     'fe0e1e7bf884725416c11ba9ad33c267cb1d910de03bdce2fcf0f56025bf1959' => 1, # Riga 1.0
                     '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
                     '61395eea5989b31aeae00e7af594298b21abe218499a8f1fcc9209821759b83e' => 1, # Riga 1.3, alternative version
+                    'ee6a92157f764df3c79764c94de0b7c454ef39a05bc49a24dee8a146d102ad6f' => 1, # Riga 1.8, with new field 'host'
             );
             # These schemas are current
             my %goodversions = (
-                    'ee6a92157f764df3c79764c94de0b7c454ef39a05bc49a24dee8a146d102ad6f' => 1, # Riga 1.8, with new field 'host'
+                    '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1, # Riga 1.11, adds *_sort for form fields
             );
 
             # Schemas that passed the tests:
