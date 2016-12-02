@@ -1244,6 +1244,7 @@
    <copyField source="web" dest="web_search" />
    <copyField source="webtopic" dest="webtopic_search"/>
    <copyField source="*_s" dest="*_search"/>
+   <copyField source="*_s" dest="*_sort"/>
 
    <copyField source="name" dest="name_lc"/>
 

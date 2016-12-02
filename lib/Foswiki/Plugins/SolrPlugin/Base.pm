@@ -259,10 +259,23 @@ sub entityDecode {
 sub urlDecode {
   my ($this, $text) = @_;
 
-  # SMELL: not utf8-safe
-  $text =~ s/%([\da-f]{2})/chr(hex($1))/gei;
+  my $decoded = $text =~ s/%([\da-fA-F]{2})/chr(hex($1))/ger;
 
-  return $text;
+  if( $decoded ne $text && $Foswiki::UNICODE ) {
+    eval {
+        return Encode::decode_utf8( $decoded, Encode::FB_CROAK );
+    };
+    # try different other encodings
+    foreach my $encoding ( qw(Windows-1252 7bit-jis GB18030 euc-jp shiftjis) ) {
+      eval {
+        return Encode::decode($encoding, $decoded, Encode::FB_CROAK);
+      };
+    }
+    # still did not get it, giving up and escape it again, so at
+    # least we won't crash
+    return $text;
+  }
+  return $decoded;
 }
 
 ###############################################################################
@@ -420,12 +433,12 @@ sub plainify {
 
   # from Fosiki::Render
   $text =~ s/\r//g;                         # SMELL, what about OS10?
-  $text =~ s/%META:[A-Z].*?}%//g;
+  $text =~ s/%META:[A-Z].*?\}%//g;
 
   $text =~ s/%WEB%/$web/g;
   $text =~ s/%TOPIC%/$topic/g;
   $text =~ s/%WIKITOOLNAME%/$wtn/g;
-  $text =~ s/%$Foswiki::regex{tagNameRegex}({.*?})?%//g;    # remove
+  $text =~ s/%$Foswiki::regex{tagNameRegex}(\{.*?\})?%//g;  # remove
 
   # Format e-mail to add spam padding (HTML tags removed later)
   $text =~ s/$STARTWW((mailto\:)?[a-zA-Z0-9-_.+]+@[a-zA-Z0-9-_.]+\.[a-zA-Z0-9-_]+)$ENDWW//gm;
@@ -462,10 +475,10 @@ sub plainify {
   # remove/escape special chars
   $text =~ s/\\//g;
   $text =~ s/"//g;
-  $text =~ s/%{//g;
-  $text =~ s/}%//g;
+  $text =~ s/%\{//g;
+  $text =~ s/\}%//g;
   $text =~ s/%//g;
-  $text =~ s/{\s*}//g;
+  $text =~ s/\{\s*\}//g;
   $text =~ s/#+//g;
   $text =~ s/\$perce?nt//g;
   $text =~ s/\$dollar//g;

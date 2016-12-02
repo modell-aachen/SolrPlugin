@@ -671,7 +671,7 @@ sub indexTopic {
         my @arr = split( '\.', $attachment->{name} );
         my $name = $arr[0];
         my $pattern = "%PROCESS{.*name=\"$name\".*}%";
-        if ( $origText !~ m/$pattern/ ) {
+        if ( $origText !~ m/\Q$pattern\E/ ) {
           next;
         }
       }
@@ -752,13 +752,15 @@ sub extractOutgoingLinks {
   my $removed = {};
 
   # normal wikiwords
+  # Must take care not to take out macros as well ... which is difficult.
+  # Checking for a leading % is not optimal, but should cover most cases.
   $text = $this->takeOutBlocks($text, 'noautolink', $removed);
-  $text =~ s#(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#$this->_addLink({topic => $outgoingLinks}, $web, $topic, $1, $2), ''#gexm;
+  $text =~ s#(\%?)(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#($1)?$1 . ($2 || '') . ($3 || ''):($this->_addLink({topic => $outgoingLinks}, $web, $topic, $2, $3), '')#gexm;
   $this->putBackBlocks(\$text, $removed, 'noautolink');
 
   # square brackets
   $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
-  $text =~ s#\[\[([^\]\[\n]+)\]\[([^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
+  $text =~ s#\[\[([^\]\[\n]+)\]\[(?:[^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
 }
 
 sub extractOutgoingWikiLinks {
@@ -803,12 +805,11 @@ sub _addAttachmentLink {
   my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
 
   $topic = "$web.$topic" if $web;
-  $topic =~ s/%WEB%/$baseWeb/g;
-  $topic =~ s/%TOPIC%/$baseTopic/g;
+  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
+  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$! ]/;
-  $topic = Foswiki::urlDecode($topic);
-  # try and detect any macros left in link, in which case there's little we can do
-  return if $topic =~ /\%/;
+  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
+  $topic = $this->urlDecode($topic);
 
   ($web, $topic) = $this->normalizeWebTopicName($baseWeb, $topic);
   $web =~ s#/#.#g;
@@ -837,13 +838,12 @@ sub _addAttachmentLink {
 sub _addLink {
   my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic) = @_;
 
-  $topic =~ s/\%SCRIPTURL(PATH)?{"?view"?}\%\///g;
-  $topic =~ s/%WEB%/$baseWeb/g;
-  $topic =~ s/%TOPIC%/$baseTopic/g;
+  $topic =~ s/\%SCRIPTURL(?:PATH)?(?:\{"?view"?\})?\%\///g;
+  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
+  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
   return if $topic =~ /[\[\]<>{}#?\$!: ]/ || $topic =~/^_\d+$/;
-  $topic = Foswiki::urlDecode($topic);
-  # try and detect any macros left in link, in which case there's little we can do
-  return if $topic =~ /\%/;
+  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
+  $topic = $this->urlDecode($topic);
 
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
@@ -1030,7 +1030,13 @@ sub add {
   #print STDERR "called add from $package:$line\n";
 
   my $web = $doc->value_for('web');
-  $doc->add_fields(host => $this->{wikiHostMap}{$web} || $this->{wikiHost});
+  my $host = $this->{wikiHostMap}{$web} || $this->{wikiHost};
+  $doc->add_fields(host => $host);
+  foreach my $field (@{$doc->fields}) {
+      if($field->{name} && $field->{name} eq 'id') {
+          $field->{value} = "$host#$field->{value}";
+      }
+  }
 
   return unless $this->{solr};
   my $res = $this->{solr}->add($doc);
