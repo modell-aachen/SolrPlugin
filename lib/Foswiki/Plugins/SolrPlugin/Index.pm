@@ -670,8 +670,8 @@ sub indexTopic {
       if ( ( exists $attachment->{comment} && $attachment->{comment} ) eq 'ProVisPlugin Upload' || $attachment->{name} =~ m/^__provis_.*/ ) {
         my @arr = split( '\.', $attachment->{name} );
         my $name = $arr[0];
-        my $pattern = "%PROCESS{.*name=\"$name\".*}%";
-        if ( $origText !~ m/\Q$pattern\E/ ) {
+        my $pattern = "%PROCESS\\{.*name=\"$name\".*\\}%";
+        if ( $origText !~ m/$pattern/ ) {
           next;
         }
       }
