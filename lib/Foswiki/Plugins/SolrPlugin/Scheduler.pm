@@ -102,6 +102,8 @@ sub restUpdateSchedule {
         msg => 'Insufficient access permissions.'
       })
     );
+
+    return '';
   }
 
   my $q = $this->{session}->{request};
@@ -114,6 +116,8 @@ sub restUpdateSchedule {
         msg => 'Invalid action.'
       })
     );
+
+    return '';
   }
 
   my $web = $q->param('webname');
@@ -125,6 +129,8 @@ sub restUpdateSchedule {
         msg => 'Invalid web.'
       })
     );
+
+    return '';
   }
 
   my $minutes = $q->param('minutes');
@@ -136,6 +142,8 @@ sub restUpdateSchedule {
         msg => 'Invalid time format.'
       })
     );
+
+    return '';
   }
 
   my $schedule = $this->readSchedule;
