@@ -1,0 +1,63 @@
+%TMPL:INCLUDE{"view"}%
+
+%{<verbatim>}%
+%TMPL:DEF{"modacButtonsRIGHT"}%%TMPL:P{"modacFavTopic"}%<li id="modacSearchBox">%TMPL:P{"SearchBox"}%</li>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"SolrScheduler::Entry"}%<tr %IF{"'%SKIPPED%'='yes'" then="class=\"ma-warning\""}%>
+   <td>[[%WEBNAME%.WebPreferences][%GETTOPICTITLE{"%WEBNAME%.WebHome"}%]]</td>
+   <td>[[%WEBNAME%.WebPreferences][%SKIPPED%]]</td>
+   <td>
+      <input type="text" name="tm_%WEBNAME%" class="scheduler-time" data-format="%FORMAT%" data-interval="%INTERVAL%" data-value="%VALUE%" />
+   </td>
+   <td>
+      <div class="switch tiny">
+        <input class="switch-input scheduler-toggle" id="sw_%WEBNAME%" type="checkbox" name="%WEBNAME%" %ENABLED%>
+        <label class="switch-paddle" for="sw_%WEBNAME%">
+          <span class="show-for-sr">Set custom time</span>
+        </label>
+      </div>
+   </td>
+</tr>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"SolrScheduler::Header"}%<table class="ma-table solr-schedule">
+<thead>
+   <tr>
+      <th class="col-web">Web</th>
+      <th class="col-skip">Skipped</th>
+      <th class="col-time">Point of time</th>
+      <th class="col-toggle">Enabled</th>
+   </tr>
+</thead>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"SolrScheduler::Footer"}%</table>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"SolrScheduler::SkipNote"}%<div class="callout alert">
+  <h4>Note</h4>
+  <p>
+    Preference =SOLR_SCHEDULER_SKIP_ALL= is [[Main.SitePreferences][set]].
+    Solr Scheduler will skip all webs!
+  </p>
+</div>%TMPL:END%
+%{</verbatim>}%
+
+%{<verbatim>}%
+%TMPL:DEF{"content"}%<div class="flatskin-wrapped">
+<div class="callout secondary">
+  <h3>Note</h3>
+  <p>
+    In order to make use of =Solr Scheduler= you have to set up the according
+    =cron jobs= first. See [[%SYSTEMWEB%.SolrPlugin][here]].
+  </p>
+</div>
+%SOLRSCHEDULER%
+</div>
+%TMPL:END%
+%{</verbatim>}%

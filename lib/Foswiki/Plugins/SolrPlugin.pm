@@ -36,6 +36,7 @@ our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://
 our $NO_PREFS_IN_TOPIC = 1;
 our %searcher;
 our %indexer;
+our %scheduler;
 our %hierarchy;
 our @knownIndexTopicHandler = ();
 our @knownIndexAttachmentHandler = ();
@@ -67,6 +68,21 @@ sub initPlugin {
 
     return getSearcher($session)->handleSOLRSCRIPTURL($params, $theWeb, $theTopic);
   });
+
+  Foswiki::Func::registerTagHandler('SOLRSCHEDULER', sub {
+    my ($session, $params, $theTopic, $theWeb) = @_;
+
+    return getScheduler($session)->handleSOLRSCHEDULER($params, $theWeb, $theTopic);
+  });
+
+  Foswiki::Func::registerRESTHandler('updateSchedule', sub {
+      my $session = shift;
+      return getScheduler($session)->restUpdateSchedule(@_);
+    },
+    authenticate => 1,
+    validate => 0,
+    http_allow => 'POST',
+  );
 
 
   Foswiki::Func::registerRESTHandler('search', sub {
@@ -221,6 +237,17 @@ sub getIndexer {
   return $indexer;
 }
 
+sub getScheduler {
+
+  my $scheduler = $scheduler{$Foswiki::cfg{DefaultUrlHost}};
+  unless ($scheduler) {
+    require Foswiki::Plugins::SolrPlugin::Scheduler;
+    $scheduler = $scheduler{$Foswiki::cfg{DefaultUrlHost}} = Foswiki::Plugins::SolrPlugin::Scheduler->new(@_);
+  }
+
+  return $scheduler;
+}
+
 sub getCrawler {
   my ($session , $name) = @_;
 
@@ -321,6 +348,7 @@ sub finishPlugin {
   undef $indexer{$Foswiki::cfg{DefaultUrlHost}};
   undef $searcher{$Foswiki::cfg{DefaultUrlHost}};
   undef $hierarchy{$Foswiki::cfg{DefaultUrlHost}};
+  undef $scheduler{$Foswiki::cfg{DefaultUrlHost}};
 }
 
 # MaintenancePlugin compatibility

@@ -24,10 +24,12 @@ use Fcntl qw( :flock );
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Foswiki::Plugins::SolrPlugin ();
+use Foswiki::Plugins::SolrPlugin::Scheduler;
 use Foswiki::Form ();
 use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
+use Time::Local;
 
 use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
@@ -99,6 +101,8 @@ sub index {
     my $topic = $query->param('topic');
     my $mode = $query->param('mode') || 'delta';
     my $optimize = Foswiki::Func::isTrue($query->param('optimize'));
+    my $useScheduler = Foswiki::Func::isTrue($query->param('scheduler'));
+    my $gracetime = $query->param('gracetime');
 
     if ($topic) {
       $web = $this->{session}->{webName} if !$web || $web eq 'all';
@@ -108,7 +112,7 @@ sub index {
     } else {
 
       $this->log("doing a web index in $mode mode") if TRACE;
-      $this->update($web, $mode);
+      $this->update($web, $mode, $useScheduler, $gracetime);
     }
 
     $this->commit($mode eq 'full' && !$topic);
@@ -172,7 +176,7 @@ sub _filterMappedWebs {
 # on a full update, the complete web is removed from the index prior to updating it;
 # this calls updateTopic for each topic to be updated
 sub update {
-  my ($this, $web, $mode) = @_;
+  my ($this, $web, $mode, $useScheduler, $gracetime) = @_;
 
   $mode ||= 'full';
 
@@ -202,6 +206,17 @@ sub update {
   # TODO: check the list of webs we had the last time we did a full index
   # of all webs; then possibly delete them
 
+  my $skipAll = Foswiki::Func::getPreferencesValue('SOLR_SCHEDULER_SKIP_ALL') || 0;
+  my ($schedule, $midnight, $now);
+  if ($useScheduler && !$skipAll) {
+    $gracetime = ($gracetime || 30) * 60;
+    $now = time;
+    my ($day, $month, $year) = (gmtime)[3..5];
+    $midnight = timelocal(0, 0, 0, $day, $month, $year);
+    my $scheduler = Foswiki::Plugins::SolrPlugin::Scheduler->new($this->{session});
+    $schedule = $scheduler->readSchedule;
+  }
+
   foreach my $web (@webs) {
 
     my $origWeb = $web;
@@ -211,6 +226,15 @@ sub update {
     if ($this->isSkippedWeb($web)) {
       #$this->log("Skipping web $web");
       next;
+    }
+
+    if ($useScheduler) {
+      next if Foswiki::Func::isTrue($skipAll);
+      my $skip = Foswiki::Func::getPreferencesValue('SOLR_SCHEDULER_SKIP_WEB', $web) || 0;
+      next if Foswiki::Func::isTrue($skip);
+      next unless defined $schedule->{$web};
+      my $itime = $schedule->{$web} * 60 + $midnight;
+      next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
     }
 
     # remove all non-existing topics

@@ -11,6 +11,8 @@ data/System/SolrSearchViewTemplate.txt 0644
 data/System/SolrSideBar.txt 0644
 data/System/SolrWikiUsersViewTemplate.txt 0644
 data/System/WebChangesViewTemplate.txt 0644
+data/System/SolrScheduler.txt 0644
+data/System/SolrSchedulerViewTemplate.txt 0644
 lib/CharsetDetector.pm 0644
 lib/Foswiki/Plugins/SolrPlugin.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Autosuggest.pm 0644
@@ -23,6 +25,7 @@ lib/Foswiki/Plugins/SolrPlugin/Grinder.pm 0444
 lib/Foswiki/Plugins/SolrPlugin/GrinderDispatch.pm 0444
 lib/Foswiki/Plugins/SolrPlugin/Index.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/Search.pm 0644
+lib/Foswiki/Plugins/SolrPlugin/Scheduler.pm 0644
 lib/Foswiki/Plugins/SolrPlugin/WebHierarchy.pm 0644
 lib/WebService/Solr.pm 0644
 lib/WebService/Solr/Document.pm 0644
@@ -89,6 +92,12 @@ pub/System/SolrPlugin/wikiusers.css 0644
 pub/System/SolrPlugin/wikiusers.css.gz 0644
 pub/System/SolrPlugin/wikiusers.js 0644
 pub/System/SolrPlugin/wikiusers.js.gz 0644
+pub/System/SolrPlugin/solr-scheduler.uncompressed.js 0644
+pub/System/SolrPlugin/solr-scheduler.js 0644
+pub/System/SolrPlugin/solr-scheduler.js.gz 0644
+pub/System/SolrPlugin/solr-scheduler.uncompressed.css 0644
+pub/System/SolrPlugin/solr-scheduler.css 0644
+pub/System/SolrPlugin/solr-scheduler.css.gz 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.css 0644
 pub/System/SolrPlugin/wikiusers.uncompressed.js 0644
 resources/SolrPlugin/systemd/config/solrworker 0644
