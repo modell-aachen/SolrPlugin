@@ -163,6 +163,7 @@ solr/configsets/foswiki_configs/conf/mapping-ISOLatin1Accent.txt 0644
 solr/configsets/foswiki_configs/conf/mapping-ISOLatin1AccentModac.txt 0644
 solr/configsets/foswiki_configs/conf/protwords.txt 0644
 solr/configsets/foswiki_configs/conf/schema.xml 0644
+solr/configsets/foswiki_configs/conf/de.xml 0644
 solr/configsets/foswiki_configs/conf/solrconfig.xml 0644
 solr/configsets/foswiki_configs/conf/spellings.txt 0644
 solr/configsets/foswiki_configs/conf/synonyms.txt 0644
