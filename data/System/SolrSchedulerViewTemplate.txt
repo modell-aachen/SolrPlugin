@@ -6,7 +6,7 @@
 
 %{<verbatim>}%
 %TMPL:DEF{"SolrScheduler::Entry"}%<tr %IF{"'%SKIPPED%'='yes'" then="class=\"ma-warning\""}%>
-   <td>[[%WEBNAME%.WebPreferences][%GETTOPICTITLE{"%WEBNAME%.WebHome"}%]]</td>
+   <td>[[%WEBNAME%.WebPreferences][%WEBNAME%]]</td>
    <td>[[%WEBNAME%.WebPreferences][%SKIPPED%]]</td>
    <td>
       <input type="text" name="tm_%WEBNAME%" class="scheduler-time" data-format="%FORMAT%" data-interval="%INTERVAL%" data-value="%VALUE%" />
@@ -56,6 +56,7 @@
     In order to make use of =Solr Scheduler= you have to set up the according
     =cron jobs= first. See [[%SYSTEMWEB%.SolrPlugin][here]].
   </p>
+  <p>Servertime: %SERVERTIME%</p>
 </div>
 %SOLRSCHEDULER%
 </div>
