@@ -493,6 +493,28 @@ sub maintenanceHandler {
         {"97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814" => 1},
         {"d0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e" => 1},
     );
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:crontab", {
+        name => "Cronjob SolrScheduler",
+        description => "Crontab with job for SolrScheduler shuld exist.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /scheduler/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <foswiki-dir>/tools/solrjob --mode full --scheduler on --gracetime 30</verbatim>"
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
 }
 
 1;
