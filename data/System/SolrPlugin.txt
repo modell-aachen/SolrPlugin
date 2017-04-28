@@ -331,6 +331,12 @@ To configure the point of time when a web should be index, head to [[%SYSTEMWEB%
 */30 * * * * <foswiki-dir>/tools/solrjob --mode full --scheduler on --gracetime 30
 </verbatim>
 
+To configure a regular (non-scheduled) index to skip scheduled webs, pass parameter =skipscheduled on= to
+script =solrjob=
+<verbatim class="cron">
+0 0 * * 6 <foswiki-dir>/tools/solrjob --mode full --skipscheduled on
+</verbatim>
+
 In addition =Solr Scheduler= can be configured to skip a single web or all at once.
 To do skip a single web set =SOLR_SCHEDULER_SKIP_WEB= to a =true= value on the
 web's !WebPreferences.

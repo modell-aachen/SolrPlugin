@@ -103,6 +103,7 @@ sub index {
     my $optimize = Foswiki::Func::isTrue($query->param('optimize'));
     my $useScheduler = Foswiki::Func::isTrue($query->param('scheduler'));
     my $gracetime = $query->param('gracetime');
+    my $skipScheduled = Foswiki::Func::isTrue($query->param('skipscheduled'));
 
     if ($topic) {
       $web = $this->{session}->{webName} if !$web || $web eq 'all';
@@ -112,7 +113,7 @@ sub index {
     } else {
 
       $this->log("doing a web index in $mode mode") if TRACE;
-      $this->update($web, $mode, $useScheduler, $gracetime);
+      $this->update($web, $mode, $useScheduler, $gracetime, $skipScheduled);
     }
 
     $this->commit($mode eq 'full' && !$topic);
@@ -176,7 +177,7 @@ sub _filterMappedWebs {
 # on a full update, the complete web is removed from the index prior to updating it;
 # this calls updateTopic for each topic to be updated
 sub update {
-  my ($this, $web, $mode, $useScheduler, $gracetime) = @_;
+  my ($this, $web, $mode, $useScheduler, $gracetime, $skipScheduled) = @_;
 
   $mode ||= 'full';
 
@@ -235,7 +236,7 @@ sub update {
       next unless defined $schedule->{$web};
       my $itime = $schedule->{$web} * 60 + $midnight;
       next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
-    } else {
+    } elsif ($skipScheduled) {
       next if defined $schedule->{$web} && !Foswiki::Func::isTrue($skip);
     }
 

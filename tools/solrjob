@@ -29,10 +29,11 @@ VHOST=
 FILE=
 
 SCHEDULER=0
+SKIPSCHEDULED=0
 GRACETIME=30
 
-longopts="throttle:,mode:,host:,file:,gracetime:,scheduler:"
-shortopts="t:m:h:f:g:s:"
+longopts="throttle:,mode:,host:,file:,gracetime:,scheduler:,skipscheduled:"
+shortopts="t:m:h:f:g:s:n:"
 
 temp=`getopt -o $shortopts --long $longopts -n $0 -- "$@"`
 if [ $? != 0 ] ; then
@@ -69,6 +70,11 @@ while true; do
       ;;
     -t|--throttle)
       THROTTLE=$2
+      shift
+      shift
+      ;;
+    -n|--skipscheduled)
+      SKIPSCHEDULED=1
       shift
       shift
       ;;
@@ -113,6 +119,10 @@ export TIME
 
     if test "$SCHEDULER" = "on"; then
       SOLRINDEX_ARGS="$SOLRINDEX_ARGS scheduler=on gracetime=$GRACETIME"
+    fi
+
+    if test "$SKIPSCHEDULED" = "on"; then
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS skipscheduled=on"
     fi
 
     sleep $THROTTLE
