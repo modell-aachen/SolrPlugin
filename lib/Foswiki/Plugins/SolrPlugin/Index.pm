@@ -208,13 +208,13 @@ sub update {
 
   my $skipAll = Foswiki::Func::getPreferencesValue('SOLR_SCHEDULER_SKIP_ALL') || 0;
   my ($schedule, $midnight, $now);
+  my $scheduler = Foswiki::Plugins::SolrPlugin::Scheduler->new($this->{session});
+  $schedule = $scheduler->readSchedule;
   if ($useScheduler && !$skipAll) {
     $gracetime = ($gracetime || 30) * 60;
     $now = time;
     my ($day, $month, $year) = (gmtime)[3..5];
     $midnight = timelocal(0, 0, 0, $day, $month, $year);
-    my $scheduler = Foswiki::Plugins::SolrPlugin::Scheduler->new($this->{session});
-    $schedule = $scheduler->readSchedule;
   }
 
   foreach my $web (@webs) {
@@ -228,13 +228,15 @@ sub update {
       next;
     }
 
+    my $skip = Foswiki::Func::getPreferencesValue('SOLR_SCHEDULER_SKIP_WEB', $web) || 0;
     if ($useScheduler) {
       next if Foswiki::Func::isTrue($skipAll);
-      my $skip = Foswiki::Func::getPreferencesValue('SOLR_SCHEDULER_SKIP_WEB', $web) || 0;
       next if Foswiki::Func::isTrue($skip);
       next unless defined $schedule->{$web};
       my $itime = $schedule->{$web} * 60 + $midnight;
       next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
+    } else {
+      next if defined $schedule->{$web} && !Foswiki::Func::isTrue($skip);
     }
 
     # remove all non-existing topics
