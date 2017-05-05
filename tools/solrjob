@@ -28,12 +28,15 @@ VHOST=
 # set this to the full path of the file that triggered the event
 FILE=
 
+SCHEDULER=0
+SKIPSCHEDULED=0
+GRACETIME=30
 
-longopts="throttle:,mode:,host:,file:"
-shortopts="t:m:h:f:"
+longopts="throttle:,mode:,host:,file:,gracetime:,scheduler:,skipscheduled:"
+shortopts="t:m:h:f:g:s:n:"
 
 temp=`getopt -o $shortopts --long $longopts -n $0 -- "$@"`
-if [ $? != 0 ] ; then 
+if [ $? != 0 ] ; then
   exit 1
 fi
 
@@ -42,6 +45,11 @@ while true; do
   case $1 in
     -f|--file)
       FILE=$2
+      shift
+      shift
+      ;;
+    -g|--gracetime)
+      GRACETIME=$2
       shift
       shift
       ;;
@@ -55,13 +63,23 @@ while true; do
       shift
       shift
       ;;
+    -s|--scheduler)
+      SCHEDULER=$2
+      shift
+      shift
+      ;;
     -t|--throttle)
       THROTTLE=$2
       shift
       shift
       ;;
+    -n|--skipscheduled)
+      SKIPSCHEDULED=1
+      shift
+      shift
+      ;;
     --) shift; break;;
-    *) 
+    *)
       echo "Error parsing options"
       exit 1
       ;;
@@ -99,8 +117,18 @@ export TIME
       SOLRINDEX_ARGS="$SOLRINDEX_ARGS mode=delta"
     fi
 
+    if test "$SCHEDULER" = "on"; then
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS scheduler=on gracetime=$GRACETIME"
+    fi
+
+    if test "$SKIPSCHEDULED" = "on"; then
+      SOLRINDEX_ARGS="$SOLRINDEX_ARGS skipscheduled=on"
+    fi
+
     sleep $THROTTLE
-    /bin/date >> $LOG 
+    /bin/date >> $LOG
+    echo "$SOLRINDEX $SOLRINDEX_ARGS" >> /tmp/foobar
     time nice $SOLRINDEX $SOLRINDEX_ARGS >> $LOG 2>&1
   )
 ) 200>$LOCKFILE&
+

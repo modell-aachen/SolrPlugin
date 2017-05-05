@@ -214,6 +214,7 @@
           preserveOriginal="1" 
         />
         <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.HyphenationCompoundWordTokenFilterFactory" hyphenator="de.xml"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>

@@ -36,6 +36,7 @@ our $SHORTDESCRIPTION = 'Enterprise Search Engine for Foswiki based on [[http://
 our $NO_PREFS_IN_TOPIC = 1;
 our %searcher;
 our %indexer;
+our %scheduler;
 our %hierarchy;
 our @knownIndexTopicHandler = ();
 our @knownIndexAttachmentHandler = ();
@@ -67,6 +68,21 @@ sub initPlugin {
 
     return getSearcher($session)->handleSOLRSCRIPTURL($params, $theWeb, $theTopic);
   });
+
+  Foswiki::Func::registerTagHandler('SOLRSCHEDULER', sub {
+    my ($session, $params, $theTopic, $theWeb) = @_;
+
+    return getScheduler($session)->handleSOLRSCHEDULER($params, $theWeb, $theTopic);
+  });
+
+  Foswiki::Func::registerRESTHandler('updateSchedule', sub {
+      my $session = shift;
+      return getScheduler($session)->restUpdateSchedule(@_);
+    },
+    authenticate => 1,
+    validate => 0,
+    http_allow => 'POST',
+  );
 
 
   Foswiki::Func::registerRESTHandler('search', sub {
@@ -221,6 +237,17 @@ sub getIndexer {
   return $indexer;
 }
 
+sub getScheduler {
+
+  my $scheduler = $scheduler{$Foswiki::cfg{DefaultUrlHost}};
+  unless ($scheduler) {
+    require Foswiki::Plugins::SolrPlugin::Scheduler;
+    $scheduler = $scheduler{$Foswiki::cfg{DefaultUrlHost}} = Foswiki::Plugins::SolrPlugin::Scheduler->new(@_);
+  }
+
+  return $scheduler;
+}
+
 sub getCrawler {
   my ($session , $name) = @_;
 
@@ -321,6 +348,7 @@ sub finishPlugin {
   undef $indexer{$Foswiki::cfg{DefaultUrlHost}};
   undef $searcher{$Foswiki::cfg{DefaultUrlHost}};
   undef $hierarchy{$Foswiki::cfg{DefaultUrlHost}};
+  undef $scheduler{$Foswiki::cfg{DefaultUrlHost}};
 }
 
 # MaintenancePlugin compatibility
@@ -375,10 +403,11 @@ sub maintenanceHandler {
                     '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
                     '61395eea5989b31aeae00e7af594298b21abe218499a8f1fcc9209821759b83e' => 1, # Riga 1.3, alternative version
                     'ee6a92157f764df3c79764c94de0b7c454ef39a05bc49a24dee8a146d102ad6f' => 1, # Riga 1.8, with new field 'host'
+                    '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1 # Riga 1.11, adds *_sort for form fields
             );
             # These schemas are current
             my %goodversions = (
-                    '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1, # Riga 1.11, adds *_sort for form fields
+                    '222bb96310716e3c485893c2f67dca5dae0a6de45bee43ff40fe0e7e54597e2a' => 1 # Riga 1.14, adds HyphenationCompoundWordTokenFilterFactory
             );
 
             # Schemas that passed the tests:
@@ -465,6 +494,28 @@ sub maintenanceHandler {
         {"97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814" => 1},
         {"d0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e" => 1},
     );
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:crontab", {
+        name => "Cronjob SolrScheduler",
+        description => "Crontab with job for SolrScheduler shuld exist.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /scheduler/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
 }
 
 1;

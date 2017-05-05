@@ -13,6 +13,8 @@ pub/System/SolrPlugin/ajax-solr.js
 pub/System/SolrPlugin/wikiusers.js
 pub/System/SolrPlugin/wikiusers.css
 pub/System/SolrPlugin/ajax-solr-helpers.js
+pub/System/SolrPlugin/solr-scheduler.js
+pub/System/SolrPlugin/solr-scheduler.css
 SolrPlugin.md5
 SolrPlugin.sha1
 SolrPlugin.tgz

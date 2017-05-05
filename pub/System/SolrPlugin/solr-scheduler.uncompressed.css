@@ -1,0 +1,23 @@
+.solr-schedule .col-skip {
+  width: 150px;
+}
+
+.solr-schedule .col-time {
+  width: 150px;
+}
+
+.solr-schedule .col-toggle {
+  width: 75px;
+}
+
+.ma-table.solr-schedule td .scheduler-time {
+  margin-bottom: 0;
+}
+
+.ma-table.solr-schedule td .switch {
+  margin-bottom: 0;
+}
+
+.scheduler-time:not([disabled]) {
+  cursor: pointer !important;
+}
