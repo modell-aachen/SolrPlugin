@@ -540,7 +540,7 @@ sub indexTopic {
           # bit of cleanup
           $mapped = $this->escapeHtml($mapped) if defined $mapped;
           $escaped = $this->escapeHtml($value) if defined $value;
-
+          
           # create a dynamic field indicating the field type to solr
           # date
           if ($type =~ /^date/) {
@@ -555,7 +555,7 @@ sub indexTopic {
             };
           } 
           # Map CUID to displayvalue for user fields
-          elsif ($name =~ /^Responsible/ && $type =~/^user/) {
+          elsif ($type =~/^user$/) {
             try {
               $value = $fieldDef->getDisplayValue($value);
               $doc->add_fields('field_' . $name . '_dv_s' => $value,);
@@ -563,18 +563,14 @@ sub indexTopic {
               $this->log("WARNING: malformed user value '$value'");
             };
           }
-
           # multi-valued types
           elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
             my $fieldName = 'field_' . $name;
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
+            
             # For user+multi fields, all cuids have to be transformed to displayvalues
-            my @displayValues = ();
-            if($type eq "user+multi") {
-              for my $singleValue (split(/\s*,\s*/, $value)) {
-                push(@displayValues, $fieldDef->getDisplayValue($singleValue));
-              }
-              $doc->add_fields($fieldName . '_dv_lst' => [@displayValues]);              
+            if($type =~/^user\+multi/) {
+              $doc->add_fields($fieldName . '_dv_lst' => [ split(/\s*,\s*/, $fieldDef->getDisplayValue($value)) ]);
             }
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
