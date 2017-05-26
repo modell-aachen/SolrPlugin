@@ -440,7 +440,6 @@ sub indexTopic {
     container_title => $container_title,
     container_title_escaped_s => $this->escapeHtml($container_title),
     icon => $this->mapToIconFileName('topic'),
-
     # topic specific
   );
 
@@ -543,7 +542,6 @@ sub indexTopic {
           $escaped = $this->escapeHtml($value) if defined $value;
 
           # create a dynamic field indicating the field type to solr
-
           # date
           if ($type =~ /^date/) {
             try {
@@ -555,12 +553,29 @@ sub indexTopic {
             } catch Error::Simple with {
               $this->log("WARNING: malformed date value '$value'");
             };
+          } 
+          # Map CUID to displayvalue for user fields
+          elsif ($name =~ /^Responsible/ && $type =~/^user/) {
+            try {
+              $value = $fieldDef->getDisplayValue($value);
+              $doc->add_fields('field_' . $name . '_dv_s' => $value,);
+            } catch Error::Simple with {
+              $this->log("WARNING: malformed user value '$value'");
+            };
           }
 
           # multi-valued types
           elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
             my $fieldName = 'field_' . $name;
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
+            # For user+multi fields, all cuids have to be transformed to displayvalues
+            my @displayValues = ();
+            if($type eq "user+multi") {
+              for my $singleValue (split(/\s*,\s*/, $value)) {
+                push(@displayValues, $fieldDef->getDisplayValue($singleValue));
+              }
+              $doc->add_fields($fieldName . '_dv_lst' => [@displayValues]);              
+            }
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
             $doc->add_fields($fieldName . '_lst_msearch' => [ split(/\s*,\s*/, $value) ]);
