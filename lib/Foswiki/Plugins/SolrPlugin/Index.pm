@@ -557,8 +557,8 @@ sub indexTopic {
           # Map CUID to displayvalue for user fields
           elsif ($type =~/^user$/) {
             try {
-              $value = $fieldDef->getDisplayValue($value);
-              $doc->add_fields('field_' . $name . '_dv_s' => $value,);
+              my $d_value = $fieldDef->getDisplayValue($value);
+              $doc->add_fields('field_' . $name . '_dv_s' => $d_value,);
             } catch Error::Simple with {
               $this->log("WARNING: malformed user value '$value'");
             };
