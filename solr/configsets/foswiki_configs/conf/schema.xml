@@ -27,7 +27,7 @@
     </fieldType>
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true" />
-    <fieldType name="json" class="solr.StrField" indexed="false" stored="true" />
+    <fieldType name="json" class="solr.TextField" indexed="false" stored="true" />
 
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true" omitNorms="true"/>
