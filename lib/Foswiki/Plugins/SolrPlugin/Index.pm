@@ -1155,7 +1155,7 @@ sub deleteWeb {
   my ($this, $web) = @_;
 
   $web =~ s/\//./g;
-  $this->deleteByQuery("web:\"$web\" -task_id_s:*");
+  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\"");
 }
 
 ################################################################################
