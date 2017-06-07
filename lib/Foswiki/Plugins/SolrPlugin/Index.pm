@@ -883,6 +883,9 @@ sub _addLink {
   return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
   $topic = $this->urlDecode($topic);
 
+  $topic = ucfirst($topic);
+  $topic =~ s/$Foswiki::cfg{NameFilter}+/ /g;
+
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
