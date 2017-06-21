@@ -488,13 +488,77 @@ sub maintenanceHandler {
         {"da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1},
         {"d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1}
     );
-    Foswiki::Plugins::MaintenancePlugin::registerFileCheck(
-        "solrplugin:config:solrconfigxml",
-        File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
-        'solr/configsets/foswiki_configs/conf/solrconfig.xml',
-        {"97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814" => 1},
-        {"d0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e" => 1},
-    );
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:solrconfig:current", {
+        name => "Solr config is current",
+        description => "Check if solrconfig is up to date.",
+        check => sub {
+            require File::Spec;
+            require Digest::SHA;
+
+            # This is a list of possible schema locations:
+            my @schemas = (
+                File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
+            );
+
+            # These schemas can be safely updated
+            my %outdatedversions = (
+                    'd0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e' => 1
+            );
+            # These schemas are current
+            my %goodversions = (
+                    '97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814' => 1
+            );
+
+            # Schemas that passed the tests:
+            my @goodSchemas = ();
+            # Schemas that failed and the reason:
+            my %badSchemas = ();
+
+            foreach my $schema ( @schemas ) {
+                next unless( -f $schema );
+                my $IN_FILE;
+                unless ( open( $IN_FILE, '<', $schema ) ) {
+                    $badSchemas{$schema} = "failed to read $schema: $!";
+                    next;
+                };
+                binmode($IN_FILE);
+                local $/ = undef;
+                my $data = <$IN_FILE>;
+                close($IN_FILE);
+
+                my $hash = Digest::SHA::sha256_hex($data);
+
+                if( $goodversions{$hash} ) {
+                    # Known good version
+                    push( @goodSchemas, $schema );
+                } elsif( $outdatedversions{$hash} ) {
+                    # Known bad versions
+                    $badSchemas{$schema} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/*= from your foswiki directory to =the config folder (parent) of $schema/=.";
+                } else {
+                    # Unknown versions
+                    $badSchemas{$schema} = "The schema is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/solrconfig.xml= from the foswiki directory. Checksum: =$hash=.";
+                }
+            }
+
+            unless ( scalar @goodSchemas || scalar keys %badSchemas ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not find a solrconfig, please check your configuration manually."
+                }
+            }
+            if ( scalar keys %badSchemas ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "The following files need to be checked:<br/>"
+                        . join( "<br/>", map { " =$_=: $badSchemas{$_}" } keys %badSchemas),
+                }
+            } else {
+                return { result => 0 };
+            }
+        }
+    });
     Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:crontab", {
         name => "Cronjob SolrScheduler",
         description => "Crontab with job for SolrScheduler shuld exist.",
