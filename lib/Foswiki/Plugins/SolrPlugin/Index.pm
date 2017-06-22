@@ -1444,10 +1444,21 @@ sub getGrantedUsers {
       if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
         $this->log("access * -> grant all access") if TRACE;
 
-        # Empty deny
-        return ['all'];
+        if($forbiddenUsers) {
+            my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
+            my $allUsers = [];
+            my $iterator = Foswiki::Func::eachUser();
+            while($iterator->hasNext()) {
+                my $next = $iterator->next();
+                push(@$allUsers, $next) unless($forbiddenHash{$next});
+            }
+            return $allUsers;
+        } else {
+            # Empty deny
+            return ['all'];
+        }
       } else {
-      
+
         $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
 
         if (defined $forbiddenUsers) {
@@ -1485,7 +1496,25 @@ sub getGrantedUsers {
   $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   if (defined($webAllow) && scalar(@$webAllow)) {
-    $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+    if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$webAllow) {
+      $this->log("access * -> grant all access") if TRACE;
+
+      if($forbiddenUsers) {
+        my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
+        my $allowedUsers = [];
+        my $iterator = Foswiki::Func::eachUser();
+        while($iterator->hasNext()) {
+          my $next = $iterator->next();
+          push(@$allowedUsers, $next) unless($forbiddenHash{$next});
+        }
+        return $allowedUsers;
+      } else {
+        # Empty deny
+        return ['all'];
+      }
+    } else {
+      $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+    }
   } elsif (!defined($deny) && !defined($webDeny)) {
 
     #$this->log("no denies, no allows -> grant all access") if TRACE;
