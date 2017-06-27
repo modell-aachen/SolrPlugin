@@ -496,29 +496,30 @@ sub maintenanceHandler {
             require Digest::SHA;
 
             # This is a list of possible schema locations:
-            my @schemas = (
+            my @configs = (
                 File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
             );
 
-            # These schemas can be safely updated
+            # These configs can be safely updated
             my %outdatedversions = (
-                    'd0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e' => 1
+                    'd0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e' => 1,
+                    '97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814' => 1,
             );
-            # These schemas are current
+            # These configs are current
             my %goodversions = (
-                    '97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814' => 1
+                    '5bd21e1515ed911edcd7c9377c656b759c3e434c2d4e974075dc4f670192a989' => 1,
             );
 
-            # Schemas that passed the tests:
-            my @goodSchemas = ();
-            # Schemas that failed and the reason:
-            my %badSchemas = ();
+            # Configs that passed the tests:
+            my @goodConfigs = ();
+            # Configs that failed and the reason:
+            my %badConfigs = ();
 
-            foreach my $schema ( @schemas ) {
-                next unless( -f $schema );
+            foreach my $config ( @configs ) {
+                next unless( -f $config );
                 my $IN_FILE;
-                unless ( open( $IN_FILE, '<', $schema ) ) {
-                    $badSchemas{$schema} = "failed to read $schema: $!";
+                unless ( open( $IN_FILE, '<', $config ) ) {
+                    $badConfigs{$config} = "failed to read $config: $!";
                     next;
                 };
                 binmode($IN_FILE);
@@ -530,29 +531,29 @@ sub maintenanceHandler {
 
                 if( $goodversions{$hash} ) {
                     # Known good version
-                    push( @goodSchemas, $schema );
+                    push( @goodConfigs, $config );
                 } elsif( $outdatedversions{$hash} ) {
                     # Known bad versions
-                    $badSchemas{$schema} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/*= from your foswiki directory to =the config folder (parent) of $schema/=.";
+                    $badConfigs{$config} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/*= from your foswiki directory to =the config folder (parent) of $config/=.";
                 } else {
                     # Unknown versions
-                    $badSchemas{$schema} = "The schema is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/solrconfig.xml= from the foswiki directory. Checksum: =$hash=.";
+                    $badConfigs{$config} = "The config is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/solrconfig.xml= from the foswiki directory. Checksum: =$hash=.";
                 }
             }
 
-            unless ( scalar @goodSchemas || scalar keys %badSchemas ) {
+            unless ( scalar @goodConfigs || scalar keys %badConfigs ) {
                 return {
                     result => 1,
                     priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
                     solution => "Could not find a solrconfig, please check your configuration manually."
                 }
             }
-            if ( scalar keys %badSchemas ) {
+            if ( scalar keys %badConfigs ) {
                 return {
                     result => 1,
                     priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
                     solution => "The following files need to be checked:<br/>"
-                        . join( "<br/>", map { " =$_=: $badSchemas{$_}" } keys %badSchemas),
+                        . join( "<br/>", map { " =$_=: $badConfigs{$_}" } keys %badConfigs),
                 }
             } else {
                 return { result => 0 };
