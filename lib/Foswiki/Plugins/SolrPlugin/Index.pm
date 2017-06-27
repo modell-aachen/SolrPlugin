@@ -567,10 +567,12 @@ sub indexTopic {
           elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
             my $fieldName = 'field_' . $name;
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
-            
+
             # For user+multi fields, all cuids have to be transformed to displayvalues
             if($type =~/^user\+multi/) {
-              $doc->add_fields($fieldName . '_dv_lst' => [ split(/\s*,\s*/, $fieldDef->getDisplayValue($value)) ]);
+              my $dv = [ split(/\s*,\s*/, $fieldDef->getDisplayValue($value)) ];
+              $doc->add_fields($fieldName . '_dv_lst' => $dv);
+              $doc->add_fields($fieldName . '_dv_msearch' => $dv);
             }
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
