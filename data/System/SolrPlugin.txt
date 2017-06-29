@@ -350,6 +350,8 @@ set =SOLR_SCHEDULER_SKIP_ALL= to a =true= value.
    * Set SOLR_SCHEDULER_SKIP_ALL = 1
 </verbatim>
 
+All webs wich are not enabled will be indexed on a default time. To define this time, set {SolrPlugin}{DefaultSchedulTime} in bin/configure. There you can define the minutes after midnight. So 360 is 6 o'clock.
+
 ---+++ Recommendations
 
 By now we are able to orchestrate a couple of ways how to keep up with changes in Foswiki while indexing it into an external database such as Solr.

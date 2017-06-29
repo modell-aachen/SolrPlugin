@@ -575,7 +575,51 @@ sub maintenanceHandler {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
-                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> LOG=<foswiki-dir>/working/logs/solrjob_$(date '+\%u\%H\%M).log ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:skipscheduled", {
+        name => "Cronjob SolrScheduler remove skipscheduled",
+        description => "Crontab with job for SolrScheduler --skipscheduled shuld not exist.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /skipscheduled/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with --skipscheduled on parameter."
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:delta", {
+        name => "Cronjob SolrScheduler remove delta index",
+        description => "Crontab with job for SolrScheduler delta index is not needed.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /m delta/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with -n delta parameter."
                     }
                 }
             }

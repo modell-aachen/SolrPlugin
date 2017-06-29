@@ -6,7 +6,7 @@
 test -z $FOSWIKI_ROOT && FOSWIKI_ROOT=/home/www-data/foswiki/core
 
 # location of the solr indexer log file
-LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
+test -z $LOG && LOG=$FOSWIKI_ROOT/working/logs/solrindex.log
 
 # number of seconds until solrindex is executed. this helps to keep the indexing burden
 # low when iwatch fires a lot of events in a short period of time
