@@ -54,7 +54,7 @@ sub handleSOLRSCHEDULER {
 
   my $tf = $Foswiki::cfg{PickADateContrib}{TimeFormat} || '24';
   my $format = $tf =~ /24/ ? 'HH:i' : 'hh:i a';
-  my $defaultTime = 360;
+  my $defaultTime = $Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} || 360;
 
   my @output;
   foreach my $web (@webs) {
@@ -134,12 +134,12 @@ sub restUpdateSchedule {
   }
 
   my $minutes = $q->param('minutes');
-  unless ($action eq 'set' && $minutes) {
+  if ($action eq 'set' && !$minutes) {
     $response->header(-status => 400);
     $response->body(
       encode_json({
         status => 'error',
-        msg => 'Invalid time format.'
+        msg => 'No time provided.'
       })
     );
 

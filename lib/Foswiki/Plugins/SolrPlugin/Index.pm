@@ -233,7 +233,7 @@ sub update {
     if ($useScheduler) {
       next if Foswiki::Func::isTrue($skipAll);
       next if Foswiki::Func::isTrue($skip);
-      next unless defined $schedule->{$web};
+      $schedule->{$web} = ($Foswiki::cfg{SolrPlugin}{DefaultSchedule} || 360) unless defined $schedule->{$web};
       my $itime = $schedule->{$web} * 60 + $midnight;
       next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
     } elsif ($skipScheduled) {
@@ -440,7 +440,6 @@ sub indexTopic {
     container_title => $container_title,
     container_title_escaped_s => $this->escapeHtml($container_title),
     icon => $this->mapToIconFileName('topic'),
-
     # topic specific
   );
 
@@ -541,9 +540,8 @@ sub indexTopic {
           # bit of cleanup
           $mapped = $this->escapeHtml($mapped) if defined $mapped;
           $escaped = $this->escapeHtml($value) if defined $value;
-
+          
           # create a dynamic field indicating the field type to solr
-
           # date
           if ($type =~ /^date/) {
             try {
@@ -555,12 +553,27 @@ sub indexTopic {
             } catch Error::Simple with {
               $this->log("WARNING: malformed date value '$value'");
             };
+          } 
+          # Map CUID to displayvalue for user fields
+          elsif ($type =~/^user$/) {
+            try {
+              my $d_value = $fieldDef->getDisplayValue($value);
+              $doc->add_fields('field_' . $name . '_dv_s' => $d_value,);
+            } catch Error::Simple with {
+              $this->log("WARNING: malformed user value '$value'");
+            };
           }
-
           # multi-valued types
           elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
             my $fieldName = 'field_' . $name;
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
+
+            # For user+multi fields, all cuids have to be transformed to displayvalues
+            if($type =~/^user\+multi/) {
+              my $dv = [ split(/\s*,\s*/, $fieldDef->getDisplayValue($value)) ];
+              $doc->add_fields($fieldName . '_dv_lst' => $dv);
+              $doc->add_fields($fieldName . '_dv_msearch' => $dv);
+            }
 
             $doc->add_fields($fieldName . '_lst' => [ split(/\s*,\s*/, $value) ]);
             $doc->add_fields($fieldName . '_lst_msearch' => [ split(/\s*,\s*/, $value) ]);
@@ -872,6 +885,9 @@ sub _addLink {
   return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
   $topic = $this->urlDecode($topic);
 
+  $topic = ucfirst($topic);
+  $topic =~ s/$Foswiki::cfg{NameFilter}+/ /g;
+
   $web ||= $baseWeb;
   ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
 
@@ -1144,7 +1160,7 @@ sub deleteWeb {
   my ($this, $web) = @_;
 
   $web =~ s/\//./g;
-  $this->deleteByQuery("web:\"$web\" -task_id_s:*");
+  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\"");
 }
 
 ################################################################################
@@ -1430,10 +1446,21 @@ sub getGrantedUsers {
       if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
         $this->log("access * -> grant all access") if TRACE;
 
-        # Empty deny
-        return ['all'];
+        if($forbiddenUsers) {
+            my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
+            my $allUsers = [];
+            my $iterator = Foswiki::Func::eachUser();
+            while($iterator->hasNext()) {
+                my $next = $iterator->next();
+                push(@$allUsers, $next) unless($forbiddenHash{$next});
+            }
+            return $allUsers;
+        } else {
+            # Empty deny
+            return ['all'];
+        }
       } else {
-      
+
         $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
 
         if (defined $forbiddenUsers) {
@@ -1471,7 +1498,25 @@ sub getGrantedUsers {
   $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
 
   if (defined($webAllow) && scalar(@$webAllow)) {
-    $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+    if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$webAllow) {
+      $this->log("access * -> grant all access") if TRACE;
+
+      if($forbiddenUsers) {
+        my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
+        my $allowedUsers = [];
+        my $iterator = Foswiki::Func::eachUser();
+        while($iterator->hasNext()) {
+          my $next = $iterator->next();
+          push(@$allowedUsers, $next) unless($forbiddenHash{$next});
+        }
+        return $allowedUsers;
+      } else {
+        # Empty deny
+        return ['all'];
+      }
+    } else {
+      $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+    }
   } elsif (!defined($deny) && !defined($webDeny)) {
 
     #$this->log("no denies, no allows -> grant all access") if TRACE;

@@ -1796,7 +1796,7 @@
         <str name="langid.langField">language</str>
         <!-- languages we've got a tokenizer for - minus da as it brings down accuracies for the other languages (wtf) -->
         <str name="langid.whitelist">ar, bg, ca, cjk, ckb, cz, de, el, en, es, eu, fa, fi, fr, ga, gl, hi, hu, hy, id, it, ja, lv, nl, no, pt, ro, ru, sv, th, tr</str>
-        <str name="langid.overwrite">false</str>
+        <bool name="langid.overwrite">false</bool>
         <str name="langid.threshold">0.7</str>
         <str name="langid.fallback">en</str>
         <bool name="langid.map">true</bool>

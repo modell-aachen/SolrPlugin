@@ -403,11 +403,12 @@ sub maintenanceHandler {
                     '6d4c0879f1f4e4ed3127b7063a2b7385edb6555e6883e99aef3c595eb1b79005' => 1, # Riga 1.3
                     '61395eea5989b31aeae00e7af594298b21abe218499a8f1fcc9209821759b83e' => 1, # Riga 1.3, alternative version
                     'ee6a92157f764df3c79764c94de0b7c454ef39a05bc49a24dee8a146d102ad6f' => 1, # Riga 1.8, with new field 'host'
-                    '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1 # Riga 1.11, adds *_sort for form fields
+                    '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1, # Riga 1.11, adds *_sort for form fields
+                    '222bb96310716e3c485893c2f67dca5dae0a6de45bee43ff40fe0e7e54597e2a' => 1 # Riga 1.14, adds HyphenationCompoundWordTokenFilterFactory
             );
             # These schemas are current
             my %goodversions = (
-                    '222bb96310716e3c485893c2f67dca5dae0a6de45bee43ff40fe0e7e54597e2a' => 1 # Riga 1.14, adds HyphenationCompoundWordTokenFilterFactory
+                    '131ecabb1d451acf52c8121c844687316f297db6ad0a42d93138226bf73ff822' => 1 # Riga 1.15, adds json field for UserAdministration
             );
 
             # Schemas that passed the tests:
@@ -487,13 +488,78 @@ sub maintenanceHandler {
         {"da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1},
         {"d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1}
     );
-    Foswiki::Plugins::MaintenancePlugin::registerFileCheck(
-        "solrplugin:config:solrconfigxml",
-        File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
-        'solr/configsets/foswiki_configs/conf/solrconfig.xml',
-        {"97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814" => 1},
-        {"d0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e" => 1},
-    );
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:solrconfig:current", {
+        name => "Solr config is current",
+        description => "Check if solrconfig is up to date.",
+        check => sub {
+            require File::Spec;
+            require Digest::SHA;
+
+            # This is a list of possible schema locations:
+            my @configs = (
+                File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
+            );
+
+            # These configs can be safely updated
+            my %outdatedversions = (
+                    'd0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e' => 1,
+                    '97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814' => 1,
+            );
+            # These configs are current
+            my %goodversions = (
+                    '5bd21e1515ed911edcd7c9377c656b759c3e434c2d4e974075dc4f670192a989' => 1,
+            );
+
+            # Configs that passed the tests:
+            my @goodConfigs = ();
+            # Configs that failed and the reason:
+            my %badConfigs = ();
+
+            foreach my $config ( @configs ) {
+                next unless( -f $config );
+                my $IN_FILE;
+                unless ( open( $IN_FILE, '<', $config ) ) {
+                    $badConfigs{$config} = "failed to read $config: $!";
+                    next;
+                };
+                binmode($IN_FILE);
+                local $/ = undef;
+                my $data = <$IN_FILE>;
+                close($IN_FILE);
+
+                my $hash = Digest::SHA::sha256_hex($data);
+
+                if( $goodversions{$hash} ) {
+                    # Known good version
+                    push( @goodConfigs, $config );
+                } elsif( $outdatedversions{$hash} ) {
+                    # Known bad versions
+                    $badConfigs{$config} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/*= from your foswiki directory to =the config folder (parent) of $config/=.";
+                } else {
+                    # Unknown versions
+                    $badConfigs{$config} = "The config is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/solrconfig.xml= from the foswiki directory. Checksum: =$hash=.";
+                }
+            }
+
+            unless ( scalar @goodConfigs || scalar keys %badConfigs ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "Could not find a solrconfig, please check your configuration manually."
+                }
+            }
+            if ( scalar keys %badConfigs ) {
+                return {
+                    result => 1,
+                    priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                    solution => "The following files need to be checked:<br/>"
+                        . join( "<br/>", map { " =$_=: $badConfigs{$_}" } keys %badConfigs),
+                }
+            } else {
+                return { result => 0 };
+            }
+        }
+    });
     Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:crontab", {
         name => "Cronjob SolrScheduler",
         description => "Crontab with job for SolrScheduler shuld exist.",
@@ -509,7 +575,51 @@ sub maintenanceHandler {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
-                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> LOG=<foswiki-dir>/working/logs/solrjob_$(date '+\%u\%H\%M).log ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:skipscheduled", {
+        name => "Cronjob SolrScheduler remove skipscheduled",
+        description => "Crontab with job for SolrScheduler --skipscheduled shuld not exist.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /skipscheduled/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with --skipscheduled on parameter."
+                    }
+                }
+            }
+            return { result => 0 };
+        }
+    });
+    Foswiki::Plugins::MaintenancePlugin::registerCheck("solrscheduler:delta", {
+        name => "Cronjob SolrScheduler remove delta index",
+        description => "Crontab with job for SolrScheduler delta index is not needed.",
+        check => sub {
+            require File::Spec;
+            my $file = File::Spec->catfile('/', 'etc', 'cron.d', 'foswiki_jobs');
+            if( -e $file) {
+                open(my $fh, '<', $file) or die "Could not open file '$file' $!";
+                local $/ = undef;
+                my $result = <$fh> !~ /m delta/;
+                close $fh;
+                if($result) {
+                    return {
+                        result => 1,
+                        priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with -n delta parameter."
                     }
                 }
             }

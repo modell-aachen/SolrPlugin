@@ -33,6 +33,10 @@ $Foswiki::cfg{SolrPlugin}{Timeout} = 180;
 # is restructured with a lot of IO on the disk. 
 $Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
 
+# **NUMBER**
+# Solr Scheduler default time in minutes from midnight
+$Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} = 360;
+
 # **STRING CHECK='undefok'** 
 # Url of the server to send updates to. Note, you will only need this setting
 # in a solr setup with master-slave replication where all updates are sent to
