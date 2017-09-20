@@ -575,7 +575,7 @@ sub maintenanceHandler {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
-                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> LOG=<foswiki-dir>/working/logs/solrjob_$(date '+\%u\%H\%M).log ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
+                        solution => "Add cronjob to foswiki_jobs according the documentation. [[%SYSTEMWEB%.SolrPlugin]] <verbatim>*/30 * * * * <apache-user> cd <foswiki-dir>/tools; FOSWIKI_ROOT=<foswiki-dir> LOG=<foswiki-dir>/working/logs/solrjob_\$(date '+\\%u\\%H\\%M').log ./solrjob --mode full --scheduler on --gracetime 30 >/dev/null 2>&1</verbatim>"
                     }
                 }
             }
