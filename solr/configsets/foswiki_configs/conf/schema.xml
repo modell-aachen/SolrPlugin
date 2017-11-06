@@ -275,6 +275,20 @@
       </analyzer>
     </fieldType>
 
+    <!-- only lowercase + ngrams for badly handled languages -->
+    <fieldType name="text_ngram_substring" class="solr.TextField" indexed="true">
+      <analyzer type="index">
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="1" maxGramSize="15" />
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
     <!-- analysis for spell checking -->
     <fieldType name="text_spell" class="solr.TextField" positionIncrementGap="100" >
       <analyzer type="index">
@@ -1084,6 +1098,7 @@
         for attachments this is the filename with the extension stripped off
    -->
    <field name="title" type="string" />
+   <field name="title_ngram_search" type="text_ngram_substring" stored="false" termVectors="false" />
    <field name="summary" type="text_generic" />
    <field name="author" type="string" />
    <field name="author_url" type="string" /> <!-- url -->
@@ -1239,6 +1254,7 @@
    <copyField source="web" dest="web_sort" omitNorms="true" />
    <copyField source="topic" dest="topic_sort" omitNorms="true" />
    <copyField source="title" dest="title_sort" omitNorms="true" />
+   <copyField source="title" dest="title_ngram_search" omitNorms="true" />
 
    <copyField source="category" dest="category_search"/>
    <copyField source="tag" dest="tag_search"/>
