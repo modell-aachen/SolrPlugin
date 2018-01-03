@@ -569,9 +569,9 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /scheduler/;
+                my $hasScheduler = <$fh> =~ /--scheduler\b/;
                 close $fh;
-                if($result) {
+                unless($hasScheduler) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
@@ -591,9 +591,9 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /skipscheduled/;
+                my $hasSkipscheduled = <$fh> =~ /skipscheduled/;
                 close $fh;
-                if($result) {
+                if($hasSkipscheduled) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
@@ -613,13 +613,13 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /m delta/;
+                my $hasDelta = <$fh> =~ /m delta/;
                 close $fh;
-                if($result) {
+                if($hasDelta) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
-                        solution => "Remove cronjob from foswiki_jobs for solrjob with -n delta parameter."
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with -m delta parameter."
                     }
                 }
             }
