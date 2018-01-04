@@ -485,8 +485,11 @@ sub maintenanceHandler {
         "solrplugin:config:listener",
         File::Spec->catfile('/', 'opt', 'solr', 'server', 'etc', 'jetty-http.xml'),
         'resources/SolrPlugin/jetty-http.xml',
-        {"da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1},
-        {"d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1}
+        {"90d26b02557d2dfe8f2bad6da7f38f458d6dfaa9d32b167373edbca34908c20e" => 1},
+        {
+            "da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1,
+            "d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1,
+        }
     );
     Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:solrconfig:current", {
         name => "Solr config is current",
