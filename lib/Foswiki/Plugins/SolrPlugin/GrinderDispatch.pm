@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Foswiki::Func ();
+use Foswiki::Plugins::TaskDaemonPlugin;
 
 my @flushCmd;
 my $isNewTopic;

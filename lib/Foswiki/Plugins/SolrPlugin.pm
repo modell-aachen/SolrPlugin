@@ -486,8 +486,11 @@ sub maintenanceHandler {
         "solrplugin:config:listener",
         File::Spec->catfile('/', 'opt', 'solr', 'server', 'etc', 'jetty-http.xml'),
         'resources/SolrPlugin/jetty-http.xml',
-        {"da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1},
-        {"d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1}
+        {"90d26b02557d2dfe8f2bad6da7f38f458d6dfaa9d32b167373edbca34908c20e" => 1},
+        {
+            "da519544b3baf86e0b431d78a802b2219c425c92dcaba9a805ba26dc0e02dfd2" => 1,
+            "d48de31097cf3a3717e9424c27b148a10ee53eb2ef86d0865986dcab77c72e4c" => 1,
+        }
     );
     Foswiki::Plugins::MaintenancePlugin::registerCheck("solrplugin:solrconfig:current", {
         name => "Solr config is current",
@@ -570,9 +573,9 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /scheduler/;
+                my $hasScheduler = <$fh> =~ /--scheduler\b/;
                 close $fh;
-                if($result) {
+                unless($hasScheduler) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
@@ -592,9 +595,9 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /skipscheduled/;
+                my $hasSkipscheduled = <$fh> =~ /skipscheduled/;
                 close $fh;
-                if($result) {
+                if($hasSkipscheduled) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
@@ -614,13 +617,13 @@ sub maintenanceHandler {
             if( -e $file) {
                 open(my $fh, '<', $file) or die "Could not open file '$file' $!";
                 local $/ = undef;
-                my $result = <$fh> !~ /m delta/;
+                my $hasDelta = <$fh> =~ /m delta/;
                 close $fh;
-                if($result) {
+                if($hasDelta) {
                     return {
                         result => 1,
                         priority => $Foswiki::Plugins::MaintenancePlugin::ERROR,
-                        solution => "Remove cronjob from foswiki_jobs for solrjob with -n delta parameter."
+                        solution => "Remove cronjob from foswiki_jobs for solrjob with -m delta parameter."
                     }
                 }
             }

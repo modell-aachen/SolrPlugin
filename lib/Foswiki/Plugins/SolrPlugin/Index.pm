@@ -542,7 +542,11 @@ sub indexTopic {
           $escaped = $this->escapeHtml($value) if defined $value;
           
           # create a dynamic field indicating the field type to solr
-          # date
+          if($fieldDef->can("solrIndexFieldHandler")){
+            $fieldDef->solrIndexFieldHandler($doc,$value,$mapped);
+          }
+
+          #Date does not implement solrIndexFieldHandler, because it is a core-FormField
           if ($type =~ /^date/) {
             try {
               my $epoch = $value;
@@ -553,18 +557,10 @@ sub indexTopic {
             } catch Error::Simple with {
               $this->log("WARNING: malformed date value '$value'");
             };
-          } 
-          # Map CUID to displayvalue for user fields
-          elsif ($type =~/^user$/) {
-            try {
-              my $d_value = $fieldDef->getDisplayValue($value);
-              $doc->add_fields('field_' . $name . '_dv_s' => $d_value,);
-            } catch Error::Simple with {
-              $this->log("WARNING: malformed user value '$value'");
-            };
           }
+
           # multi-valued types
-          elsif ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
+          if ($isMultiValued || $name =~ /TopicType/ || $type eq 'radio') {    # TODO: make this configurable
             my $fieldName = 'field_' . $name;
             $fieldName =~ s/(_(?:i|s|l|t|b|f|dt|lst))$//;
 
