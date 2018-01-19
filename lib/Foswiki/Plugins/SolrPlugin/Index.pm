@@ -30,6 +30,7 @@ use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
 use Time::Local;
+use Data::UUID;
 
 use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
@@ -247,57 +248,109 @@ sub update {
       $this->deleteTopic($web, $topic);
     }
 
-    my $found = 0;
     if ($mode eq 'full') {
-      $this->deleteWeb($web);
-      foreach my $topic (Foswiki::Func::getTopicList($web)) {
-        $this->deleteTopic($web, $topic);
-        next if $this->isSkippedTopic($web, $topic);
-        $this->indexTopic($web, $topic);
-        $found = 1;
-        last if $this->{_trappedSignal};
+      $this->_updateAllWebsAndRemoveOldEntries($web);
+    } else {
+      $this->_updateAllWebsWithChanges($web, $origWeb);
+    }
+
+    last if $this->{_trappedSignal};
+  }
+}
+
+sub _updateAllWebsAndRemoveOldEntries {
+
+  my ( $this, $web, ) = @_;
+  my $timestamp = $this->_getTimestampFromNewSolrEntry($web);
+
+  foreach my $topic (Foswiki::Func::getTopicList($web)) {
+    $this->deleteTopic($web, $topic);
+    next if $this->isSkippedTopic($web, $topic);
+    $this->indexTopic($web, $topic);
+    last if $this->{_trappedSignal};
+  }
+
+  if (defined $timestamp) {
+    $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
+      . " timestamp:[* TO $timestamp]");
+  } else {
+    $this->log("ERROR: cannot delete old web content because of undefined timestamp");
+  }
+}
+
+sub _getTimestampFromNewSolrEntry {
+  my ( $this, $web, ) = @_;
+  my $timestamp;
+
+  my $id = Data::UUID->new()->create_str();
+  my $doc = $this->newDocument();
+  $doc->add_fields(
+    id => "$web.$id",
+    web => "$web",
+    topic => "$id",
+    type => "timestamp",
+    url => "",
+  );
+
+  try {
+    $this->add($doc);
+    $this->commit();
+  } catch Error::Simple with {
+    my $e = shift;
+    $this->log("ERROR timestamp creation: " . $e->{-text});
+  };
+
+  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
+  $searcher->iterate({
+      query => "web:\"$web\" topic:\"$id\" type:\"timestamp\"",
+      fields => "topic,timestamp",
+      process => sub {
+        my $doc = shift;
+        $timestamp = $doc->value_for("timestamp");
+      },
+    });
+
+  return $timestamp;
+}
+
+sub _updateAllWebsWithChanges {
+  my ( $this, $web, $origWeb, ) = @_;
+  my %timeStamps = ();
+
+  # get all timestamps for this web
+  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
+  $searcher->iterate({
+      query => "web:$web type:topic",
+      fields => "topic,timestamp",
+      process => sub {
+        my $doc = shift;
+        my $topic = $doc->value_for("topic");
+        my $time = $doc->value_for("timestamp");
+        $time =~ s/\.\d+Z$/Z/g; # remove miliseconds as that's incompatible with perl
+        $time = int(Foswiki::Time::parseTime($time));
+        $timeStamps{$topic} = $time;
       }
+    });
+
+  # delta
+  my @topics = Foswiki::Func::getTopicList($web);
+  foreach my $topic (@topics) {
+    next if $this->isSkippedTopic($web, $topic);
+
+    my $changed;
+    if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
+      $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($origWeb, $topic);
     } else {
 
-      my %timeStamps = ();
-
-      # get all timestamps for this web
-      $searcher->iterate({
-        query => "web:$web type:topic", 
-        fields => "topic,timestamp", 
-        process => sub {
-          my $doc = shift;
-          my $topic = $doc->value_for("topic");
-          my $time = $doc->value_for("timestamp");
-          $time =~ s/\.\d+Z$/Z/g; # remove miliseconds as that's incompatible with perl
-          $time = int(Foswiki::Time::parseTime($time));
-          $timeStamps{$topic} = $time;
-        }
-      });
-
-      # delta
-      my @topics = Foswiki::Func::getTopicList($web);
-      foreach my $topic (@topics) {
-        next if $this->isSkippedTopic($web, $topic);
-
-        my $changed;
-        if ($Foswiki::Plugins::SESSION->can('getApproxRevTime')) {
-          $changed = $Foswiki::Plugins::SESSION->getApproxRevTime($origWeb, $topic);
-        } else {
-
-          # This is here for old engines
-          $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($origWeb, $topic);
-        }
-
-        my $topicTime = $timeStamps{$topic} || 0;
-        next if $topicTime > $changed;
-
-        $this->indexTopic($web, $topic);
-
-        $found = 1;
-        last if $this->{_trappedSignal};
-      }
+      # This is here for old engines
+      $changed = $Foswiki::Plugins::SESSION->{store}->getTopicLatestRevTime($origWeb, $topic);
     }
+
+    my $topicTime = $timeStamps{$topic} || 0;
+    next if $topicTime > $changed;
+
+    $this->indexTopic($web, $topic);
+
     last if $this->{_trappedSignal};
   }
 }
