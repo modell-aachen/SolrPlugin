@@ -30,7 +30,8 @@ use Foswiki::OopsException ();
 use Foswiki::Time ();
 use Foswiki::Contrib::Stringifier ();
 use Time::Local;
-use Data::UUID;
+use Time::HiRes qw( time );
+use POSIX qw( strftime );
 
 use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
@@ -261,7 +262,7 @@ sub update {
 sub _updateAllWebsAndRemoveOldEntries {
 
   my ( $this, $web, ) = @_;
-  my $timestamp = $this->_getTimestampFromNewSolrEntry($web);
+  my $timestamp = $this->_getTimestamp();
 
   foreach my $topic (Foswiki::Func::getTopicList($web)) {
     $this->deleteTopic($web, $topic);
@@ -278,37 +279,11 @@ sub _updateAllWebsAndRemoveOldEntries {
   }
 }
 
-sub _getTimestampFromNewSolrEntry {
-  my ( $this, $web, ) = @_;
-  my $timestamp;
-
-  my $id = Data::UUID->new()->create_str();
-  my $doc = $this->newDocument();
-  $doc->add_fields(
-    id => "$web.$id",
-    web => "$web",
-    topic => "$id",
-    type => "timestamp",
-    url => "",
-  );
-
-  try {
-    $this->add($doc);
-    $this->commit();
-  } catch Error::Simple with {
-    my $e = shift;
-    $this->log("ERROR timestamp creation: " . $e->{-text});
-  };
-
-  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
-  $searcher->iterate({
-      query => "web:\"$web\" topic:\"$id\" type:\"timestamp\"",
-      fields => "topic,timestamp",
-      process => sub {
-        my $doc = shift;
-        $timestamp = $doc->value_for("timestamp");
-      },
-    });
+sub _getTimestamp {
+  my ( $this, ) = @_;
+  my $now = time();
+  my $timestamp = strftime('%Y-%m-%dT%H:%M:%S', gmtime($now));
+  $timestamp .= sprintf( ".%03dZ", ($now - int($now))*1000 );
 
   return $timestamp;
 }
