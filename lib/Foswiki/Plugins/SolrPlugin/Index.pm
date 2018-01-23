@@ -262,7 +262,7 @@ sub update {
 sub _updateAllWebsAndRemoveOldEntries {
 
   my ( $this, $web, ) = @_;
-  my $timestamp = $this->_getTimestamp();
+  my $timestamp = $this->_getCurrentTimestampInSolrFormat();
 
   foreach my $topic (Foswiki::Func::getTopicList($web)) {
     $this->deleteTopic($web, $topic);
@@ -271,19 +271,16 @@ sub _updateAllWebsAndRemoveOldEntries {
     last if $this->{_trappedSignal};
   }
 
-  if (defined $timestamp) {
-    $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
+  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
       . " timestamp:[* TO $timestamp]");
-  } else {
-    $this->log("ERROR: cannot delete old web content because of undefined timestamp");
-  }
 }
 
-sub _getTimestamp {
+sub _getCurrentTimestampInSolrFormat {
   my ( $this, ) = @_;
   my $now = time();
   my $timestamp = strftime('%Y-%m-%dT%H:%M:%S', gmtime($now));
-  $timestamp .= sprintf( ".%03dZ", ($now - int($now))*1000 );
+  my $milliseconds = sprintf( ".%03dZ", ($now - int($now))*1000 );
+  $timestamp .= $milliseconds;
 
   return $timestamp;
 }
