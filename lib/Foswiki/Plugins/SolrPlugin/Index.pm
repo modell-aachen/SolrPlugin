@@ -250,19 +250,19 @@ sub update {
     }
 
     if ($mode eq 'full') {
-      $this->_updateAllWebsAndRemoveOldEntries($web);
+      $this->_updateAllTopicsAndRemoveOldEntriesOf($web);
     } else {
-      $this->_updateAllWebsWithChanges($web, $origWeb);
+      $this->_updateAllTopicsWithChangesOf($web, $origWeb);
     }
 
     last if $this->{_trappedSignal};
   }
 }
 
-sub _updateAllWebsAndRemoveOldEntries {
+sub _updateAllTopicsAndRemoveOldEntriesOf {
 
   my ( $this, $web, ) = @_;
-  my $timestamp = $this->_getCurrentTimestampInSolrFormat();
+  my $timestamp = $this->_getLatestSolrTimestamp();
 
   foreach my $topic (Foswiki::Func::getTopicList($web)) {
     $this->deleteTopic($web, $topic);
@@ -271,21 +271,34 @@ sub _updateAllWebsAndRemoveOldEntries {
     last if $this->{_trappedSignal};
   }
 
-  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
-      . " timestamp:[* TO $timestamp]");
+  if (defined $timestamp) {
+      $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
+          . " timestamp:[* TO $timestamp]");
+  }
 }
 
-sub _getCurrentTimestampInSolrFormat {
+sub _getLatestSolrTimestamp {
   my ( $this, ) = @_;
-  my $now = time();
-  my $timestamp = strftime('%Y-%m-%dT%H:%M:%S', gmtime($now));
-  my $milliseconds = sprintf( ".%03dZ", ($now - int($now))*1000 );
-  $timestamp .= $milliseconds;
+
+  my $searcher = Foswiki::Plugins::SolrPlugin::getSearcher();
+  my $response = $searcher->solrSearch(
+      "timestamp:*",
+      {
+          rows => 1,
+          sort => "timestamp desc",
+      }
+  );
+
+  my $timestamp;
+  my @docs = $response->docs;
+  if (scalar(@docs) == 1) {
+      $timestamp = $docs[0]->value_for("timestamp");
+  }
 
   return $timestamp;
 }
 
-sub _updateAllWebsWithChanges {
+sub _updateAllTopicsWithChangesOf {
   my ( $this, $web, $origWeb, ) = @_;
   my %timeStamps = ();
 
