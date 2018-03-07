@@ -1260,7 +1260,7 @@ sub getStringifiedVersion {
   #print STDERR "filename=$filename, mime=$mime\n";
 
   my $workArea = $this->{workArea};
-  my $cachedFilename = "$workArea/$web/$topic/$attachment.txt";
+  my $cachedFilename = "$workArea/$web/$topic/$attachment";
 
   # untaint..
   $cachedFilename =~ /(.*)/;
