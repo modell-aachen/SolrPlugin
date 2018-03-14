@@ -35,7 +35,7 @@ $Foswiki::cfg{SolrPlugin}{OptimizeTimeout} = 600;
 
 # **NUMBER**
 # Solr Scheduler default time in minutes from midnight
-$Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} = 360;
+$Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} = 120;
 
 # **STRING CHECK='undefok'** 
 # Url of the server to send updates to. Note, you will only need this setting

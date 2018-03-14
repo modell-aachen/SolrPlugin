@@ -8,7 +8,7 @@
 ---++ About Solr
 Solr is an open source enterprise search server based on the [[http://lucene.apache.org][Lucene]] Java search
 library, with XML/HTTP and JSON APIs, hit highlighting, faceted search,
-caching, replication, and a web administration interface. 
+caching, replication, and a web administration interface.
 
 ---++ Screenshots
 
@@ -48,7 +48,7 @@ service solr stop
    * edit =/var/solr/solr.in.sh=
    * add =SOLR_OPTS="$SOLR_OPTS -Djetty.host=localhost"=
 
----+++ Optionally relocate logs 
+---+++ Optionally relocate logs
 
 ... from =/var/solr/logs= to =/var/log/solr=
 
@@ -103,7 +103,7 @@ in your %USERSWEB%.SitePreferences.
 
 %X% Note that you won't need to enable the =solr= skin overlay in case you are using [[Foswiki:Extensions/NatSkin][NatSkin]] as it comes with support for SolrPlugin out of the box.
 
----++ Commandline scripts 
+---++ Commandline scripts
 
 There is a set of tools to interact with the Solr index from the commandline. These can either be
 used to index Foswiki manually - as we did in above tests - as well as for searching or deleting specific documents in the index.
@@ -154,7 +154,7 @@ depending on the =host= commandline parameter. It is mainly used in cronjobs or 
 In contrast to =solrindex= a locking & throttling strategy is used to prevent multiple indexers being started simulataneously.
 This is usefull when firing up the indexer as part of =iwatch= monitoring filesystem changes in the Foswiki store. As these events
 often come in bundles firing rapidly in a short period of time will only one indexing process be spawned for a given time span defined
-by the =throttle= parameter to =solrhjob=. 
+by the =throttle= parameter to =solrhjob=.
 
 | *Parameter* | *Description* | *Default* |
 | =-f / --file &lt;file-path>= | index the topic that the given file points to | |
@@ -189,18 +189,18 @@ We will discuss these strategies and line out their advantages. A combination of
 ./solrindex mode=full optimize=on
 </verbatim>
 
-This will crawl all webs, topics and attachment and submit them to the Solr server, which will build up the search index. This can take a considerable amount of time 
+This will crawl all webs, topics and attachment and submit them to the Solr server, which will build up the search index. This can take a considerable amount of time
 depending on the amount of content and number of users registered to your site, so you may prefer to do it at a quiet time.
 
 Note that full indexing is required the first time you installed !SolrPlugin. From there on will you be able to use delta indexing to update the index incrementally as
-content changes in Foswiki. 
+content changes in Foswiki.
 
 It is recommended to only perform a full indexing again once in a week or preferably in longer intervals.
 
 ---+++ Delta indexing
 
 <verbatim class="bash">
-./solrindex 
+./solrindex
 </verbatim>
 
 This will inspect all of the content base and check for changes since the last time the content was added to Solr. Any update content will be added to the index
@@ -261,12 +261,12 @@ For !VirtualHostingContrib use:
 </config>
 </verbatim>
 
-Make sure to replace 
+Make sure to replace
 
    * =&lt;foswiki-dir>=
-   * =&lt;httpd-user>= 
-   * =&lt;domainX>= 
-   * =&lt;vhosts-dir>= 
+   * =&lt;httpd-user>=
+   * =&lt;domainX>=
+   * =&lt;vhosts-dir>=
 
 with the appropriate values on your platform.
 
@@ -278,7 +278,7 @@ case you installed [[Foswiki:Extensions/WikiWorkbenchContrib][WikiWorkbenchContr
 
 This mode of operation refers to a way to update the search index _immediately_ as part of the =save= operation performed by Foswiki on behalf of the user.
 
-The biggest advantage here is that changes to the content base will immediately show up in the search index reflecting the exact changes being made to the 
+The biggest advantage here is that changes to the content base will immediately show up in the search index reflecting the exact changes being made to the
 content base.
 
 There are a couple of flags to switch on/off online indexing in your configuration.
@@ -303,14 +303,14 @@ $Foswiki::cfg{SolrPlugin}{EnableOnRenameUpdates} = 1;
 
 ---+++ Setting up cronjobs
 
-Below will set up performing 
+Below will set up performing
 
    * a full indexing every Saturday midnight and
    * a delta indexing every 15 minutes
 
 <verbatim class="cron">
 0 0 * * 6 <foswiki-dir>/tools/solrjob --mode full
-*/15 * * * * <foswiki-dir>/tools/solrjob --mode delta 
+*/15 * * * * <foswiki-dir>/tools/solrjob --mode delta
 </verbatim>
 
 %H% Add =--host all= to index all virtual hosts, or =--host &lt;hostname>= to index a single virtual host.
@@ -350,7 +350,7 @@ set =SOLR_SCHEDULER_SKIP_ALL= to a =true= value.
    * Set SOLR_SCHEDULER_SKIP_ALL = 1
 </verbatim>
 
-All webs wich are not enabled will be indexed on a default time. To define this time, set {SolrPlugin}{DefaultScheduleTime} in bin/configure. There you can define the minutes after midnight. So 360 is 6 o'clock.
+All webs wich are not enabled will be indexed on a default time. To define this time, set {SolrPlugin}{DefaultScheduleTime} in bin/configure. There you can define the minutes after midnight. So 120 is 2 o'clock.
 
 ---+++ Recommendations
 
@@ -363,7 +363,7 @@ how and when to schedule crawling the content. Some of the criteria to keep in m
    * speed of indexing content determined by server resources
    * interactive performance as perceived by the user
    * real-time requirements for updates in search results
-   * changes in access control structures such as: 
+   * changes in access control structures such as:
       * new users being registered to Foswiki,
       * changing member ship in user groups,
       * changing clearance of user groups for specific content
@@ -374,7 +374,7 @@ Especially changes in access control structures might affect clearance to conten
 piece of content along with it, will a change to _access control_ -- independent to any change of the _content_ itself -- render access control incorrect as cached into the Solr index
 unless this content is indexed again. This is not a problem when the ACL of a single document is altered as this document is re-indexed again as part of the change event.
 No such re-indexing is triggered automatically when a user group changes or is granted more or less authorization for content. This will indeed only be reflected the next
-time a full indexing is performed. 
+time a full indexing is performed.
 
 Access control structures might be changing totally outside of Foswiki when using [[Foswiki:Extensions][LdapContrib]] where users and groups are defined in a distant LDAP database.
 These user and group records immediately affect Foswiki granting access to documents (there is some caching involved here as well, but let's ignore this for now). Only after
@@ -403,27 +403,27 @@ In !SolrPlugin any Foswiki ACLs are added to the Solr database while content is 
 authenticated user might perform.
 
 Correctness of the search index as we discuss it now is more concerned with the time it takes for to keep any content change in Foswiki in sync as it is being indexed and
-added to the Solr database. 
+added to the Solr database.
 
-There are two general categories for indexing content that we want to compare now: 
+There are two general categories for indexing content that we want to compare now:
 
    * online indexing: index content as part of the interaction performed by the user
-   * offline indexing: perform content indexing independent from the user interacting with the system online 
+   * offline indexing: perform content indexing independent from the user interacting with the system online
 
 Offline indexing is performed by the =solrindex= script as well as the =solrjob= wrapper. Both might be used in a cronjob or =iwatch= as described above.
 
-Looking at _online indexing_ there is a price in doing so that we should keep in mind before switching it on. 
+Looking at _online indexing_ there is a price in doing so that we should keep in mind before switching it on.
 
 Indexing will be  part of a =save=, =delete= or =rename= operation performed by the user
-and thus directly increase the _perceived time for the user to interact with the system_ while applying content changes. 
+and thus directly increase the _perceived time for the user to interact with the system_ while applying content changes.
 
-You may decide yourself when trading interactive performance against negative side-effects due to "incorrect" search indexes. It is recommended to rather sacrifice 
+You may decide yourself when trading interactive performance against negative side-effects due to "incorrect" search indexes. It is recommended to rather sacrifice
 a short period of time for the search index not being quite up-to-date rather than slowing down the interactive performance of the system by hooking the indexing procedure
 into the online operations of Foswiki.
 
 ---++ Using Solr for WebSearch, WebChanges and %USERSWEB%.WikiUsers
 
-It is recommended to replace Foswiki's default !AutoViewTemplatePlugin with [[Foswiki:Extensions/AutoTemplatePlugin][AutoTemplatePlugin]]. This will allow you to replace the default WebSearch, WebChanges and %SYSTEMWEB%.SiteChanges as well as %USERSWEB%.WikiUsers with a Solr-driven interface for better usability and performance. 
+It is recommended to replace Foswiki's default !AutoViewTemplatePlugin with [[Foswiki:Extensions/AutoTemplatePlugin][AutoTemplatePlugin]]. This will allow you to replace the default WebSearch, WebChanges and %SYSTEMWEB%.SiteChanges as well as %USERSWEB%.WikiUsers with a Solr-driven interface for better usability and performance.
 
 Configure !AutoTemplatePlugin by adding the following ={ViewTemplateRules}=
 
@@ -477,7 +477,7 @@ All of them make use of the same set of options to render a response as listed i
 <a name="SOLRSEARCH"></a>
 ---++++ SOLRSEARCH
 
-This is the most important macro. It allows you to interact with the Solr server and display results within wiki applications. 
+This is the most important macro. It allows you to interact with the Solr server and display results within wiki applications.
 An example search looks like this:
 <verbatim class="tml">
 %SOLRSEARCH{"test"
@@ -512,7 +512,7 @@ SOLRSEARCH also allows you to run a query in [[https://wiki.apache.org/solr/DisM
 | jump | on/off: jump to the topic specified explicitly in the seach string  | on |
 | lucky | on/off: jump to the first result found | off |
 | highlight | switch on/off highlighting of found terms | off |
-| spellcheck | switch on/off spellchecking to propose alternative spellings in case no search result was found | off | 
+| spellcheck | switch on/off spellchecking to propose alternative spellings in case no search result was found | off |
 | *Pagination:* |||
 | start | integer index within the result from where to start listing results | 0 |
 | rows | maximum number of documents to return | 10 |
@@ -532,15 +532,15 @@ SOLRSEARCH also allows you to run a query in [[https://wiki.apache.org/solr/DisM
 | facetquery | query to be used for a facet query | |
 | facetoffset | used to page through a list of facets being returned by a search | |
 | facetlimit | maximum number of values to be displayed per facet; this is a list of pairs =name=integer= specifying a per-facet limit; example: =50, tag=100, contributor=10, category=10= will constraint the global limit of facet values to be returned to 50, tags to 100, list the top 10 contributors in the hit set as well as the 10 most used categories | 100 |
-| facetmincount | minimum frequency of a facet to be included in the result | 1 | 
+| facetmincount | minimum frequency of a facet to be included in the result | 1 |
 | facetprefix | prefix string of a facet to be included | |
-| facetdatestart | part of a date facet describing the start of a time interval | NOW/DAY-7DAYS | 
+| facetdatestart | part of a date facet describing the start of a time interval | NOW/DAY-7DAYS |
 | facetdateend | part of a date facet describing the end of a time interval | NOW/DAY+1DAYS |
 | facetdateother | part of a date facet describing the time intervals excluding the one specified with facetdatestart and facetdateend | before |
-| hidesingle | comma separated list of facets to be hidden if there's only one choice left | | 
-| disjunctivefacets | list of facets that are queried using OR; so searching within one facet will _expand_ the search instead of drilling down | facet values are combined using AND | 
-| combinedfacets | list of facets where values are queried in each of them using OR; for example listing =field_ProjectMembers_lst= and =field_ProjectManager_s= will result in a lucne filter of the form =field_ProjectMembers_lst:%WIKINAME% OR field_ProjectManager_s:%WIKINAME%= | | 
-| *Formating results:* ||| 
+| hidesingle | comma separated list of facets to be hidden if there's only one choice left | |
+| disjunctivefacets | list of facets that are queried using OR; so searching within one facet will _expand_ the search instead of drilling down | facet values are combined using AND |
+| combinedfacets | list of facets where values are queried in each of them using OR; for example listing =field_ProjectMembers_lst= and =field_ProjectManager_s= will result in a lucne filter of the form =field_ProjectMembers_lst:%WIKINAME% OR field_ProjectManager_s:%WIKINAME%= | |
+| *Formating results:* |||
 | correction | format string for corrections proposed by the spellchecker | Did you mean &lt;a href='$url'>$correction&lt;/a> |
 | header | format string prepended to the result | |
 | format | format string used to render each hit in the result set| |
@@ -568,7 +568,7 @@ SOLRSEARCH also allows you to run a query in [[https://wiki.apache.org/solr/DisM
 When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][SOLRSEARCH]], it can be reused by subsequent calls to %SOLRFORMAT.
 
 <verbatim class="tml">
-%SOLRSEARCH{"test" 
+%SOLRSEARCH{"test"
   id="solr1"
   facets="web,contributor"
   facetlimit="web=10, contributor=10"
@@ -598,7 +598,7 @@ When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][
 SOLRSIMILAR allows to return a list of similar topics given the current one.
 
 | *Parameter* | *Description* | *Default* |
-| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC%= | 
+| "..." | query string referencing the document(s) to return similar ones for | =id:%BASEWEB%.%BASETOPIC%= |
 | like | list of fields used to compute similarity | category, tag |
 | fields | list of fields and their boost value to be included in result items | web, topic, title, score |
 | filter | restricts results to those matching this filter | type:topic |
@@ -613,7 +613,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 %SOLRSIMILAR{"id:%BASEWEB%.%BASETOPIC%"
    filter="web:%BASEWEB% type:topic"
    fields="web,topic,title,score"
-   header="<h2>Similar Topics</h2>$n<ul>" 
+   header="<h2>Similar Topics</h2>$n<ul>"
    footer="</ul>"
    format="<li>
        <a href='%SCRIPTURLPATH{"view"}%/$web/$topic' title='score: $score'>
@@ -624,7 +624,7 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
          <!-- -->$title
          $percntDBQUERY{
            header=\"<br /><span class='foswikiTopicInfo foswikiSmallish'>\"
-           topic=\"$web.$topic\" 
+           topic=\"$web.$topic\"
            format=\"$formfield(Summary)\"
            footer=\"</span>\"
          }$percnt
@@ -668,8 +668,8 @@ SOLRSIMILAR allows to return a list of similar topics given the current one.
 !SolrPlugin comes with a custom schema to index general Foswiki data as defined
 in the =&lt;solr-home-dir>conf/schema.xml= file. It offers support for generic
 !DataForm values, so adding any new !DataForm definition will allow to use
-those formfields for faceting directly without changing configurations or having to reindex 
-the content. 
+those formfields for faceting directly without changing configurations or having to reindex
+the content.
 
 The process of indexing content is configured on the Foswiki side which will crawl all webs, topics
 and their attachments thus creating lucene documents which are then sent over to the solr server.
@@ -677,7 +677,7 @@ A lucene document is made up of fields of a certain type which defines the way t
 by the solr server. This is configured in the =schema.xml= file.
 
 While the schema is able to cover all Foswiki related data it is still kept generic enough to be used for non-wiki
-content as well. 
+content as well.
 
 ---+++ Field types
 
@@ -750,7 +750,7 @@ useful for spatial search.
 | category | string | multivalued | stored | list of categories this document is in; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; it will populate it with the list of all categories up to !TopCategory; content of this field is copied to =category_search= as well (see generic fields below) |
 | tag | string | multivalued | stored | list of tags assigned to this document; note: this field will only be used if Foswiki:Extensions/ClassificationPlugin is installed; content of this field is copied to =category_search= as well (see generic fields below) |
 | name | string | | stored | filename of an attachment |
-| comment | text_generic | | stored | comment field of an attachment | 
+| comment | text_generic | | stored | comment field of an attachment |
 | size | tint | | stored | size of an attachment in bytes |
 
 ---+++ Dynamic fields
@@ -774,12 +774,12 @@ optimized for fuzzy searching.
 
 !DataForm formfields are mapped to lucene document fields by prepending the =field_*=
 prefix to prevent name clashes with other dynamic fields generated on the fly.
-So for example a formfield =ProjectManager= will be stored in =field_ProjectManager_s= 
+So for example a formfield =ProjectManager= will be stored in =field_ProjectManager_s=
 and =field_ProjectManager_search=. Likewise a select+multi formfield =ProjectMembers=
 will be stored in =field_ProjectMembers_lst= as it is a multivalued field.
 
 If a formfield name already comes with one of the below suffixes (_i, _l, _f, _dt, etc)
-then this suffix will be used instead of any heuristics trying to derive the best 
+then this suffix will be used instead of any heuristics trying to derive the best
 field type for the lucene field. That way !DataForm fields although untyped by Foswiki
 can be indexed type-specific nevertheless.
 
@@ -814,8 +814,8 @@ source field to a destination field using the =copyField= feature of solr. So wh
 to be indexed is created by the crawler and indexer explicitly, some more are created automatically to facilitate
 specific search applications. The destination fields are then analysed using the dynamic field definitions as given above.
 
-| *Source* | *Destination* | 
-| web | web_sort | 
+| *Source* | *Destination* |
+| web | web_sort |
 | topic | topic_sort |
 | title | title_sort |
 | category | category_search |
@@ -824,9 +824,9 @@ specific search applications. The destination fields are then analysed using the
 | topic | topic_search |
 | web | web_search |
 | webtopic | webtopic_search |
-| attachment | catchall | 
+| attachment | catchall |
 | category | catchall |
-| comment | catchall | 
+| comment | catchall |
 | field_* | catchall |
 | form | catchall |
 | name | catchall |
@@ -898,7 +898,7 @@ specific search applications. The destination fields are then analysed using the
 |  17 Jul 2015: | added support for Foswiki-2.0 ;\
                   indexing workflow and state facets supporting Foswiki:Extensions/WorkflowPlugin; \
                   added =author_url= to solr schema; \
-                  added google image and video mime types mapping them to "image" while indexing; 
+                  added google image and video mime types mapping them to "image" while indexing;
 |  27 Feb 2015: | upgraded to solr-5.0.0 |
 |  29 Sep 2014: | moved to jsrender for templating, replacing the deprecated jquery.tmpl |
 |  29 Aug 2014: | fix mailto links in !WikiUsers view template; \

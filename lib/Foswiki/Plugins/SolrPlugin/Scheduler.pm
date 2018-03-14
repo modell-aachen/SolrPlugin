@@ -54,7 +54,7 @@ sub handleSOLRSCHEDULER {
 
   my $tf = $Foswiki::cfg{PickADateContrib}{TimeFormat} || '24';
   my $format = $tf =~ /24/ ? 'HH:i' : 'hh:i a';
-  my $defaultTime = $Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} || 360;
+  my $defaultTime = $Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} || 120;
 
   my @output;
   foreach my $web (@webs) {
