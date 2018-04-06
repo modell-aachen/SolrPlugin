@@ -138,8 +138,8 @@
 %TMPL:DEF{"solr::thumbnail"}%
 {{if thumbnail}}
       <div class='solrThumbnail'>
-        <a class='imageHref imageSimple jqImageTooltip {web:"{{:web}}", topic:"{{:topic}}", image:"{{:thumbnail}}"}' href='{{:url}}' title='{{:name}}'>
-          <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:~encodeURIComponent(thumbnail)}};size=70>;crop=center' alt='{{:thumbnail}}' />
+        <a class='imageHref imageSimple jqImageTooltip {web:"{{>web}}", topic:"{{>topic}}", image:"{{>thumbnail}}"}' href='{{>url}}' title='{{>name}}'>
+          <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{>web}}.{{>topic}};file={{:~encodeURIComponent(thumbnail)}};size=70>;crop=center' alt='{{>thumbnail}}' />
         </a>
       </div>
 {{/if}}
@@ -151,10 +151,10 @@
   <div class='solrSearchHit solrTopicHit clearfix'>
     %TMPL:P{"solr::thumbnail"}%
     <h3>
-      <img src='{{if icon}}{{:icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' />
-      <a href='{{:url}}'>{{:title}}</a>
+      <img src='{{if icon}}{{>icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' />
+      <a href='{{>url}}'>{{>title}}</a>
       <span class=' solrContainerLink foswikiGrayText foswikiSmallish'>
-        %MAKETEXT{"in [_1]" args="<a href='{{:container_url}}'>{{:container_title}}</a>"}%
+        %MAKETEXT{"in [_1]" args="<a href='{{>container_url}}'>{{>container_title}}</a>"}%
       </span>
     </h3>
     <div class='solrTopicInfo foswikiGrayText'>
@@ -165,7 +165,7 @@
       {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
-      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}
+      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
 </script>
@@ -177,17 +177,17 @@
   <div class='solrSearchHit solrTopicHit clearfix'>
     %TMPL:P{"solr::thumbnail"}%
     <h3>
-      <img src='{{if icon}}{{:icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
-      <a href='{{:url}}'>{{:title}}</a>
+      <img src='{{if icon}}{{>icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
+      <a href='{{>url}}'>{{>title}}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
-        %MAKETEXT{"in [_1]" args="<a href='{{:container_url}}'>{{:container_title}}</a>"}%
+        %MAKETEXT{"in [_1]" args="<a href='{{>container_url}}'>{{>container_title}}</a>"}%
       </span>
     </h3>
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
-      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}
+      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
 </script>%TMPL:END%
@@ -197,25 +197,25 @@
 %TMPL:DEF{"solr::templates::hits::image"}%<script id="solrHitTemplate_image" type="text/x-jsrender">
   <div class='solrSearchHit solrImageHit clearfix'>
     <div class='solrImageFrame'>
-      <a class='imageHref imageSimple jqImageTooltip {web:"{{:web}}", topic:"{{:topic}}", image:"{{:name}}"}' href='{{:url}}' title='{{:name}}'>
-        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{:web}}.{{:topic}};file={{:~encodeURIComponent(name)}};size=70>;crop=center' alt='{{:name}}' />
+      <a class='imageHref imageSimple jqImageTooltip {web:"{{>web}}", topic:"{{>topic}}", image:"{{>name}}"}' href='{{>url}}' title='{{>name}}'>
+        <img src='%SCRIPTURLPATH{"rest"}%/ImagePlugin/resize?topic={{>web}}.{{>topic}};file={{:~encodeURIComponent(name)}};size=70>;crop=center' alt='{{>name}}' />
       </a>
     </div>
     <h3>
-      <img src='{{if icon}}{{:icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
-      <a href='{{:url}}'>{{:name}}</a>
+      <img src='{{if icon}}{{>icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
+      <a href='{{>url}}'>{{>name}}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
-        %MAKETEXT{"in [_1]" args="<a href='{{:container_url}}'>{{:container_title}}</a>"}%
+        %MAKETEXT{"in [_1]" args="<a href='{{>container_url}}'>{{>container_title}}</a>"}%
       </span>
       {{if comment}}
-        <div class='foswikiGrayText foswikiSmallish solrSearchHitSummary'>{{:comment}}</div>
+        <div class='foswikiGrayText foswikiSmallish solrSearchHitSummary'>{{>comment}}</div>
       {{/if}}
     </h3>
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
-      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}
+      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
     %CLEAR%
   </div>
@@ -227,16 +227,16 @@
   <div class='solrSearchHit solrCommentHit'>
     <h3>
       <img src='%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/comment.png' width='16' height='16' class='solrHitIcon' />
-      <a href='{{:url}}'>{{:title}}</a>
+      <a href='{{>url}}'>{{>title}}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink'>
-        %MAKETEXT{"in [_1]" args="<a href='{{:container_url}}'>{{:container_title}}</a>"}%
+        %MAKETEXT{"in [_1]" args="<a href='{{>container_url}}'>{{>container_title}}</a>"}%
       </span>
     </h3>
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
-      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}
+      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
 </script>%TMPL:END%
@@ -246,20 +246,20 @@
 %TMPL:DEF{"solr::templates::hits::misc"}%<script id="solrHitTemplate_misc" type="text/x-jsrender">
   <div class='solrSearchHit solrAttachmentHit'>
     <h3>
-      <img src='{{if icon}}{{:icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
-      <a href='{{:url}}'>{{:name}}</a>
+      <img src='{{if icon}}{{>icon}}{{else}}%PUBURLPATH%/%SYSTEMWEB%/FamFamFamSilkIcons/page_white.png{{/if}}' width='16' height='16' class='solrHitIcon' />
+      <a href='{{>url}}'>{{>name}}</a>
       <span class='foswikiGrayText foswikiSmallish solrContainerLink' >
-        %MAKETEXT{"in [_1]" args="<a href='{{:container_url}}'>{{:container_title}}</a>"}%
+        %MAKETEXT{"in [_1]" args="<a href='{{>container_url}}'>{{>container_title}}</a>"}%
       </span>
       {{if comment}}
-        <div class='foswikiGrayText foswikiSmallish'>{{:comment}}</div>
+        <div class='foswikiGrayText foswikiSmallish'>{{>comment}}</div>
       {{/if}}
     </h3>
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
     <div class='solrRevision'> 
-      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{:author}}
+      {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
 </script>%TMPL:END%
@@ -273,9 +273,9 @@
           <table class='foswikiLayoutTable' width='100%'>
             <tr>
             <td width='12px'>
-              <input type='{{:~widget.inputType}}' name='{{:~widget.field}}' title='{{:~getFacetKey(facet)}}' value='{{:~getFacetValue(facet)}}' id='{{:~widget.field}}_{{:#index}}' autocomplete='off' class='solrFacetValue' {{:~checked(facet)}} />
+              <p>ICH</p><input type='{{:~widget.inputType}}' name='{{:~widget.field}}' title='{{:~getFacetKey(facet)}}' value='{{:~getFacetValue(facet)}}' id='{{:~widget.field}}_{{>#index}}' autocomplete='off' class='solrFacetValue' {{:~checked(facet)}} />
             </td>
-            <td><label for='{{:~widget.field}}_{{:#index}}' style='display:block'>{{:~getFacetKey(facet)}} ({{:count}})</label></td>
+            <td><label for='{{:~widget.field}}_{{>#index}}' style='display:block'>{{:~getFacetKey(facet)}} ({{>count}})</label></td>
             </tr>
           </table>
         </li>
@@ -291,10 +291,10 @@
     <table class='foswikiLayoutTable' width='100%'>
       <tr>
         <td width='12px'>
-          <input type='checkbox' class='foswikiCheckbox' id='{{:id}}' name='filter' checked='checked'/>
+          <input type='checkbox' class='foswikiCheckbox' id='{{>id}}' name='filter' checked='checked'/>
         </td>
         <td>
-          <label for='{{:id}}' style='display:block'>{{:facet}} <nobr>({{:field}})</nobr></label>
+          <label for='{{>id}}' style='display:block'>{{>facet}} <nobr>({{>field}})</nobr></label>
         </td>
       </tr>
     </table>
@@ -304,8 +304,8 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::togglefacet"}%<script id="solrToggleFacetTemplate" type="text/x-jsrender"> 
-  <input type='checkbox' class='foswikiCheckbox' id='{{:id}}' />
-  <label class='foswikiLabel' for='{{:id}}'>{{:title}}</label>
+  <input type='checkbox' class='foswikiCheckbox' id='{{>id}}' />
+  <label class='foswikiLabel' for='{{>id}}'>{{>title}}</label>
 </script>%TMPL:END%
 %{</verbatim>}%
 
@@ -317,27 +317,27 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::redirectfacet"}%<script id="solrRedirectFacetTemplate" type="text/x-jsrender">
-<input type="checkbox" value="1" class="foswikiCheckbox" id='{{:id}}' {{if checked}}checked='checked'{{/if}}/><label for='{{:id}}'>{{:~foswiki.jsi18n.get('solr', 'Search only here')}}</label>
+<input type="checkbox" value="1" class="foswikiCheckbox" id='{{>id}}' {{if checked}}checked='checked'{{/if}}/><label for='{{>id}}'>{{:~foswiki.jsi18n.get('solr', 'Search only here')}}</label>
 </script>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::tagcloud"}%<script id="solrTagCloudTemplate" type="text/x-jsrender">
-{{:group}}<span style='font-size:{{:weight}}px'><a href='#' title='{{:count}}' style='color:{{:color}};' class='solrFacetValue {{:current}} tag_{{:facet}}'>{{:facet}}</a> </span>
+{{:group}}<span style='font-size:{{>weight}}px'><a href='#' title='{{>count}}' style='color:{{:color}};' class='solrFacetValue {{>current}} tag_{{>facet}}'>{{>facet}}</a> </span>
 </script>%TMPL:END%
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::hierarchy"}%<script id="solrHierarchyTemplate" type="text/x-jsrender">
-<li><img src='{{:icon}}' width='16' height='16' /> <a href='#' class='solrFacetFalue cat_{{:id}}' data-value='{{:id}}'>{{:title}}</a> {{:~renderFacetCount(id)}}
+<li><img src='{{>icon}}' width='16' height='16' /> <a href='#' class='solrFacetFalue cat_{{>id}}' data-value='{{>id}}'>{{>title}}</a> {{:~renderFacetCount(id)}}
 <div class='solrHierarchyChildren'>
 {{for ~getChildren}}
   {{if index < 5}}
-    <a href='#' class='solrFacetValue' data-cat='cat_{{:id}}' data-value='{{:id}}'>{{:title}}</a>
+    <a href='#' class='solrFacetValue' data-cat='cat_{{>id}}' data-value='{{>id}}'>{{>title}}</a>
   {{/if}}
 {{/for}}
 {{if ~getChildren().length >= 5}} 
-  <a href='#' class='solrFacetFalue cat_{{:id}}' data-value='{{:id}}'>...</a>
+  <a href='#' class='solrFacetFalue cat_{{>id}}' data-value='{{>id}}'>...</a>
 {{/if}}
 </div>
 </li>
@@ -351,7 +351,7 @@
   <tr>
     <td>
      {{if count > 0}}
-       %MAKETEXT{"Results [_1] - [_2] of <b>[_3]</b>" args="{{:from}}, {{:to}}, {{:count}}"}%
+       %MAKETEXT{"Results [_1] - [_2] of <b>[_3]</b>" args="{{>to}}, {{>to}}, {{>count}}"}%
      {{else}}
         <span class="foswikiAlert">%MAKETEXT{"nothing found"}%</span>
      {{/if}}
@@ -381,7 +381,7 @@
 
 %{<verbatim class="tml">}%
 %TMPL:DEF{"solr::templates::spellcorrection"}%<script id="solrSpellCorrectionTemplate" type="text/x-jsrender">
-%MAKETEXT{"Did you mean [_1]?" args="{{for suggestions}}{{if #index > 0}} or {{/if}} <a class='solrCorrection' href='#'>{{:#data}}</a>{{/for}}"}%
+%MAKETEXT{"Did you mean [_1]?" args="{{for suggestions}}{{if #index > 0}} or {{/if}} <a class='solrCorrection' href='#'>{{>#data}}</a>{{/for}}"}%
 </script>%TMPL:END%
 %{</verbatim>}%
 
