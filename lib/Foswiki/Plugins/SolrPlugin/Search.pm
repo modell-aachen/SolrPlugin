@@ -1296,16 +1296,19 @@ sub solrSearch {
 sub solrRequest {
   my ($this, $path, $params) = @_;
 
-  my $ref = ref $params->{q};
-  if(!$ref) {
-    $this->_filterLocalParams(\$params->{q});
-  } elsif($ref eq 'ARRAY') {
-    foreach my $query (@{$params->{q}}) {
-      $this->_filterLocalParams(\$query);
+  foreach my $key (qw( q fq facet.field )) {
+    next unless exists $params->{$key};
+    my $ref = ref $params->{$key};
+    if(!$ref) {
+      $this->_filterLocalParams(\$params->{$key});
+    } elsif($ref eq 'ARRAY') {
+      foreach my $query (@{$params->{$key}}) {
+        $this->_filterLocalParams(\$query);
+      }
+    } else {
+        Foswiki::Func::writeWarning("Unknown query format: $ref");
+        $params->{$key} = '';
     }
-  } else {
-      Foswiki::Func::writeWarning("Unknown query format: $ref");
-      $params->{q} = '';
   }
 
   return $this->{solr}->generic_solr_request($path, $params);
@@ -1314,11 +1317,17 @@ sub solrRequest {
 sub _filterLocalParams {
   my ($this, $query) = @_;
 
+  return unless defined $query;
+
   if($$query =~ m#\{!#) {
     my $placeholders = {};
     my $count = 0;
+    $$query =~ s#__whitelisted__#$placeholders->{$count} = '__whitelisted__'; return '__whitelisted__' + ($count++) + '__';#ge;
     $$query =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, \$count, $1)#ge;
-    $$query =~ s#\{!#?!#g; # disable anything not whitelisted
+    if($$query =~ s#\{!#?!#g) {
+      # disable anything not whitelisted
+      Foswiki::Func::writeWarning("disabling local param", $$query);
+    }
     foreach my $placeholder (keys %$placeholders) {
       $$query =~ s#__whitelisted__${placeholder}__#$placeholders->{$placeholder}#g;
     }
@@ -1331,7 +1340,14 @@ sub _escapeWhitelistedQueries {
   if($expr =~ m#\bwhitelisted=(\w+)#) {
     $whitelisted = $1;
   }
-  return $expr unless $whitelisted;
+  unless ($whitelisted) {
+    if($expr =~ m#^\{!\s*(?:ex|tag)=[a-zA-Z0-9_-]+(?:\s+key=[a-zA-Z0-9_-]+|\s+q.op=(?:AND|OR))*\}$#) {
+      $placeholders->{$$count} = $expr;
+      return '__whitelisted__' . $$count++ . '__';
+    }
+
+    return $expr; # will be disabled later
+  }
   my $path = ($whitelisted =~ m#Plugin$# ? 'Foswiki:Plugins::' : 'Foswiki::Contrib::') . $whitelisted;
   if($path->can('solrWhitelist')) {
     my $isWhitelisted = $path->solrWhitelist($expr);
