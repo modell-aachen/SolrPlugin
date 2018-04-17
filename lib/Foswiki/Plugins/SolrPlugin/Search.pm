@@ -1296,7 +1296,53 @@ sub solrSearch {
 sub solrRequest {
   my ($this, $path, $params) = @_;
 
+  my $ref = ref $params->{q};
+  if(!$ref) {
+    $this->_filterLocalParams(\$params->{q});
+  } elsif($ref eq 'ARRAY') {
+    foreach my $query (@{$params->{q}}) {
+      $this->_filterLocalParams(\$query);
+    }
+  } else {
+      Foswiki::Func::writeWarning("Unknown query format: $ref");
+      $params->{q} = '';
+  }
+
   return $this->{solr}->generic_solr_request($path, $params);
+}
+
+sub _filterLocalParams {
+  my ($this, $query) = @_;
+
+  if($$query =~ m#\{!#) {
+    my $placeholders = {};
+    my $count = 0;
+    $$query =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, \$count, $1)#ge;
+    $$query =~ s#\{!#?!#g; # disable anything not whitelisted
+    foreach my $placeholder (keys %$placeholders) {
+      $$query =~ s#__whitelisted__${placeholder}__#$placeholders->{$placeholder}#g;
+    }
+  }
+}
+
+sub _escapeWhitelistedQueries {
+  my ($this, $placeholders, $count, $expr) = @_;
+  my $whitelisted;
+  if($expr =~ m#\bwhitelisted=(\w+)#) {
+    $whitelisted = $1;
+  }
+  return $expr unless $whitelisted;
+  my $path = ($whitelisted =~ m#Plugin$# ? 'Foswiki:Plugins::' : 'Foswiki::Contrib::') . $whitelisted;
+  if($path->can('solrWhitelist')) {
+    my $isWhitelisted = $path->solrWhitelist($expr);
+    if($isWhitelisted) {
+      $expr =~ s#\$host#$this->{wikiHost}#g;
+      $placeholders->{$$count} = $expr;
+      return '__whitelisted__' . $$count++ . '__';
+    } else {
+      return $expr;
+    }
+  }
 }
 
 ##############################################################################

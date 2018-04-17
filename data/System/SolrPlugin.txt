@@ -563,6 +563,24 @@ SOLRSEARCH also allows you to run a query in [[https://wiki.apache.org/solr/DisM
 | morelikethis | switch on/off more-like-this results per document found | off |
 -->
 
+---+++++ Whitelisting local params
+
+Local params (eg. ={!join ...}= will be disabled by the plugin. To allow local params, the string must be whitelisted by a plugin/contrib.
+
+First add the whitelisting plugin/contrib to your expression and always use the =v='..'= option:
+<pre>
+{!join from=... to=... whitelisted=MyPlugin v='some:query host:$host'}
+</pre>
+The =$host= variable will be expanded to the correct host parameter (ignoring any mappings!).
+
+Then add a =solrWhitelist= sub to your plugin/contrib, that can verify you query:
+<pre>
+sub solrWhitelist {
+    my ($plugin, $expr) = @_;
+    return $expr =~ m#^\{!join from=topic to=topic whitelisted=MyPlugin v='some:query host:\$host'\}$#;
+}
+</pre>
+
 ---++++ SOLRFORMAT
 
 When a solr response has been cached using the =id= parameter to [[#SOLRSEARCH][SOLRSEARCH]], it can be reused by subsequent calls to %SOLRFORMAT.
