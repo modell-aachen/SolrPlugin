@@ -27,6 +27,8 @@ use JSON ();
 
 use constant TRACE => 0; # toggle me
 
+my $WHITELIST_PLACEHOLDER = '__whitelisted__';
+
 #use Data::Dump qw(dump);
 
 ##############################################################################
@@ -1298,15 +1300,15 @@ sub solrRequest {
 
   foreach my $key (qw( q fq facet.field )) {
     next unless exists $params->{$key};
-    my $ref = ref $params->{$key};
-    if(!$ref) {
+    my $queryRefType = ref $params->{$key};
+    if(!$queryRefType) {
       $this->_filterLocalParams(\$params->{$key});
-    } elsif($ref eq 'ARRAY') {
+    } elsif($queryRefType eq 'ARRAY') {
       foreach my $query (@{$params->{$key}}) {
         $this->_filterLocalParams(\$query);
       }
     } else {
-        Foswiki::Func::writeWarning("Unknown query format: $ref");
+        Foswiki::Func::writeWarning("Unknown query format: $queryRefType");
         $params->{$key} = '';
     }
   }
@@ -1315,35 +1317,47 @@ sub solrRequest {
 }
 
 sub _filterLocalParams {
-  my ($this, $query) = @_;
+  my ($this, $queryRef) = @_;
 
-  return unless defined $query;
+  return unless defined $queryRef && ref $queryRef;
 
-  if($$query =~ m#\{!#) {
-    my $placeholders = {};
-    my $count = 0;
-    $$query =~ s#__whitelisted__#$placeholders->{$count} = '__whitelisted__'; return '__whitelisted__' + ($count++) + '__';#ge;
-    $$query =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, \$count, $1)#ge;
-    if($$query =~ s#\{!#?!#g) {
-      # disable anything not whitelisted
-      Foswiki::Func::writeWarning("disabling local param", $$query);
+  if($$queryRef =~ m#\{!#) {
+    my $placeholders = [];
+    $$queryRef =~ s#$WHITELIST_PLACEHOLDER#_getWhitelistPlaceholer($placeholders, $WHITELIST_PLACEHOLDER)#ge;
+    $$queryRef =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, $1)#ge;
+
+    # disable anything not whitelisted
+    if($$queryRef =~ s#\{(\s*)!#?$1!#g) {
+      Foswiki::Func::writeWarning("disabling local param", $$queryRef);
     }
-    foreach my $placeholder (keys %$placeholders) {
-      $$query =~ s#__whitelisted__${placeholder}__#$placeholders->{$placeholder}#g;
-    }
+
+    _resubstitudePlaceholders($placeholders, $queryRef);
+  }
+}
+
+sub _getWhitelistPlaceholder {
+  my ($placeholders, $toReplace) = @_;
+  push @$placeholders, $toReplace;
+  return $WHITELIST_PLACEHOLDER . ($#$placeholders) . '__';
+}
+
+sub _resubstitudePlaceholders {
+  my ($placeholders, $queryRef) = @_;
+
+  for (my $i = 0; $i < (scalar @$placeholders); $i++) {
+    $$queryRef =~ s#$WHITELIST_PLACEHOLDER${i}__#$placeholders->[$i]#g;
   }
 }
 
 sub _escapeWhitelistedQueries {
-  my ($this, $placeholders, $count, $expr) = @_;
+  my ($this, $placeholders, $expr) = @_;
   my $whitelisted;
   if($expr =~ m#\bwhitelisted=(\w+)#) {
     $whitelisted = $1;
   }
   unless ($whitelisted) {
     if($expr =~ m#^\{!\s*(?:ex|tag)=[a-zA-Z0-9_-]+(?:\s+key=[a-zA-Z0-9_-]+|\s+q.op=(?:AND|OR))*\}$#) {
-      $placeholders->{$$count} = $expr;
-      return '__whitelisted__' . $$count++ . '__';
+      return _getWhitelistPlaceholder($placeholders, $expr);
     }
 
     return $expr; # will be disabled later
@@ -1353,8 +1367,7 @@ sub _escapeWhitelistedQueries {
     my $isWhitelisted = $path->solrWhitelist($expr);
     if($isWhitelisted) {
       $expr =~ s#\$host#$this->{wikiHost}#g;
-      $placeholders->{$$count} = $expr;
-      return '__whitelisted__' . $$count++ . '__';
+      return _getWhitelistPlaceholder($placeholders, $expr);
     } else {
       return $expr;
     }
