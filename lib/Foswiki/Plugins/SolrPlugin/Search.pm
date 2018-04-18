@@ -1323,7 +1323,7 @@ sub _filterLocalParams {
 
   if($$queryRef =~ m#\{!#) {
     my $placeholders = [];
-    $$queryRef =~ s#$WHITELIST_PLACEHOLDER#_getWhitelistPlaceholer($placeholders, $WHITELIST_PLACEHOLDER)#ge;
+    $$queryRef =~ s#$WHITELIST_PLACEHOLDER#_getWhitelistPlaceholder($placeholders, $WHITELIST_PLACEHOLDER)#ge;
     $$queryRef =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, $1)#ge;
 
     # disable anything not whitelisted
@@ -1331,7 +1331,7 @@ sub _filterLocalParams {
       Foswiki::Func::writeWarning("disabling local param", $$queryRef);
     }
 
-    _resubstitudePlaceholders($placeholders, $queryRef);
+    _resubstitutePlaceholders($placeholders, $queryRef);
   }
 }
 
@@ -1341,7 +1341,7 @@ sub _getWhitelistPlaceholder {
   return $WHITELIST_PLACEHOLDER . ($#$placeholders) . '__';
 }
 
-sub _resubstitudePlaceholders {
+sub _resubstitutePlaceholders {
   my ($placeholders, $queryRef) = @_;
 
   for (my $i = 0; $i < (scalar @$placeholders); $i++) {
