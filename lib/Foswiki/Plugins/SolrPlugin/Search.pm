@@ -27,6 +27,8 @@ use JSON ();
 
 use constant TRACE => 0; # toggle me
 
+my $WHITELIST_PLACEHOLDER = '__whitelisted__';
+
 #use Data::Dump qw(dump);
 
 ##############################################################################
@@ -1296,7 +1298,80 @@ sub solrSearch {
 sub solrRequest {
   my ($this, $path, $params) = @_;
 
+  foreach my $key (qw( q fq facet.field )) {
+    next unless exists $params->{$key};
+    my $queryRefType = ref $params->{$key};
+    if(!$queryRefType) {
+      $this->_filterLocalParams(\$params->{$key});
+    } elsif($queryRefType eq 'ARRAY') {
+      foreach my $query (@{$params->{$key}}) {
+        $this->_filterLocalParams(\$query);
+      }
+    } else {
+        Foswiki::Func::writeWarning("Unknown query format: $queryRefType");
+        $params->{$key} = '';
+    }
+  }
+
   return $this->{solr}->generic_solr_request($path, $params);
+}
+
+sub _filterLocalParams {
+  my ($this, $queryRef) = @_;
+
+  return unless defined $queryRef && ref $queryRef;
+
+  if($$queryRef =~ m#\{!#) {
+    my $placeholders = [];
+    $$queryRef =~ s#$WHITELIST_PLACEHOLDER#_getWhitelistPlaceholder($placeholders, $WHITELIST_PLACEHOLDER)#ge;
+    $$queryRef =~ s#(\{!.*?[^\\]\})#$this->_escapeWhitelistedQueries($placeholders, $1)#ge;
+
+    # disable anything not whitelisted
+    if($$queryRef =~ s#\{(\s*)!#?$1!#g) {
+      Foswiki::Func::writeWarning("disabling local param", $$queryRef);
+    }
+
+    _resubstitutePlaceholders($placeholders, $queryRef);
+  }
+}
+
+sub _getWhitelistPlaceholder {
+  my ($placeholders, $toReplace) = @_;
+  push @$placeholders, $toReplace;
+  return $WHITELIST_PLACEHOLDER . ($#$placeholders) . '__';
+}
+
+sub _resubstitutePlaceholders {
+  my ($placeholders, $queryRef) = @_;
+
+  for (my $i = 0; $i < (scalar @$placeholders); $i++) {
+    $$queryRef =~ s#$WHITELIST_PLACEHOLDER${i}__#$placeholders->[$i]#g;
+  }
+}
+
+sub _escapeWhitelistedQueries {
+  my ($this, $placeholders, $expr) = @_;
+  my $whitelisted;
+  if($expr =~ m#\bwhitelisted=(\w+)#) {
+    $whitelisted = $1;
+  }
+  unless ($whitelisted) {
+    if($expr =~ m#^\{!\s*(?:ex|tag)=[a-zA-Z0-9_-]+(?:\s+key=[a-zA-Z0-9_-]+|\s+q.op=(?:AND|OR))*\}$#) {
+      return _getWhitelistPlaceholder($placeholders, $expr);
+    }
+
+    return $expr; # will be disabled later
+  }
+  my $path = ($whitelisted =~ m#Plugin$# ? 'Foswiki:Plugins::' : 'Foswiki::Contrib::') . $whitelisted;
+  if($path->can('solrWhitelist')) {
+    my $isWhitelisted = $path->solrWhitelist($expr);
+    if($isWhitelisted) {
+      $expr =~ s#\$host#$this->{wikiHost}#g;
+      return _getWhitelistPlaceholder($placeholders, $expr);
+    } else {
+      return $expr;
+    }
+  }
 }
 
 ##############################################################################
