@@ -1280,6 +1280,11 @@ sub solrSearch {
   $params ||= {};
   $params->{'q'} = $query if $query;
   $params->{fq} ||= [];
+  my $solrDeleteStateFilter = Foswiki::Func::getPreferencesValue("SOLR_DELETED_STATE_FILTER");
+  if(defined $solrDeleteStateFilter && $solrDeleteStateFilter ne '') {
+    $solrDeleteStateFilter = Foswiki::Func::expandCommonVariables($solrDeleteStateFilter);
+    push @{$params->{fq}}, $solrDeleteStateFilter;
+  }
   push @{$params->{fq}}, $this->buildHostFilter;
 
   while (my ($k, $v) = each %$params) {

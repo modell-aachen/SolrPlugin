@@ -41,6 +41,10 @@ our %hierarchy;
 our @knownIndexTopicHandler = ();
 our @knownIndexAttachmentHandler = ();
 
+our $SITEPREFS = {
+  SOLR_DELETED_STATE_FILTER => '-workflowstate_statetype_s:deleted'
+};
+
 sub initPlugin {
 
   Foswiki::Func::registerTagHandler('SOLRSEARCH', sub {
