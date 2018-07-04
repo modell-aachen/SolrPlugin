@@ -61,7 +61,7 @@
       if (query) {
         value = query.value;
       }
-
+      value = value.toString();
       value = value.replace(/^(.*?):/, '');
 
       return self.inQuery(value) >= 0;
