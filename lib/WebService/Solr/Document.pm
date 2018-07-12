@@ -33,6 +33,29 @@ sub add_fields {
     $self->fields( [ $self->fields, _parse_fields( @fields ) ] );
 }
 
+# Changes the FIRST occurrence of $name in the document.
+# Currently not so useful for multivalued fields, here we would need something
+# like $doc->chage_value($name, $value, $filter)
+sub change_or_add_value {
+    my ($self, $name, $value) = @_;
+
+    foreach my $field ($self->fields()) {
+        if ( $field->name eq $name ) {
+            return $field->value($value);
+        }
+    }
+
+    return $self->add_fields(
+        $name => $value,
+    );
+}
+
+sub get_value {
+    my ($self, $name) = @_;
+
+    return map{ $_->{value} } grep { $_->name eq $name } $self->fields();
+}
+
 sub _parse_fields {
     my @fields = @_;
     my @new_fields;
