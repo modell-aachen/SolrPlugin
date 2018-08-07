@@ -50,6 +50,17 @@ sub change_or_add_value {
     );
 }
 
+sub change_or_add_all_values {
+    my ($self, $name, $value) = @_;
+
+    my @reducedFields = grep { $_->{name} ne $name } @{$self->{ fields }};
+    $self->{ fields } = \@reducedFields;
+
+    return $self->add_fields(
+        $name => $value,
+    ) if defined $value;
+}
+
 sub get_value {
     my ($self, $name) = @_;
 
