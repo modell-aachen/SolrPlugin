@@ -235,7 +235,7 @@ sub update {
     if ($useScheduler) {
       next if Foswiki::Func::isTrue($skipAll);
       next if Foswiki::Func::isTrue($skip);
-      $schedule->{$web} = ($Foswiki::cfg{SolrPlugin}{DefaultSchedule} || 360) unless defined $schedule->{$web};
+      $schedule->{$web} = ($Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} || 360) unless defined $schedule->{$web};
       my $itime = $schedule->{$web} * 60 + $midnight;
       next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
     } elsif ($skipScheduled) {
