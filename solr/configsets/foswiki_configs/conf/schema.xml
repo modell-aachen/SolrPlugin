@@ -200,6 +200,41 @@
       </analyzer>
     </fieldType>
 
+    <fieldType name="text_generic_no_stopwords" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory"
+          splitOnCaseChange="1"
+          generateWordParts="1"
+          generateNumberParts="1"
+          catenateWords="1"
+          catenateNumbers="1"
+          catenateAll="0"
+          preserveOriginal="1"
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.HyphenationCompoundWordTokenFilterFactory" hyphenator="de.xml"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory"
+          splitOnCaseChange="1"
+          generateWordParts="1"
+          generateNumberParts="1"
+          catenateWords="0"
+          catenateNumbers="0"
+          catenateAll="0"
+          preserveOriginal="1"
+        />
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
+      </analyzer>
+    </fieldType>
+
     <!-- a general unstemmed text field; see below for language specific field types -->
     <fieldType name="text_generic" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
@@ -1098,6 +1133,7 @@
         for attachments this is the filename with the extension stripped off
    -->
    <field name="title" type="string" />
+   <field name="title_search" type="text_generic_no_stopwords" stored="false" termVectors="false" />
    <field name="title_ngram_search" type="text_ngram_substring" stored="false" termVectors="false" />
    <field name="summary" type="text_generic" />
    <field name="author" type="string" />
