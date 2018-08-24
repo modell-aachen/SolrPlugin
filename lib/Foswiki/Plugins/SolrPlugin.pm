@@ -406,10 +406,11 @@ sub maintenanceHandler {
                     '01124a81b8889d9f34021859857659d20464463986ed9f41479567199f6ec0d6' => 1, # Riga 1.11, adds *_sort for form fields
                     '222bb96310716e3c485893c2f67dca5dae0a6de45bee43ff40fe0e7e54597e2a' => 1, # Riga 1.14, adds HyphenationCompoundWordTokenFilterFactory
                     '131ecabb1d451acf52c8121c844687316f297db6ad0a42d93138226bf73ff822' => 1, # Riga 1.15, adds json field for UserAdministration
+                    '192083dcbeff2f210192c2c8cb2d3fde610605af2596a9c85a1e11c8005eb390' => 1, # Riga 1.16 added un-analysed title field
             );
             # These schemas are current
             my %goodversions = (
-                    '192083dcbeff2f210192c2c8cb2d3fde610605af2596a9c85a1e11c8005eb390' => 1, # Riga 1.16 added un-analysed title field
+                    '237d323d209a34ec3ca92203d3846ff1c871f334cdae29a084f1cc25d8faf322' => 1, # Riga 1.19 not filtering stopwords from title_search
             );
 
             # Schemas that passed the tests:
