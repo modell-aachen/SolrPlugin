@@ -891,6 +891,7 @@ sub _addAttachmentLink {
 
   $attachment =~ s/\?.*//;
   $attachment =~ s/#.*//;
+  $attachment = $this->urlDecode($attachment);
   return if $attachment =~ /[{}\$]/;
 
   my $link = "$web.$topic/$attachment";
