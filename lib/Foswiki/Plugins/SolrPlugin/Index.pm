@@ -1384,13 +1384,15 @@ sub getContributors {
 
   # get most recent
   my (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, $maxRev, $attachment, $maxRev);
-  my $mostRecent = getWikiName($user);
-  return ($mostRecent) if $Foswiki::cfg{SolrPlugin}{SimpleContributors};
-  $contributors{$mostRecent} = 1;
+  my $mostRecent = $user || $Foswiki::Users::BaseUserMapping::UNKNOWN_USER_CUID;
 
   # get creator
   (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, 1, $attachment, $maxRev);
-  my $creator = getWikiName($user);
+  my $creator = $user || $Foswiki::Users::BaseUserMapping::UNKNOWN_USER_CUID;
+
+  return ($mostRecent, $creator) if $Foswiki::cfg{SolrPlugin}{SimpleContributors};
+  $contributors{$mostRecent} = 1;
+
   $contributors{$creator} = 1;
 
   # only take the top 10; extracting revinfo takes too long otherwise :(
