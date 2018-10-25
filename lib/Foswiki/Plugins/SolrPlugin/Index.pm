@@ -97,6 +97,8 @@ sub index {
   # mode to run in parallel
 
   try {
+    $this->{AddQueue} = [];
+    $this->{DeleteQueue} = [];
 
     my $query = Foswiki::Func::getRequestObject();
     my $web = $query->param('web') || 'all';
@@ -1117,7 +1119,13 @@ sub add {
   }
 
   return unless $this->{solr};
-  my $res = $this->{solr}->add($doc);
+
+  my $res;
+  if($this->{AddQueue}) {
+    push @{$this->{AddQueue}}, $doc;
+  } else {
+    $res = $this->{solr}->add($doc);
+  }
 
   if (++($this->{_addCount}) >= 100) {
     $this->{_addCount} = 0;
@@ -1151,28 +1159,49 @@ sub optimize {
 
 ################################################################################
 sub commit {
-  my ($this, $hard) = @_;
+    my ($this, $hard) = @_;
 
-  return unless $this->{solr};
+    return unless $this->{solr};
 
-  $this->log("Committing index") if VERBOSE;
-  $this->{solr}->commit({
-      waitSearcher => "true",
-      softCommit => $hard ? "false" : "true",
-  });
-
-  # invalidate page cache for all search interfaces
-  if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
-    my @webs = Foswiki::Func::getListOfWebs("user, public");
-    foreach my $web (@webs) {
-      next if $web eq $Foswiki::cfg{TrashWebName};
-
-      #$this->log("firing dependencies in $web");
-      $this->{session}->{cache}->fireDependency($web, "WebSearch");
-
-      # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
+    if($this->{DeleteQueue} && scalar @{$this->{DeleteQueue}}) {
+        try {
+            my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{DeleteQueue}});
+            $this->{solr}->delete_by_query($combinedQuery);
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+        $this->{DeleteQueue} = [];
     }
-  }
+
+    if($this->{AddQueue} && scalar @{$this->{AddQueue}}) {
+        try {
+            $this->{solr}->add($this->{AddQueue});
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+        $this->{AddQueue} = [];
+    }
+
+    $this->log("Committing index") if VERBOSE;
+    $this->{solr}->commit({
+        waitSearcher => "true",
+        softCommit => $hard ? "false" : "true",
+    });
+
+    # invalidate page cache for all search interfaces
+    if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
+        my @webs = Foswiki::Func::getListOfWebs("user, public");
+        foreach my $web (@webs) {
+            next if $web eq $Foswiki::cfg{TrashWebName};
+
+            #$this->log("firing dependencies in $web");
+            $this->{session}->{cache}->fireDependency($web, "WebSearch");
+
+            # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
+        }
+    }
 }
 
 ################################################################################
@@ -1206,11 +1235,16 @@ sub deleteByQuery {
 
   #$this->log("Deleting documents by query $query") if VERBOSE;
 
+  my $hostFilterQuery = "($query) " . $this->buildHostFilter;
+
+  if($this->{DeleteQueue}) {
+    push @{$this->{DeleteQueue}}, $hostFilterQuery;
+    return;
+  }
+
   my $success;
   try {
-    $success = $this->{solr}->delete_by_query("($query) ".
-      $this->buildHostFilter
-    );
+    $success = $this->{solr}->delete_by_query($hostFilterQuery);
   }
   catch Error::Simple with {
     my $e = shift;
