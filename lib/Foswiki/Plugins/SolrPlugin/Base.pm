@@ -341,6 +341,9 @@ sub getTopicTitle {
 
   my $topicTitle = '';
 
+  $this->{TopicTitleCache} = {} unless defined $this->{TopicTitleCache};
+  return $this->{TopicTitleCache}{$web}{$topic} if exists $this->{TopicTitleCache}{$web}{$topic};
+
   unless ($meta) {
     ($meta) = Foswiki::Func::readTopic($web, $topic);
   }
@@ -364,6 +367,7 @@ sub getTopicTitle {
   # bit of cleanup
   $topicTitle =~ s/<!--.*?-->//g;
 
+  $this->{TopicTitleCache}{$web}{$topic} = $topicTitle;
   return $topicTitle;
 }
 

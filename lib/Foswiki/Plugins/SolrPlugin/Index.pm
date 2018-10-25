@@ -162,7 +162,7 @@ sub afterUploadHandler {
 
   my @aclFields = $this->getAclFields($web, $topic, $meta);
 
-  $this->indexAttachment($web, $topic, $attachment, \@aclFields);
+  $this->indexAttachment($web, $topic, $attachment, \@aclFields, $meta);
 }
 
 sub _filterMappedWebs {
@@ -762,7 +762,7 @@ sub indexTopic {
       }
 
       # then index each of them
-      $this->indexAttachment($web, $topic, $attachment, \@aclFields);
+      $this->indexAttachment($web, $topic, $attachment, \@aclFields, $meta);
     }
 
     # take the first image attachment when no thumbnail was specified explicitly
@@ -943,7 +943,7 @@ sub _addLink {
 ################################################################################
 # add the given attachment to the index.
 sub indexAttachment {
-  my ($this, $web, $topic, $attachment, $commonFields) = @_;
+  my ($this, $web, $topic, $attachment, $commonFields, $meta) = @_;
 
   #my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
 
@@ -1028,7 +1028,7 @@ sub indexAttachment {
     push @webCats, join(".", @prefix);
   }
 
-  my $container_title = $this->getTopicTitle($web, $topic);
+  my $container_title = $this->getTopicTitle($web, $topic, $meta);
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
