@@ -2,35 +2,23 @@ use strict;
 use warnings;
 
 {
-    cache_fields => ['groups_members', 'web_acls'],
     handle_message => sub {
         my ($host, $t, $hdl, $run_engine, $json) = @_;
         my $core = $Foswiki::cfg{ScriptDir};
         $core =~ s#/bin/?$##;
         if ($t =~ m'delete_topic|update_topic|update_web|(?:web_)?check_backlinks') {
-            $main::mattworker_data{caches} = $json->{cache};
             eval { $run_engine->(); };
             if ($@) {
                 print "Worker: $t exception: $@\n";
             } else {
-                return {
-                    caches => $main::mattworker_data{caches},
-                };
+                return {};
             }
-        } elsif ($t eq 'flush_acls') {
-            print STDERR "Flush web ACL cache\n";
-            $hdl->push_write(json => {type => 'clear_cache', host => $host, core => $core});
-        } elsif ($t eq 'flush_groups') {
-            print STDERR "Flush group membership cache\n";
-            $hdl->push_write(json => {type => 'clear_cache', host => $host, core => $core});
         }
         return {};
     },
     engine_part => sub {
-        my ($session, $type, $data, $caches) = @_;
+        my ($session, $type, $data) = @_;
         my $indexer = Foswiki::Plugins::SolrPlugin::getIndexer($session);
-        $indexer->groupsCache($caches->{groups_members}) if $caches->{groups_members};
-        $indexer->webACLsCache($caches->{web_acls}) if $caches->{web_acls};
 
         my $reindex_backlinks = sub {
             my ($wt, $isWeb, $broken) = @_;
@@ -89,10 +77,5 @@ use warnings;
                 $reindex_backlinks->($data, 0, 0);
             }
         }
-
-        $main::mattworker_data{caches} = {
-            groups_members => $indexer->groupsCache(),
-            web_acls => $indexer->webACLsCache(),
-        };
     },
 };

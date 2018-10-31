@@ -274,6 +274,10 @@ sub _updateAllTopicsAndRemoveOldEntriesOf {
   }
 
   if (defined $timestamp) {
+      if(($this->{AddQueue} && scalar @{$this->{AddQueue}}) || ($this->{DeleteQueue} && scalar @{$this->{DeleteQueue}})) {
+          $this->commit;
+      }
+      $this->log("Deleting old data");
       $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
           . " timestamp:[* TO $timestamp]");
   }
@@ -1474,185 +1478,91 @@ sub getRevisionInfo {
 }
 
 ################################################################################
-# returns the list of users granted view access, or "all" if all users have got view access
-sub getGrantedUsers {
+# returns the list of users granted view access (or "all" if all users have got view access) and a list of denied users
+sub getGrantedDeniedUsers {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  my %grantedUsers;
-  my $forbiddenUsers;
+    my ($allowList, $denyList);
+    my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
+    my $convert = $mapping->can('loginOrGroup2cUID'); # this is a UnifiedAuth speciality
 
-  my $allow = $this->getACL($meta, 'ALLOWTOPICVIEW');
-  my $deny = $this->getACL($meta, 'DENYTOPICVIEW');
-
-  if (TRACE) {
-    $this->log("topicAllow=@$allow") if defined $allow;
-    $this->log("topicDeny=@$deny") if defined $deny;
-  }
-
-  my $isDeprecatedEmptyDeny =
-    !defined($Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny}) || $Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny};
-
-  # Check DENYTOPIC
-  if (defined $deny) {
-    if (scalar(@$deny)) {
-      $forbiddenUsers = $this->expandUserList(@$deny);
-    } else {
-
-      if ($isDeprecatedEmptyDeny) {
-        $this->log("empty deny -> grant all access") if TRACE;
-
-        # Empty deny
-        return ['all'];
-      } else {
-        $deny = undef;
-      }
-    }
-  }
-  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
-
-  # Check ALLOWTOPIC
-  if (defined($allow)) {
-    if (scalar(@$allow)) {
-
-      if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
-        $this->log("access * -> grant all access") if TRACE;
-
-        if($forbiddenUsers) {
-            my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
-            my $allUsers = [];
-            my $iterator = Foswiki::Func::eachUser();
-            while($iterator->hasNext()) {
-                my $next = $iterator->next();
-                push(@$allUsers, $next) unless($forbiddenHash{$next});
-            }
-            return $allUsers;
-        } else {
-            # Empty deny
-            return ['all'];
+    $allowList = _getACL( $convert, $meta, 'ALLOWTOPICVIEW' );
+    $denyList  = _getACL( $convert, $meta, 'DENYTOPICVIEW' );
+    while (not defined $allowList) {
+        unless(exists $this->{aclWebCache}->{$web . ' allow'}) {
+            ($meta) = Foswiki::Func::readTopic($web, undef);
+            $this->{aclWebCache}->{$web . ' allow'} = _getACL( $convert, $meta, 'ALLOWWEBVIEW' );
+            $this->{aclWebCache}->{$web . ' deny'} = _getACL( $convert, $meta, 'DENYWEBVIEW' );
         }
-      } else {
-
-        $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
-
-        if (defined $forbiddenUsers) {
-          delete $grantedUsers{$_} foreach @$forbiddenUsers;
+        $allowList = $this->{aclWebCache}->{$web . ' allow'};
+        my $webDenyList = $this->{aclWebCache}->{$web . ' deny'};
+        if($webDenyList) {
+            $denyList ||= [];
+            push @$denyList, @$webDenyList;
         }
-        my @grantedUsers = keys %grantedUsers;
-
-        $this->log("(1) granting access for @grantedUsers") if TRACE;
-
-        # A non-empty ALLOW is final
-        return \@grantedUsers;
-      }
+        last unless $web =~ s#(.*)[./].*#$1#;
     }
-  }
-
-  # use cache if possible (no topic-level perms set)
-  if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
-    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if TRACE;
-    return $this->{_webACLCache}{$web};
-  }
-
-  my $webMeta = $meta->getContainer;
-  my $webAllow = $this->getACL($webMeta, 'ALLOWWEBVIEW');
-  my $webDeny = $this->getACL($webMeta, 'DENYWEBVIEW');
-
-  if (TRACE) {
-    $this->log("webAllow=@$webAllow") if defined $webAllow;
-    $this->log("webDeny=@$webDeny") if defined $webDeny;
-  }
-
-  # Check DENYWEB, but only if DENYTOPIC is not set
-  if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
-    push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
-  }
-  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
-
-  if (defined($webAllow) && scalar(@$webAllow)) {
-    if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$webAllow) {
-      $this->log("access * -> grant all access") if TRACE;
-
-      if($forbiddenUsers) {
-        my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
-        my $allowedUsers = [];
-        my $iterator = Foswiki::Func::eachUser();
-        while($iterator->hasNext()) {
-          my $next = $iterator->next();
-          push(@$allowedUsers, $next) unless($forbiddenHash{$next});
+    if (not defined $allowList) {
+        unless(exists $this->{aclWebCache}->{'site allow'}) {
+            my ($sw, $st) = Foswiki::Func::normalizeWebTopicName(undef, $Foswiki::cfg{LocalSitePreferences});
+            ($meta) = Foswiki::Func::readTopic($sw, $st);
+            $this->{aclWebCache}->{'site allow'} = _getACL( $convert, $meta, 'ALLOWROOTVIEW' );
+            $this->{aclWebCache}->{'site deny'} = _getACL( $convert, $meta, 'DENYROOTVIEW' );
         }
-        return $allowedUsers;
-      } else {
-        # Empty deny
-        return ['all'];
-      }
-    } else {
-      $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+        $allowList = $this->{aclWebCache}->{'site allow'};
+        my $rootDenyList = $this->{aclWebCache}->{'site deny'};
+        if($rootDenyList) {
+            $denyList ||= [];
+            push @$denyList, @$rootDenyList;
+        }
     }
-  } elsif (!defined($deny) && !defined($webDeny)) {
+    if (not defined $allowList) {
+        $allowList = ['all'];
+    }
 
-    #$this->log("no denies, no allows -> grant all access") if TRACE;
+    # make sure they exist and filter duplicates
+    sub unique {
+        my @data = @{shift || []};
+        my %hash = map { $_ => 1 } @data;
+        my @keys = keys %hash;
+        return \@keys;
+    };
+    $allowList =  unique($allowList);
+    $denyList =  unique($denyList);
 
-    # No denies, no allows -> open door policy
-    $this->{_webACLCache}{$web} = ['all'];
-    return ['all'];
-
-  } else {
-    %grantedUsers = %{$this->getListOfUsers()};
-  }
-
-  if (defined $forbiddenUsers) {
-    delete $grantedUsers{$_} foreach @$forbiddenUsers;
-  }
-
-  # get list of users granted access that actually still exist
-  foreach my $user (keys %grantedUsers) {
-    $grantedUsers{$user}++ if defined $this->isKnownUser($user);
-  }
-
-  my @grantedUsers = ();
-  foreach my $user (keys %grantedUsers) {
-    push @grantedUsers, $user if $grantedUsers{$user} > 1;
-  }
-
-  #$this->log("grantedUsers=@grantedUsers");
-
-  $this->log("nr granted users=".scalar(@grantedUsers).", nr known users=".$this->nrKnownUsers) if TRACE;
-  @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
-
-  # can't cache when there are topic-level perms
-  $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
-
-  $this->log("(2) granting access for ".scalar(@grantedUsers)." users") if TRACE;
-
-  return \@grantedUsers;
+    return ($allowList, $denyList);
 }
 
-################################################################################
-# SMELL: coppied from core; only works with topic-based ACLs
-sub getACL {
-  my ($this, $meta, $mode) = @_;
+sub _getACL {
+    my ( $convert, $meta, $mode ) = @_;
 
-  if (defined $meta->{_topic} && !defined $meta->{_loadedRev}) {
-    # Lazy load the latest version.
-    $meta->loadVersion();
-  }
+    if ( defined $meta->topic && !defined $meta->getLoadedRev ) {
+        # Lazy load the latest version.
+        $meta->loadVersion();
+    }
 
-  my $text = $meta->getPreference($mode);
-  return unless defined $text;
+    my $text = $meta->getPreference($mode);
+    return undef unless defined $text;
 
-  # Remove HTML tags (compatibility, inherited from Users.pm
-  $text =~ s/(<[^>]*>)//g;
+    # Remove HTML tags (compatibility, inherited from Users.pm
+    $text =~ s/(<[^>]*>)//g;
 
-  # Dump the users web specifier if userweb
-  my @list = grep { /\S/ } map {
-    s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
-    $_
-  } split(/[,\s]+/, $text);
+    # Dump the users web specifier if userweb
+    # Convert to cUIDs
+    my @list = grep { /\S/ } map {
+        my $item = $_;
+        $item =~ s/^(?:$Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+        if($convert && $item) {
+            my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
+            $item = &$convert($mapping, $item) || $item; # Note: $item must not become empty (eg. unknown group), or this might be treated as an unset list
+        }
+        $item
+    } split( /[,\s]+/, $text );
 
-  #print STDERR "getACL($mode): ".join(', ', @list)."\n";
-
-  return \@list;
+    return undef unless scalar @list; # empty counts as 'not set'
+    return \@list;
 }
+
 
 ################################################################################
 sub expandUserList {
@@ -1704,9 +1614,8 @@ sub _expandGroup {
 sub getAclFields {
   my $this = shift;
 
-  my $grantedUsers = $this->getGrantedUsers(@_);
-  return () unless $grantedUsers;
-  return ('access_granted' => $grantedUsers);
+  my ($grantedUsers, $deniedUsers) = $this->getGrantedDeniedUsers(@_);
+  return ('access_granted' => $grantedUsers, 'access_denied' => $deniedUsers);
 }
 
 ################################################################################

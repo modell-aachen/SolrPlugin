@@ -1126,8 +1126,9 @@
    <field name="container_url" type="string" /> <!-- url -->
    <field name="container_title" type="string" /> <!-- display title -->
 
-   <!-- this field stores the ACLs of a topic or attachment -->
+   <!-- this fields store the ACLs of a topic or an attachment -->
    <field name="access_granted" type="string" stored="false" multiValued="true" />
+   <field name="access_denied" type="string" stored="false" multiValued="true" />
 
    <!-- title: for topics this is the TopicTitle formfield or TOPICTITLE preference, defaults to topic;
         for attachments this is the filename with the extension stripped off
