@@ -50,8 +50,8 @@ sub new {
   $this->{_groupCache} = {};
   $this->{_webACLCache} = {};
 
-  $this->{AddQueue} = [];
-  $this->{DeleteQueue} = [];
+  $this->{_AddQueue} = [];
+  $this->{_DeleteQueue} = [];
 
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
@@ -265,7 +265,7 @@ sub update {
 sub commitPendingWork {
     my ($this) = @_;
 
-    if((scalar @{$this->{AddQueue}}) || (scalar @{$this->{DeleteQueue}})) {
+    if((scalar @{$this->{_AddQueue}}) || (scalar @{$this->{_DeleteQueue}})) {
         $this->commit;
     }
 }
@@ -1133,9 +1133,9 @@ sub add {
   return unless $this->{solr};
 
   my $res;
-  push @{$this->{AddQueue}}, $doc;
+  push @{$this->{_AddQueue}}, $doc;
 
-  if (scalar @{$this->{AddQueue}} >= 100) {
+  if (scalar @{$this->{_AddQueue}} >= 100) {
     $this->commit;
   }
 
@@ -1170,25 +1170,25 @@ sub commit {
 
     return unless $this->{solr};
 
-    if(scalar @{$this->{DeleteQueue}}) {
+    if(scalar @{$this->{_DeleteQueue}}) {
         try {
-            my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{DeleteQueue}});
+            my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{_DeleteQueue}});
             $this->{solr}->delete_by_query($combinedQuery);
         } catch Error::Simple with {
             my $e = shift;
             $this->log("ERROR: " . $e->{-text});
         };
-        $this->{DeleteQueue} = [];
+        $this->{_DeleteQueue} = [];
     }
 
-    if(scalar @{$this->{AddQueue}}) {
+    if(scalar @{$this->{_AddQueue}}) {
         try {
-            $this->{solr}->add($this->{AddQueue});
+            $this->{solr}->add($this->{_AddQueue});
         } catch Error::Simple with {
             my $e = shift;
             $this->log("ERROR: " . $e->{-text});
         };
-        $this->{AddQueue} = [];
+        $this->{_AddQueue} = [];
     }
 
     $this->log("Committing index") if VERBOSE;
@@ -1244,7 +1244,7 @@ sub deleteByQuery {
 
   my $hostFilterQuery = "($query) " . $this->buildHostFilter;
 
-  push @{$this->{DeleteQueue}}, $hostFilterQuery;
+  push @{$this->{_DeleteQueue}}, $hostFilterQuery;
 }
 
 ################################################################################
