@@ -1473,15 +1473,14 @@ sub getGrantedDeniedUsers {
 
     my ($allowList, $denyList);
     my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
-    my $convert = $mapping->can('loginOrGroup2cUID'); # this is a UnifiedAuth speciality
 
-    $allowList = _getACL( $convert, $meta, 'ALLOWTOPICVIEW' );
-    $denyList  = _getACL( $convert, $meta, 'DENYTOPICVIEW' );
+    $allowList = _getACL( $meta, 'ALLOWTOPICVIEW' );
+    $denyList  = _getACL( $meta, 'DENYTOPICVIEW' );
     while (not defined $allowList) {
         unless(exists $this->{aclWebCache}->{$web . ' allow'}) {
             ($meta) = Foswiki::Func::readTopic($web, undef);
-            $this->{aclWebCache}->{$web . ' allow'} = _getACL( $convert, $meta, 'ALLOWWEBVIEW' );
-            $this->{aclWebCache}->{$web . ' deny'} = _getACL( $convert, $meta, 'DENYWEBVIEW' );
+            $this->{aclWebCache}->{$web . ' allow'} = _getACL( $meta, 'ALLOWWEBVIEW' );
+            $this->{aclWebCache}->{$web . ' deny'} = _getACL( $meta, 'DENYWEBVIEW' );
         }
         $allowList = $this->{aclWebCache}->{$web . ' allow'};
         my $webDenyList = $this->{aclWebCache}->{$web . ' deny'};
@@ -1495,8 +1494,8 @@ sub getGrantedDeniedUsers {
         unless(exists $this->{aclWebCache}->{'site allow'}) {
             my ($sw, $st) = Foswiki::Func::normalizeWebTopicName(undef, $Foswiki::cfg{LocalSitePreferences});
             ($meta) = Foswiki::Func::readTopic($sw, $st);
-            $this->{aclWebCache}->{'site allow'} = _getACL( $convert, $meta, 'ALLOWROOTVIEW' );
-            $this->{aclWebCache}->{'site deny'} = _getACL( $convert, $meta, 'DENYROOTVIEW' );
+            $this->{aclWebCache}->{'site allow'} = _getACL( $meta, 'ALLOWROOTVIEW' );
+            $this->{aclWebCache}->{'site deny'} = _getACL( $meta, 'DENYROOTVIEW' );
         }
         $allowList = $this->{aclWebCache}->{'site allow'};
         my $rootDenyList = $this->{aclWebCache}->{'site deny'};
@@ -1523,7 +1522,7 @@ sub getGrantedDeniedUsers {
 }
 
 sub _getACL {
-    my ( $convert, $meta, $mode ) = @_;
+    my ( $meta, $mode ) = @_;
 
     if ( defined $meta->topic && !defined $meta->getLoadedRev ) {
         # Lazy load the latest version.
@@ -1538,12 +1537,12 @@ sub _getACL {
 
     # Dump the users web specifier if userweb
     # Convert to cUIDs
+    my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
     my @list = grep { /\S/ } map {
         my $item = $_;
         $item =~ s/^(?:$Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
-        if($convert && $item) {
-            my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
-            $item = &$convert($mapping, $item) || $item; # Note: $item must not become empty (eg. unknown group), or this might be treated as an unset list
+        if($item && $mapping->can('loginOrGroup2cUID')) {
+            $item = $mapping->loginOrGroup2cUID($item) || $item; # Note: $item must not become empty (eg. unknown group), or this might be treated as an unset list
         }
         $item
     } split( /[,\s]+/, $text );
