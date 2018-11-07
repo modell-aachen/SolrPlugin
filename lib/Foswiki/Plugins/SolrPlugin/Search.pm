@@ -914,6 +914,7 @@ sub restSOLRAUTOCOMPLETE {
     "facet.prefix" => $thePrefix,
     "facet" => 'true',
     "facet.mincount" => 1,
+    "facet.method" => 'enum',
     "facet.limit" => ($query->param('limit') || 10),
     "facet.field" => $field,
     "indent" => 'true',
