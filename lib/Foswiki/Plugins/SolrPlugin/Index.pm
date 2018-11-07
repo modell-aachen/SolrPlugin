@@ -1515,8 +1515,8 @@ sub getGrantedDeniedUsers {
         my @keys = keys %hash;
         return \@keys;
     };
-    $allowList =  unique($allowList);
-    $denyList =  unique($denyList);
+    $allowList = unique($allowList);
+    $denyList = unique($denyList);
 
     return ($allowList, $denyList);
 }

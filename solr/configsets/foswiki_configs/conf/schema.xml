@@ -1126,7 +1126,7 @@
    <field name="container_url" type="string" /> <!-- url -->
    <field name="container_title" type="string" /> <!-- display title -->
 
-   <!-- this fields store the ACLs of a topic or an attachment -->
+   <!-- these fields store the ACLs of a topic or an attachment -->
    <field name="access_granted" type="string" stored="false" multiValued="true" />
    <field name="access_denied" type="string" stored="false" multiValued="true" />
 
