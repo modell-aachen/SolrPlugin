@@ -42,21 +42,21 @@ use warnings;
             for my $doc (@{$res->{response}{docs}}) {
                 $indexer->updateTopic(undef, $doc->{webtopic});
             }
-            $indexer->commit(1);
+            $indexer->commitPendingWork()
         };
 
         if ($type eq 'update_topic') {
             $indexer->updateTopic(undef, $data);
-            $indexer->commit(1);
+            $indexer->commitPendingWork()
         }
         elsif ($type eq 'delete_topic') {
             my ($web, $topic) = Foswiki::Func::normalizeWebTopicName(undef, $data);
             $indexer->deleteTopic($web, $topic);
-            $indexer->commit(1);
+            $indexer->commitPendingWork()
         }
         elsif ($type eq 'update_web') {
             $indexer->update($data);
-            $indexer->commit(1);
+            $indexer->commitPendingWork()
         }
         elsif ($type eq 'web_check_backlinks') {
             if (Foswiki::Func::webExists($data)) {

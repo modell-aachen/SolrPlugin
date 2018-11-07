@@ -47,9 +47,11 @@ sub new {
 
   $this->{url} = $Foswiki::cfg{SolrPlugin}{UpdateUrl} || $Foswiki::cfg{SolrPlugin}{Url};
 
-  $this->{_addCount} = 0;
   $this->{_groupCache} = {};
   $this->{_webACLCache} = {};
+
+  $this->{AddQueue} = [];
+  $this->{DeleteQueue} = [];
 
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
@@ -79,7 +81,6 @@ sub new {
 sub finish {
   my $this = shift;
 
-  undef $this->{_addCount};
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
   undef $this->{_webACLCache};
@@ -99,9 +100,6 @@ sub index {
   # mode to run in parallel
 
   try {
-    $this->{AddQueue} = [];
-    $this->{DeleteQueue} = [];
-
     my $query = Foswiki::Func::getRequestObject();
     my $web = $query->param('web') || 'all';
     my $topic = $query->param('topic');
@@ -261,6 +259,15 @@ sub update {
 
     last if $this->{_trappedSignal};
   }
+  $this->commitPendingWork();
+}
+
+sub commitPendingWork {
+    my ($this) = @_;
+
+    if((scalar @{$this->{AddQueue}}) || (scalar @{$this->{DeleteQueue}})) {
+        $this->commit;
+    }
 }
 
 sub _updateAllTopicsAndRemoveOldEntriesOf {
@@ -275,14 +282,13 @@ sub _updateAllTopicsAndRemoveOldEntriesOf {
     last if $this->{_trappedSignal};
   }
 
-  if (defined $timestamp) {
-      if(($this->{AddQueue} && scalar @{$this->{AddQueue}}) || ($this->{DeleteQueue} && scalar @{$this->{DeleteQueue}})) {
-          $this->commit;
-      }
+  if (defined $timestamp && !$this->{_trappedSignal}) {
+      $this->commitPendingWork();
       $this->log("Deleting old data");
       $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
           . " timestamp:[* TO $timestamp]");
   }
+  $this->commitPendingWork();
 }
 
 sub _getLatestSolrTimestamp {
@@ -1127,14 +1133,9 @@ sub add {
   return unless $this->{solr};
 
   my $res;
-  if($this->{AddQueue}) {
-    push @{$this->{AddQueue}}, $doc;
-  } else {
-    $res = $this->{solr}->add($doc);
-  }
+  push @{$this->{AddQueue}}, $doc;
 
-  if (++($this->{_addCount}) >= 100) {
-    $this->{_addCount} = 0;
+  if (scalar @{$this->{AddQueue}} >= 100) {
     $this->commit;
   }
 
@@ -1169,7 +1170,7 @@ sub commit {
 
     return unless $this->{solr};
 
-    if($this->{DeleteQueue} && scalar @{$this->{DeleteQueue}}) {
+    if(scalar @{$this->{DeleteQueue}}) {
         try {
             my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{DeleteQueue}});
             $this->{solr}->delete_by_query($combinedQuery);
@@ -1180,7 +1181,7 @@ sub commit {
         $this->{DeleteQueue} = [];
     }
 
-    if($this->{AddQueue} && scalar @{$this->{AddQueue}}) {
+    if(scalar @{$this->{AddQueue}}) {
         try {
             $this->{solr}->add($this->{AddQueue});
         } catch Error::Simple with {
@@ -1243,21 +1244,7 @@ sub deleteByQuery {
 
   my $hostFilterQuery = "($query) " . $this->buildHostFilter;
 
-  if($this->{DeleteQueue}) {
-    push @{$this->{DeleteQueue}}, $hostFilterQuery;
-    return;
-  }
-
-  my $success;
-  try {
-    $success = $this->{solr}->delete_by_query($hostFilterQuery);
-  }
-  catch Error::Simple with {
-    my $e = shift;
-    $this->log("ERROR: " . $e->{-text});
-  };
-
-  return $success;
+  push @{$this->{DeleteQueue}}, $hostFilterQuery;
 }
 
 ################################################################################
