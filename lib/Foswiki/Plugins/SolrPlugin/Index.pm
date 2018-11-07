@@ -70,6 +70,8 @@ sub new {
 
   $this->{workArea} = Foswiki::Func::getWorkArea('SolrPlugin');
 
+  $this->{TopicTitleCache} = {};
+
   return $this;
 }
 
@@ -1630,6 +1632,41 @@ sub webACLsCache {
     my $this = shift;
     $this->{_webACLCache} = shift if @_;
     $this->{_webACLCache};
+}
+
+##############################################################################
+sub getTopicTitle {
+  my ($this, $web, $topic, $meta) = @_;
+
+  return $this->{TopicTitleCache}{$web}{$topic} if exists $this->{TopicTitleCache}{$web}{$topic};
+
+  my $topicTitle = '';
+
+  unless ($meta) {
+    ($meta) = Foswiki::Func::readTopic($web, $topic);
+  }
+
+  my $field = $meta->get('FIELD', 'TopicTitle');
+  $topicTitle = $field->{value} if $field && $field->{value};
+
+  unless ($topicTitle) {
+    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
+    $topicTitle = $field->{value} if $field && $field->{value};
+  }
+
+  if (!defined($topicTitle) || $topicTitle eq '') {
+    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
+      $topicTitle = $web;
+    } else {
+      $topicTitle = $topic;
+    }
+  }
+
+  # bit of cleanup
+  $topicTitle =~ s/<!--.*?-->//g;
+
+  $this->{TopicTitleCache}{$web}{$topic} = $topicTitle;
+  return $topicTitle;
 }
 
 1;
