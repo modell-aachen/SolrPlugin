@@ -16,6 +16,7 @@ use strict;
 use warnings;
 
 use Foswiki::Plugins::SolrPlugin::Base ();
+use Foswiki::Plugins::SolrPlugin::Search ();
 our @ISA = qw( Foswiki::Plugins::SolrPlugin::Base );
 
 ################################################################################
@@ -37,15 +38,7 @@ sub getGrantedUsers {
 sub getAclFields {
   my $this = shift;
 
-  my @aclFields = ();
-
-  # permissions
-  my @grantedUsers = $this->getGrantedUsers(@_);
-  foreach my $wikiName (@grantedUsers) {
-    push @aclFields, 'access_granted' => $wikiName;
-  }
-
-  return @aclFields;
+  return Foswiki::Plugins::SolrPlugin::Search::getACLFilters();
 }
 
 ################################################################################

@@ -128,7 +128,7 @@ export TIME
     sleep $THROTTLE
     /bin/date >> $LOG
     echo "$SOLRINDEX $SOLRINDEX_ARGS" >> /tmp/foobar
-    time nice $SOLRINDEX $SOLRINDEX_ARGS >> $LOG 2>&1
+    nice time $SOLRINDEX $SOLRINDEX_ARGS >> $LOG 2>&1
   )
 ) 200>$LOCKFILE&
 

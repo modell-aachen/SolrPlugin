@@ -336,38 +336,6 @@ sub mapToIconFileName {
 }
 
 ##############################################################################
-sub getTopicTitle {
-  my ($this, $web, $topic, $meta) = @_;
-
-  my $topicTitle = '';
-
-  unless ($meta) {
-    ($meta) = Foswiki::Func::readTopic($web, $topic);
-  }
-
-  my $field = $meta->get('FIELD', 'TopicTitle');
-  $topicTitle = $field->{value} if $field && $field->{value};
-
-  unless ($topicTitle) {
-    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
-    $topicTitle = $field->{value} if $field && $field->{value};
-  }
-
-  if (!defined($topicTitle) || $topicTitle eq '') {
-    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
-      $topicTitle = $web;
-    } else {
-      $topicTitle = $topic;
-    }
-  }
-
-  # bit of cleanup
-  $topicTitle =~ s/<!--.*?-->//g;
-
-  return $topicTitle;
-}
-
-##############################################################################
 sub getTopicSummary {
   my ($this, $web, $topic, $meta, $text) = @_;
 
