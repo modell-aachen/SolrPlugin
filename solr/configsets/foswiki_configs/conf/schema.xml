@@ -214,7 +214,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.HyphenationCompoundWordTokenFilterFactory" hyphenator="de.xml"/>
+        <filter class="solr.NGramFilterFactory" minGramSize="1" maxGramSize="155" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
       <analyzer type="query">
@@ -288,7 +288,7 @@
         />
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
-        <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="15" />
+        <filter class="solr.EdgeNGramFilterFactory" minGramSize="2" maxGramSize="155" />
         <filter class="solr.ReverseStringFilterFactory" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
