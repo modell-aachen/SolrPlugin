@@ -1541,7 +1541,9 @@ sub _getACL {
     my @list = grep { /\S/ } map {
         my $item = $_;
         $item =~ s/^(?:$Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
-        if($item && $mapping->can('loginOrGroup2cUID')) {
+        if($item eq '*') {
+            $item = 'all';
+        } elsif($item && $mapping->can('loginOrGroup2cUID')) {
             $item = $mapping->loginOrGroup2cUID($item) || $item; # Note: $item must not become empty (eg. unknown group), or this might be treated as an unset list
         }
         $item
