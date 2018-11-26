@@ -116,6 +116,7 @@ sub index {
       $this->updateTopic($web, $topic);
     } else {
 
+      local $this->{bulkoperation} = 1;
       $this->log("doing a web index in $mode mode") if TRACE;
       $this->update($web, $mode, $useScheduler, $gracetime, $skipScheduled);
     }
@@ -1170,6 +1171,12 @@ sub commit {
 
     return unless $this->{solr};
 
+    if(VERBOSE) {
+        if(scalar @{$this->{_DeleteQueue}} || scalar @{$this->{_AddQueue}}) {
+            $this->log('Sending data');
+        }
+    }
+
     if(scalar @{$this->{_DeleteQueue}}) {
         try {
             my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{_DeleteQueue}});
@@ -1191,11 +1198,18 @@ sub commit {
         $this->{_AddQueue} = [];
     }
 
-    $this->log("Committing index") if VERBOSE;
-    $this->{solr}->commit({
-        waitSearcher => "true",
-        softCommit => $hard ? "false" : "true",
-    });
+    unless($this->{bulkoperation}) {
+        try {
+            $this->log("Committing index") if VERBOSE;
+            $this->{solr}->commit({
+                waitSearcher => "true",
+                softCommit => $hard ? "false" : "true",
+            });
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+    }
 
     # invalidate page cache for all search interfaces
     if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
