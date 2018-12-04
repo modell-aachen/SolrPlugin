@@ -59,15 +59,23 @@ sub add {
     my ( $self, $doc, $params ) = @_;
     my @docs = ref $doc eq 'ARRAY' ? @$doc : ( $doc );
 
-    my @elements = map {
-        (   '',
-            blessed $_
-            ? $_->to_element
-            : WebService::Solr::Document->new(
-                ref $_ eq 'HASH' ? %$_ : @$_
-                )->to_element
+    my @elements = ();
+    foreach my $doc (@docs) {
+        eval {
+            push @elements, (
+                '',
+                blessed $doc
+                    ? $doc->to_element
+                    : WebService::Solr::Document->new(
+                        ref $doc eq 'HASH' ? %$doc : @$doc
+                        )->to_element
             )
-    } @docs;
+        };
+        if($@) {
+            use Data::Dumper;
+            print STDERR "ERROR adding document: $@\n" . Dumper($doc) . "\n";
+        }
+    }
 
     $params ||= {};
     my $e
