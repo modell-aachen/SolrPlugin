@@ -41,6 +41,10 @@ our %hierarchy;
 our @knownIndexTopicHandler = ();
 our @knownIndexAttachmentHandler = ();
 
+our $SITEPREFS = {
+  SOLR_DELETED_STATE_FILTER => '-workflowstate_statetype_s:deleted'
+};
+
 sub initPlugin {
 
   Foswiki::Func::registerTagHandler('SOLRSEARCH', sub {
@@ -407,10 +411,12 @@ sub maintenanceHandler {
                     '222bb96310716e3c485893c2f67dca5dae0a6de45bee43ff40fe0e7e54597e2a' => 1, # Riga 1.14, adds HyphenationCompoundWordTokenFilterFactory
                     '131ecabb1d451acf52c8121c844687316f297db6ad0a42d93138226bf73ff822' => 1, # Riga 1.15, adds json field for UserAdministration
                     '192083dcbeff2f210192c2c8cb2d3fde610605af2596a9c85a1e11c8005eb390' => 1, # Riga 1.16 added un-analysed title field
+                    '237d323d209a34ec3ca92203d3846ff1c871f334cdae29a084f1cc25d8faf322' => 1, # Riga 1.19 not filtering stopwords from title_search
+                    '4f8dabe69da6a7b7310d8cfbd303c8e510e820b80a4a13ff9662762fffd9b098' => 1, # Riga 1.20 fix comments
             );
             # These schemas are current
             my %goodversions = (
-                    '237d323d209a34ec3ca92203d3846ff1c871f334cdae29a084f1cc25d8faf322' => 1, # Riga 1.19 not filtering stopwords from title_search
+                    '50e83e52a49f5711acfa95fc1623cb890420358af1ebce4a956e6c996d3d3aa9' => 1, # Riga 1.20 new ACLs & ngram search in title
             );
 
             # Schemas that passed the tests:
@@ -501,18 +507,20 @@ sub maintenanceHandler {
             require Digest::SHA;
 
             # This is a list of possible schema locations:
+            my @basePath = ('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf');
             my @configs = (
-                File::Spec->catfile('/', 'var', 'solr', 'data', 'configsets', 'foswiki_configs', 'conf', 'solrconfig.xml'),
+                'solrconfig.xml',
             );
 
             # These configs can be safely updated
             my %outdatedversions = (
                     'd0f23b75e76313f41a593a7d250557949096066916387b53976bf0f6090d562e' => 1,
                     '97124e4b7fd5a6c46d032eddd2be1e94f2009431f3eaf41216deadd11dd70814' => 1,
+                    '5bd21e1515ed911edcd7c9377c656b759c3e434c2d4e974075dc4f670192a989' => 1, # solrconfig.xml Riga 4.19
             );
             # These configs are current
             my %goodversions = (
-                    '5bd21e1515ed911edcd7c9377c656b759c3e434c2d4e974075dc4f670192a989' => 1,
+                '59a8d9f2b08ad0e42397ac18b127bf150a31d484056d93bc7b651693930825df' => 1, # solrconfig.xml Riga 4.20
             );
 
             # Configs that passed the tests:
@@ -521,9 +529,10 @@ sub maintenanceHandler {
             my %badConfigs = ();
 
             foreach my $config ( @configs ) {
-                next unless( -f $config );
+                my $configFile = File::Spec->catfile(@basePath, $config);
+                next unless( -f $configFile );
                 my $IN_FILE;
-                unless ( open( $IN_FILE, '<', $config ) ) {
+                unless ( open( $IN_FILE, '<', $configFile ) ) {
                     $badConfigs{$config} = "failed to read $config: $!";
                     next;
                 };
@@ -536,13 +545,13 @@ sub maintenanceHandler {
 
                 if( $goodversions{$hash} ) {
                     # Known good version
-                    push( @goodConfigs, $config );
+                    push( @goodConfigs, $configFile );
                 } elsif( $outdatedversions{$hash} ) {
                     # Known bad versions
-                    $badConfigs{$config} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/*= from your foswiki directory to =the config folder (parent) of $config/=.";
+                    $badConfigs{$configFile} = "This config is outdated, but can be safely updated (no customizations). Please copy =solr/configsets/foswiki_configs/conf/$config= from your foswiki directory to =$configFile=.";
                 } else {
                     # Unknown versions
-                    $badConfigs{$config} = "The config is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/solrconfig.xml= from the foswiki directory. Checksum: =$hash=.";
+                    $badConfigs{$configFile} = "The config is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/$config= from the foswiki directory. Checksum: =$hash=.";
                 }
             }
 

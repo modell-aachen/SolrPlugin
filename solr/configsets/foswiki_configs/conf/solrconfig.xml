@@ -821,6 +821,7 @@
       <float name="tie">0.01</float>
       <str name="qf"> 
         title_search^10.0 
+        title_ngram_search^4.0
         topic_search^8.0 
         web_search^5.0 
         category_search^2.0 
@@ -878,6 +879,7 @@
       <float name="tie">0.01</float>
       <str name="qf"> 
         title_search^10.0 
+        title_ngram_search^4.0
         topic_search^8.0 
         web_search^5.0 
         category_search^2.0 

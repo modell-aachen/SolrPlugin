@@ -537,6 +537,19 @@ sub renderPager {
 }
 
 ##############################################################################
+sub getACLFilters {
+  my $wikiUser = Foswiki::Func::getWikiName();
+  return () if Foswiki::Func::isAnAdmin($wikiUser);
+  my $users = $Foswiki::Plugins::SESSION->{users};
+  my $cuid = $users->getCanonicalUserID($wikiUser);
+  my $ids = $users->{mapping}->getMembershipsCUID($cuid);
+  push @$ids, $cuid;
+  push @$ids, 'all';
+  my $aclString = join(' OR ', @$ids);
+
+  return ("access_granted:($aclString)", "-access_denied:($aclString)");
+}
+
 sub restSOLRPROXY {
   my ($this, $theWeb, $theTopic) = @_;
 
@@ -549,11 +562,7 @@ sub restSOLRPROXY {
 
   my %params = map {$_ => [$query->multi_param($_)]} grep {!/^_$/} $query->param();
 
-  my $wikiUser = Foswiki::Func::getWikiName();
-
-  unless (Foswiki::Func::isAnAdmin($wikiUser)) { # add ACLs
-    push @{$params{fq}}, " (access_granted:$wikiUser OR access_granted:all)"
-  }
+  push @{$params{fq}}, getACLFilters();
 
   #print STDERR "fq=$params{fq}\n";
   #print STDERR "params=".join(', ', keys %params)."\n";
@@ -720,8 +729,7 @@ sub restSOLRAUTOSUGGEST {
   push @filter, $solrExtraFilter 
     if defined $solrExtraFilter && $solrExtraFilter ne '';
 
-  push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
-    unless Foswiki::Func::isAnAdmin($wikiUser);
+  push @filter, getACLFilters();
 
   my %params = (
     q => $theQuery,
@@ -888,8 +896,7 @@ sub restSOLRAUTOCOMPLETE {
 
   my $wikiUser = Foswiki::Func::getWikiName();
   my @filter = $this->parseFilter($theFilter);
-  push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
-    unless Foswiki::Func::isAnAdmin($wikiUser);
+  push @filter, getACLFilters();
 
   # tokenize here as well to separate query and prefix
   $theQuery =~ s/[\!"§\$%&\/\(\)=\?{}\[\]\*\+~#',\.;:\-_]/ /g;
@@ -1023,8 +1030,7 @@ sub doSimilar {
 
   my $wikiUser = Foswiki::Func::getWikiName();
   my @filter = $this->parseFilter($theFilter);
-  push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
-    unless Foswiki::Func::isAnAdmin($wikiUser);
+  push @filter, getACLFilters();
   # this one doesn't use the solrSearch method, so add host filter here
   push @filter, $this->buildHostFilter;
 
@@ -1238,8 +1244,7 @@ sub doSearch {
 
   # extra filter
   push(@filter, $this->parseFilter($theExtraFilter));
-  push(@filter, "(access_granted:$wikiUser OR access_granted:all)")
-    unless Foswiki::Func::isAnAdmin($wikiUser); # add ACLs
+  push @filter, getACLFilters();
 
   $solrParams->{"fq"} = \@filter if @filter;
 
@@ -1281,6 +1286,14 @@ sub solrSearch {
   $params ||= {};
   $params->{'q'} = $query if $query;
   $params->{fq} ||= [];
+  my $solrDeleteStateFilter = Foswiki::Func::getPreferencesValue("SOLR_DELETED_STATE_FILTER");
+  my $includeDeletedDocuments = $params->{includeDeletedDocuments}[0];
+  delete $params->{includeDeletedDocuments};
+  
+  if(!$includeDeletedDocuments && defined $solrDeleteStateFilter && $solrDeleteStateFilter ne '') {
+    $solrDeleteStateFilter = Foswiki::Func::expandCommonVariables($solrDeleteStateFilter);
+    push @{$params->{fq}}, $solrDeleteStateFilter;
+  }
   push @{$params->{fq}}, $this->buildHostFilter;
 
   while (my ($k, $v) = each %$params) {
@@ -1893,10 +1906,7 @@ sub iterate {
   my $offset = 0;
   my $limit = 100;
 
-  my @filter = ();
-  my $wikiUser = Foswiki::Func::getWikiName();
-  push @filter, " (access_granted:$wikiUser OR access_granted:all)"
-    unless Foswiki::Func::isAnAdmin($wikiUser);
+  my @filter = getACLFilters();
 
   do {
     my $response = $this->solrSearch(
@@ -1931,11 +1941,7 @@ sub iterate {
 sub iterateFacet {
   my ($this, $params) = @_;
 
-  my @filter = ();
-
-  my $wikiUser = Foswiki::Func::getWikiName();
-  push @filter, " (access_granted:$wikiUser OR access_granted:all)"
-    unless Foswiki::Func::isAnAdmin($wikiUser);
+  my @filter = getACLFilters();
 
   my $len = 0;
   my $offset = 0;
