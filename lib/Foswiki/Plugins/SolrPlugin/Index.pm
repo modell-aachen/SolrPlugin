@@ -37,6 +37,8 @@ use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
 use constant PROFILE => 0;  # toggle me
 
+use constant DELETEWEB => ' ';
+
 #use Time::HiRes (); # enable this too when profiling
 
 ##############################################################################
@@ -52,6 +54,7 @@ sub new {
 
   $this->{_AddQueue} = [];
   $this->{_DeleteQueue} = [];
+  $this->{_DeleteWebTopic} = {};
 
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
@@ -266,7 +269,7 @@ sub update {
 sub commitPendingWork {
     my ($this) = @_;
 
-    if((scalar @{$this->{_AddQueue}}) || (scalar @{$this->{_DeleteQueue}})) {
+    if((scalar @{$this->{_AddQueue}}) || (scalar @{$this->{_DeleteQueue}}) || (scalar keys %{$this->{_DeleteWebTopic}})) {
         $this->commit;
     }
 }
@@ -1172,14 +1175,25 @@ sub commit {
     return unless $this->{solr};
 
     if(VERBOSE) {
-        if(scalar @{$this->{_DeleteQueue}} || scalar @{$this->{_AddQueue}}) {
-            $this->log('Sending data');
+        if(scalar @{$this->{_DeleteQueue}} || scalar @{$this->{_AddQueue}} || (scalar keys %{$this->{_DeleteWebTopic}})) {
+            $this->log('Sending data', 1);
         }
+    }
+
+    foreach my $deleteWeb (keys %{$this->{_DeleteWebTopic}}) {
+        if($this->{_DeleteWebTopic}->{$deleteWeb}->{DELETEWEB}) {
+            push @{$this->{_DeleteQueue}}, "web:\"$deleteWeb\" AND -task_id_s:* AND -type:\"ua_user\" AND -type:\"ua_group\"";
+        } else {
+            my $topics = join(' OR ', map{"\"$_\""} keys %{$this->{_DeleteWebTopic}->{$deleteWeb}});
+            push @{$this->{_DeleteQueue}}, "web:\"$deleteWeb\" AND topic:($topics) AND -task_id_s:* AND -type:\"ua_user\" AND -type:\"ua_group\"";
+        }
+        delete $this->{_DeleteWebTopic}->{$deleteWeb};
     }
 
     if(scalar @{$this->{_DeleteQueue}}) {
         try {
             my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{_DeleteQueue}});
+            $combinedQuery = "($combinedQuery) AND " . $this->buildHostFilter();
             $this->{solr}->delete_by_query($combinedQuery);
         } catch Error::Simple with {
             my $e = shift;
@@ -1237,7 +1251,7 @@ sub newDocument {
 sub deleteTopic {
   my ($this, $web, $topic) = @_;
 
-  $this->deleteByQuery("web:\"$web\" topic:\"$topic\" -task_id_s:*");
+  $this->{_DeleteWebTopic}->{$web}->{$topic} = 1;
 }
 
 ################################################################################
@@ -1245,7 +1259,7 @@ sub deleteWeb {
   my ($this, $web) = @_;
 
   $web =~ s/\//./g;
-  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\"");
+  $this->{_DeleteWebTopic}->{$web}->{DELETEWEB} = 1;
 }
 
 ################################################################################
@@ -1256,9 +1270,7 @@ sub deleteByQuery {
 
   #$this->log("Deleting documents by query $query") if VERBOSE;
 
-  my $hostFilterQuery = "($query) " . $this->buildHostFilter;
-
-  push @{$this->{_DeleteQueue}}, $hostFilterQuery;
+  push @{$this->{_DeleteQueue}}, $query;
 }
 
 ################################################################################
