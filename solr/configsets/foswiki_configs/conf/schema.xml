@@ -49,27 +49,12 @@
     -->
 
     <!--
-      Default numeric field types. For faster range queries, consider the tint/tfloat/tlong/tdouble types.
+      Default numeric field types. For faster range queries.
     -->
-    <fieldType name="int" class="solr.TrieIntField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="float" class="solr.TrieFloatField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="double" class="solr.TrieDoubleField" precisionStep="0" omitNorms="true" positionIncrementGap="0"/>
-
-    <!--
-     Numeric field types that index each value at various levels of precision
-     to accelerate range queries when the number of values between the range
-     endpoints is large. See the javadoc for NumericRangeQuery for internal
-     implementation details.
-
-     Smaller precisionStep values (specified in bits) will lead to more tokens
-     indexed per value, slightly larger index size, and faster range queries.
-     A precisionStep of 0 disables indexing at different precision levels.
-    -->
-    <fieldType name="tint" class="solr.TrieIntField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="tfloat" class="solr.TrieFloatField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="tlong" class="solr.TrieLongField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
-    <fieldType name="tdouble" class="solr.TrieDoubleField" precisionStep="8" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="int" class="solr.IntPointField" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="float" class="solr.FloatPointField" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="long" class="solr.LongPointField" omitNorms="true" positionIncrementGap="0"/>
+    <fieldType name="double" class="solr.DoublePointField" omitNorms="true" positionIncrementGap="0"/>
 
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
          is a more restricted form of the canonical representation of dateTime
@@ -89,14 +74,8 @@
                   ... 6 months and 3 days in the future from the start of
                       the current day
 
-         Consult the TrieDateField javadocs for more information.
-
-         Note: For faster range queries, consider the tdate type
       -->
-    <fieldType name="date" class="solr.TrieDateField" omitNorms="true" precisionStep="0" positionIncrementGap="0"/>
-
-    <!-- A Trie based date field for faster date range queries and date faceting. -->
-    <fieldType name="tdate" class="solr.TrieDateField" omitNorms="true" precisionStep="6" positionIncrementGap="0"/>
+    <fieldType name="date" class="solr.DatePointField" omitNorms="true" positionIncrementGap="0"/>
 
 
     <!-- The "RandomSortField" is not used to store or search any
@@ -135,7 +114,7 @@
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="0"
           generateWordParts="1"
           generateNumberParts="1"
@@ -150,7 +129,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="0"
           generateWordParts="1"
           generateNumberParts="1"
@@ -160,7 +139,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
@@ -169,7 +148,7 @@
     <fieldType name="text_autocomplete" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -184,7 +163,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -204,7 +183,7 @@
       <analyzer type="index">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -220,7 +199,7 @@
       <analyzer type="query">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -230,7 +209,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
     </fieldType>
@@ -240,7 +219,7 @@
       <analyzer type="index">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -257,7 +236,7 @@
       <analyzer type="query">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1AccentModac.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -267,7 +246,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
@@ -277,7 +256,7 @@
     <fieldType name="text_substring" class="solr.TextField" indexed="true" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -294,7 +273,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -304,7 +283,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
@@ -339,7 +318,7 @@
     <fieldType name="text_rev" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -353,7 +332,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -362,7 +341,7 @@
           catenateAll="0"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
       </analyzer>
     </fieldType>
@@ -372,7 +351,7 @@
       <analyzer type="index">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -388,7 +367,7 @@
       <analyzer type="query">
         <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -398,7 +377,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
       </analyzer>
@@ -425,7 +404,7 @@
       <analyzer type="index">
         <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="/" replacement="."/>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -441,7 +420,7 @@
       <analyzer type="query">
         <charFilter class="solr.PatternReplaceCharFilterFactory" pattern="/" replacement="."/>
         <tokenizer class="solr.KeywordTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -452,14 +431,14 @@
         />
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords.txt" />
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
       </analyzer>
     </fieldType>
 
     <fieldtype name="phonetic" stored="false" indexed="true" class="solr.TextField" >
       <analyzer>
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -526,32 +505,19 @@
     <fieldType name="point" class="solr.PointType" dimension="2" subFieldSuffix="_d"/>
 
     <!-- A specialized field for geospatial search. If indexed, this fieldType must not be multivalued. -->
-    <fieldType name="location" class="solr.LatLonType" subFieldSuffix="_coordinate"/>
+    <fieldType name="location" class="solr.LatLonPointSpatialField" docValues="true"/>
 
     <!-- Spatial rectangle (bounding box) field. It supports most spatial predicates, and has
      special relevancy modes: score=overlapRatio|area|area2D (local-param to the query).  DocValues is recommended for
      relevancy. -->
     <fieldType name="bbox" class="solr.BBoxField"
                geo="true" distanceUnits="kilometers" numberType="_bbox_coord" />
-    <fieldType name="_bbox_coord" class="solr.TrieDoubleField" precisionStep="8" docValues="true" stored="false"/>
-
-   <!-- Money/currency field type. See http://wiki.apache.org/solr/MoneyFieldType
-        Parameters:
-          defaultCurrency: Specifies the default currency if none specified. Defaults to "USD"
-          precisionStep:   Specifies the precisionStep for the TrieLong field used for the amount
-          providerClass:   Lets you plug in other exchange provider backend:
-                           solr.FileExchangeRateProvider is the default and takes one parameter:
-                             currencyConfig: name of an xml file holding exchange rates
-                           solr.OpenExchangeRatesOrgProvider uses rates from openexchangerates.org:
-                             ratesFileLocation: URL or path to rates JSON file (default latest.json on the web)
-                             refreshInterval: Number of minutes between each rates fetch (default: 1440, min: 60)
-   -->
-    <fieldType name="currency" class="solr.CurrencyField" precisionStep="8" defaultCurrency="USD" currencyConfig="currency.xml" />
+    <fieldType name="_bbox_coord" class="solr.DoublePointField" docValues="true" stored="false"/>
 
     <fieldtype name="type" class="solr.TextField">
       <analyzer>
           <tokenizer class="solr.WhitespaceTokenizerFactory"/>
-          <filter class="solr.SynonymFilterFactory" synonyms="typemap.txt" ignoreCase="true" expand="false"/>
+          <filter class="solr.SynonymGraphFilterFactory" synonyms="typemap.txt" ignoreCase="true" expand="false"/>
       </analyzer>
     </fieldtype>
 
@@ -640,7 +606,7 @@
     <fieldType name="text_de" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -664,7 +630,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -674,7 +640,7 @@
           preserveOriginal="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_de.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
@@ -704,7 +670,7 @@
     <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -727,7 +693,7 @@
       </analyzer>
       <analyzer type="query">
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.WordDelimiterFilterFactory"
+        <filter class="solr.WordDelimiterGraphFilterFactory"
           splitOnCaseChange="1"
           generateWordParts="1"
           generateNumberParts="1"
@@ -738,7 +704,7 @@
           stemEnglishPossessive="1"
         />
         <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="lang/stopwords_en.txt" />
         <filter class="solr.RemoveDuplicatesTokenFilterFactory" />
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
@@ -1082,7 +1048,7 @@
    -->
    <field name="_root_" type="string" indexed="true" stored="false"/>
 
-   <field name="timestamp" type="tdate" default="NOW" multiValued="false"/>
+   <field name="timestamp" type="date" default="NOW" multiValued="false"/>
    <field name="spell" type="text_spell" stored="false" multiValued="true"/>
 
    <!-- foswiki schema -->
@@ -1140,11 +1106,11 @@
    <field name="author" type="string" />
    <field name="author_url" type="string" /> <!-- url -->
    <field name="contributor" type="string" multiValued="true" />
-   <field name="version" type="tint" />
+   <field name="version" type="int" />
    <field name="text" type="text_generic" stored="true" termVectors="true" termPositions="true" termOffsets="true" />
-   <field name="date" type="tdate" />
+   <field name="date" type="date" />
    <field name="createauthor" type="string" />
-   <field name="createdate" type="tdate" />
+   <field name="createdate" type="date" />
    <field name="catchall" type="text_generic" multiValued="true" stored="false" />
    <field name="catchall_autocomplete" type="text_autocomplete" multiValued="true" stored="false" />
    <field name="substrings" type="text_substring" multiValued="true" stored="false" />
@@ -1189,7 +1155,7 @@
    <field name="name" type="string" />
    <field name="name_lc" type="lowercase" />
    <field name="comment" type="text_generic" />
-   <field name="size" type="tint" />
+   <field name="size" type="int" />
 
    <!-- dynamicFields: these are used to cover formfield definitions
         a formfield is named using a field_ prefix to prevent a name
@@ -1207,14 +1173,14 @@
         list in Foswiki but will be split up and stored into the multiValued
         solr field field_ProjectMembers_lst each.
    -->
-   <dynamicField name="*_i"  type="tint"/>
+   <dynamicField name="*_i"  type="int"/>
    <dynamicField name="*_s"  type="string"/>
-   <dynamicField name="*_l"  type="tlong"/>
+   <dynamicField name="*_l"  type="long"/>
    <dynamicField name="*_t"  type="text_generic"/>
    <dynamicField name="*_b"  type="boolean"/>
-   <dynamicField name="*_f"  type="tfloat"/>
-   <dynamicField name="*_d"  type="tdouble"/>
-   <dynamicField name="*_dt" type="tdate"/>
+   <dynamicField name="*_f"  type="float"/>
+   <dynamicField name="*_d"  type="double"/>
+   <dynamicField name="*_dt" type="date"/>
    <dynamicField name="*_lst" type="string" multiValued="true" termVectors="true"/>
    <dynamicField name="*_json"  type="json"/>
 
@@ -1224,8 +1190,7 @@
    <dynamicField name="*_sort" type="text_sort" stored="false" />
 
    <!-- fields for specific applications -->
-   <dynamicField name="*_coordinate"  type="tdouble" indexed="true"  stored="false" />
-   <dynamicField name="*_currency"  type="currency" indexed="true"  stored="true" />
+   <dynamicField name="*_coordinate"  type="double" indexed="true"  stored="false" />
    <dynamicField name="*_bbox"  type="bbox" indexed="true"  stored="true" />
    <dynamicField name="*_point"  type="point" indexed="true"  stored="true" />
    <dynamicField name="*_location"  type="location" indexed="true"  stored="true" />
@@ -1278,10 +1243,10 @@
  <uniqueKey>id</uniqueKey>
 
  <!-- field for the QueryParser to use when an explicit fieldname is absent -->
- <defaultSearchField>catchall</defaultSearchField>
+ <!-- defaultSearchField>catchall</defaultSearchField -->
 
  <!-- SolrQueryParser configuration: defaultOperator="AND|OR" -->
- <solrQueryParser defaultOperator="AND"/>
+ <!-- solrQueryParser defaultOperator="AND"/ -->
 
   <!-- copyField commands copy one field to another at the time a document
         is added to the index.  It's used either to index the same field differently,
