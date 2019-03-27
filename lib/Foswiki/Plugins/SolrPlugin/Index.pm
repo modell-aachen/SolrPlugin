@@ -379,11 +379,6 @@ sub updateTopic {
 sub indexTopic {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  my %outgoingLinks = ();
-  my %outgoingWikiLinks = ();
-  my %outgoingAttachmentLinks = ();
-  my %outgoingAttachmentTopicLinks = ();
-
   my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
 
   # Normalize web name
@@ -416,19 +411,7 @@ sub indexTopic {
   my $parentTopic;
   if ($parent) {
     ($parentWeb, $parentTopic) = $this->normalizeWebTopicName($web, $parent);
-    $this->_addLink(\%outgoingLinks, $web, $topic, $parentWeb, $parentTopic);
   }
-
-  # get all outgoing links from topic text
-  my $outgoing = {
-    topic => \%outgoingWikiLinks,
-    topicred => {},
-    attachment => \%outgoingAttachmentLinks,
-    attachmentred => {},
-    attachmenttopic => \%outgoingAttachmentTopicLinks,
-  };
-  $this->extractOutgoingWikiLinks($web, $topic, $origText, $outgoing);
-  $this->extractOutgoingLinks($web, $topic, $origText, \%outgoingLinks);
 
   # all webs
   # get date
@@ -579,17 +562,6 @@ sub indexTopic {
             $mapped = $value unless defined $mapped;
           }
 
-          # extract outgoing links for formfield values
-          $this->extractOutgoingLinks($web, $topic, $value, \%outgoingLinks);
-          if($value =~ m#[./]#) {
-              my $webtopic = $value;
-              $webtopic =~ s#[?\#].*##;
-              my ($vweb, $vtopic) = Foswiki::Func::normalizeWebTopicName(undef, $webtopic);
-              if(Foswiki::Func::isValidWebName($vweb) && Foswiki::Func::isValidTopicName($vtopic, 1)) {
-                  $outgoingWikiLinks{$webtopic} = 1 if Foswiki::Func::topicExists($vweb, $vtopic);
-              }
-          }
-
           # bit of cleanup
           $mapped = $this->escapeHtml($mapped) if defined $mapped;
           $escaped = $this->escapeHtml($value) if defined $value;
@@ -656,35 +628,6 @@ sub indexTopic {
         }
       }
     }
-  }
-
-  # store all outgoing links collected so far
-  foreach my $link (keys %outgoingLinks) {
-    next if $link eq "$web.$topic";    # self link is not an outgoing link
-    $doc->add_fields(outgoing => $link);
-  }
-
-  # store all outgoing wiki links collected so far
-  foreach my $link (keys %outgoingWikiLinks) {
-    next if $link eq "$web.$topic";    # self link is not an outgoing link
-    $doc->add_fields(outgoingWiki_lst => $link);
-  }
-
-  # store all outgoing attachment links collected so far
-  foreach my $link (keys %outgoingAttachmentTopicLinks) {
-    $doc->add_fields(outgoingAttachmentTopic_lst => $link);
-  }
-
-  # store all outgoing attachment links collected so far
-  foreach my $link (keys %outgoingAttachmentLinks) {
-    $doc->add_fields(outgoingAttachment_lst => $link);
-  }
-
-  foreach my $link (keys %{$outgoing->{topicred}}) {
-    $doc->add_fields(outgoingWiki_broken_lst => $link);
-  }
-  foreach my $link (keys %{$outgoing->{attachmentred}}) {
-    $doc->add_fields(outgoingAttachment_broken_lst => $link);
   }
 
   # all prefs are of type _t
@@ -760,7 +703,7 @@ sub indexTopic {
         my @arr = split( '\.', $attachment->{name} );
         my $name = $arr[0];
         my $pattern = "%PROCESS\\{.*name=\"$name\".*\\}%";
-        if ( $origText !~ m/$pattern/ ) {
+        if ( $meta->text() !~ m/$pattern/ ) {
           next;
         }
       }
@@ -832,127 +775,6 @@ sub getContentLanguage {
   Foswiki::Func::popTopicContext() if $donePush;
 
   return $contentLanguage;
-}
-
-################################################################################
-sub extractOutgoingLinks {
-  my ($this, $web, $topic, $text, $outgoingLinks) = @_;
-
-  my $removed = {};
-
-  # normal wikiwords
-  # Must take care not to take out macros as well ... which is difficult.
-  # Checking for a leading % is not optimal, but should cover most cases.
-  $text = $this->takeOutBlocks($text, 'noautolink', $removed);
-  $text =~ s#(\%?)(?:($Foswiki::regex{webNameRegex})\.)?($Foswiki::regex{wikiWordRegex}|$Foswiki::regex{abbrevRegex})#($1)?$1 . ($2 || '') . ($3 || ''):($this->_addLink({topic => $outgoingLinks}, $web, $topic, $2, $3), '')#gexm;
-  $this->putBackBlocks(\$text, $removed, 'noautolink');
-
-  # square brackets
-  $text =~ s#\[\[([^\]\[\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
-  $text =~ s#\[\[([^\]\[\n]+)\]\[(?:[^\]\n]+)\]\]#$this->_addLink({topic => $outgoingLinks}, $web, $topic, undef, $1), ''#ge;
-}
-
-sub extractOutgoingWikiLinks {
-  my ($this, $web, $topic, $text, $outgoing) = @_;
-
-  my $pubUrlRegex = "(?:\%PUBURL\%|\%PUBURLPATH\%|$Foswiki::cfg{PubUrlPath})/";
-  my $pubBracketRegex = "$pubUrlRegex([^\]\[\n]+)/([^\]\[\n/]+)";
-
-  my $attachUrlRegex = "(?:\%ATTACHURL\%|\%ATTACHURLPATH\%)/";
-  my $attachBracketRegex = "$attachUrlRegex([^\]\[\n/]+)";
-
-  # square brackets
-  while ($text =~ m{\[\[  ([^\]\[\n]+) \]
-      (?: \[        # optional link title
-        ([^\]\n]+)
-      \])?
-      \]}gx) {
-    my $link = $1;
-    if ($link =~ /^$pubBracketRegex$/) {
-      $this->_addAttachmentLink($outgoing, $web, $topic, undef, $1, $2);
-    } elsif ($link =~ /^$attachBracketRegex$/) {
-      $this->_addAttachmentLink($outgoing, $web, $topic, undef, "$web.$topic", $1);
-    } else {
-      $this->_addLink($outgoing, $web, $topic, undef, $link);
-    }
-  }
-
-  # links, img tags, ...
-  while ($text =~ m#(?:src|href)=(["'])([^"']+)\1#g) {
-    my $link = $2;
-    if ($link =~ m#^$pubUrlRegex([^\n]+?)/([^\n/]+)$#) {
-      $this->_addAttachmentLink($outgoing, $web, $topic, undef, $1, $2);
-    } elsif ($link =~ m#^$attachUrlRegex([^\n/]+)$#) {
-      $this->_addAttachmentLink($outgoing, $web, $topic, undef, "$web.$topic", $1);
-    } else {
-      $this->_addLink($outgoing, $web, $topic, undef, $link);
-    }
-  }
-}
-
-sub _addAttachmentLink {
-  my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic, $attachment) = @_;
-
-  $topic = "$web.$topic" if $web;
-  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
-  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
-  return if $topic =~ /[\[\]<>{}#?\$! ]/;
-  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
-  $topic = $this->urlDecode($topic);
-
-  ($web, $topic) = $this->normalizeWebTopicName($baseWeb, $topic);
-  $web =~ s#/#.#g;
-  return if $web =~ /^\./;
-
-  $attachment =~ s/\?.*//;
-  $attachment =~ s/#.*//;
-  $attachment = $this->urlDecode($attachment);
-  return if $attachment =~ /[{}\$]/;
-
-  my $link = "$web.$topic/$attachment";
-
-  unless (Foswiki::Func::topicExists($web, $topic)) {
-    $outgoing->{attachmentred}{$link} = 1;
-    return;
-  }
-  unless (Foswiki::Func::attachmentExists($web, $topic, $attachment)) {
-    $outgoing->{attachmentred}{$link} = 1;
-    # TODO 'attachmenttopic'?
-    return;
-  }
-
-  $outgoing->{attachment}{$link} = 1;
-  $outgoing->{attachmenttopic}{"$web.$topic"} = 1;
-}
-
-sub _addLink {
-  my ($this, $outgoing, $baseWeb, $baseTopic, $web, $topic) = @_;
-
-  $topic =~ s/\%SCRIPTURL(?:PATH)?(?:\{"?view"?\})?\%\///g;
-  $topic =~ s/%(?:BASE)?WEB%/$baseWeb/g;
-  $topic =~ s/%(?:BASE)?TOPIC%/$baseTopic/g;
-  return if $topic =~ /[\[\]<>{}#?\$!: ]/ || $topic =~/^_\d+$/;
-  return if $topic =~ m#\%/#; # bail out: contains macros we do not understand eg. %ATTACHURL%/
-  $topic = $this->urlDecode($topic);
-
-  $topic = ucfirst($topic);
-  $topic =~ s/$Foswiki::cfg{NameFilter}+/ /g;
-
-  $web ||= $baseWeb;
-  ($web, $topic) = $this->normalizeWebTopicName($web, $topic);
-
-  $web =~ s#/#.#g;
-  return if $web =~ /^\./;
-
-  my $link = $web . "." . $topic;
-  return if $link =~ /^[A-Za-z-]+:/;    # don't index links with protocol prefixes
-
-  unless (Foswiki::Func::topicExists($web, $topic)) {
-    $outgoing->{topicred}{$link} = 1 if $outgoing->{topicred};
-    return;
-  }
-
-  $outgoing->{topic}{$link} = 1;
 }
 
 ################################################################################
