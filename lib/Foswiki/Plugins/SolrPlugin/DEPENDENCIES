@@ -1,5 +1,4 @@
 Foswiki::Contrib::InfiniteScrollContrib,>=1.0,perl,Optional
-Foswiki::Contrib::JQMomentContrib,>=1.0,perl,Required
 Foswiki::Contrib::JQPrettyPhotoContrib,>=1.0,perl,Required
 Foswiki::Contrib::JQSerialPagerContrib,>=1.0,perl,Required
 Foswiki::Contrib::JQTwistyContrib,>=1.0,perl,Required

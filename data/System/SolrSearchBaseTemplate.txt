@@ -2,7 +2,7 @@
 %META:TOPICPARENT{name="SolrPlugin"}%
 %{<verbatim class="tml">}%
 %{ ###########################################################################
-   template inheritance and general presets 
+   template inheritance and general presets
 }%
 %TMPL:INCLUDE{"view"}%
 %{</verbatim>}%
@@ -19,8 +19,8 @@
 %TMPL:DEF{"solr::dateformat"}%dddd, Do MMMM YYYY, HH:mm%TMPL:END%
 %TMPL:DEF{"solr::fields"}%%TMPL:END%
 %TMPL:DEF{"solr::extrafilter"}%%IF{
-  "defined 'SOLR_EXTRAFILTER'" 
-  then="%SOLR_EXTRAFILTER%" 
+  "defined 'SOLR_EXTRAFILTER'"
+  then="%SOLR_EXTRAFILTER%"
 }% %IF{
   "not $USERNAME ingroup 'AdminGroup'"
   then="-web_search:Applications"
@@ -54,10 +54,10 @@
    solr::assets - css and js to be added to the html head
 }%
 %TMPL:DEF{"solr::assets"}%<!-- -->
-%JQREQUIRE{"livequery,focus, serialpager, scrollto, prettyphoto, render, jqtwisty, moment, blockui, imagetooltip"}%<!-- -->
+%JQREQUIRE{"livequery,focus, serialpager, scrollto, prettyphoto, render, jqtwisty, blockui, imagetooltip"}%<!-- -->
 %ADDTOZONE{"script"
   id="SOLRPLUGIN::AJAX"
-  requires="JQUERYPLUGIN::LIVEQUERY, JQUERYPLUGIN::BLOCKUI, JQUERYPLUGIN::MOMENT"
+  requires="JQUERYPLUGIN::LIVEQUERY, JQUERYPLUGIN::BLOCKUI"
   text="<script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr.js'></script>
 <script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr-widgets.js'></script>
 <script type='text/javascript' src='%PUBURLPATH%/%SYSTEMWEB%/SolrPlugin/ajax-solr-init.js'></script>"
@@ -129,7 +129,7 @@
 %TMPL:P{"solr::templates::hits::comment"}%<!-- -->
 %TMPL:P{"solr::templates::hits::misc"}%<!-- -->
 %TMPL:P{"solr::templates::hits::ClassifiedTopic"}%<!-- -->
-<script id="solrHitTemplate" type="text/x-jsrender"> 
+<script id="solrHitTemplate" type="text/x-jsrender">
 {{include tmpl=~getTemplateName() /}}
 </script>%TMPL:END%
 %{</verbatim>}%
@@ -164,7 +164,7 @@
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
-    <div class='solrRevision'> 
+    <div class='solrRevision'>
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
@@ -186,7 +186,7 @@
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
-    <div class='solrRevision'> 
+    <div class='solrRevision'>
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
@@ -214,7 +214,7 @@
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
-    <div class='solrRevision'> 
+    <div class='solrRevision'>
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
     %CLEAR%
@@ -235,7 +235,7 @@
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
-    <div class='solrRevision'> 
+    <div class='solrRevision'>
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
@@ -258,14 +258,14 @@
     <div class='solrHilite'>
       {{:~getHilite(id)}}
     </div>
-    <div class='solrRevision'> 
+    <div class='solrRevision'>
       {{:~formatDate(date,'%TMPL:P{"solr::dateformat"}%')}}, {{>author}}
     </div>
   </div>
 </script>%TMPL:END%
 %{</verbatim>}%
 
-%TMPL:DEF{"solr::templates::facetfield"}%<script id="solrFacetFieldTemplate" type="text/x-jsrender"> 
+%TMPL:DEF{"solr::templates::facetfield"}%<script id="solrFacetFieldTemplate" type="text/x-jsrender">
   <div class="jqSerialPager" data-prev-text="%MAKETEXT{"prev"}%" data-next-text="%MAKETEXT{"next"}%" data-pagesize="10">
     <ul>
       {{for widget.facetCounts ~widget=widget}}
@@ -286,7 +286,7 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::templates::currentselection"}%<script id="solrCurrentSelectionTemplate" type="text/x-jsrender"> 
+%TMPL:DEF{"solr::templates::currentselection"}%<script id="solrCurrentSelectionTemplate" type="text/x-jsrender">
   <li>
     <table class='foswikiLayoutTable' width='100%'>
       <tr>
@@ -303,7 +303,7 @@
 %{</verbatim>}%
 
 %{<verbatim class="tml">}%
-%TMPL:DEF{"solr::templates::togglefacet"}%<script id="solrToggleFacetTemplate" type="text/x-jsrender"> 
+%TMPL:DEF{"solr::templates::togglefacet"}%<script id="solrToggleFacetTemplate" type="text/x-jsrender">
   <input type='checkbox' class='foswikiCheckbox' id='{{>id}}' />
   <label class='foswikiLabel' for='{{>id}}'>{{>title}}</label>
 </script>%TMPL:END%
@@ -336,7 +336,7 @@
     <a href='#' class='solrFacetValue' data-cat='cat_{{>id}}' data-value='{{>id}}'>{{>title}}</a>
   {{/if}}
 {{/for}}
-{{if ~getChildren().length >= 5}} 
+{{if ~getChildren().length >= 5}}
   <a href='#' class='solrFacetFalue cat_{{>id}}' data-value='{{>id}}'>...</a>
 {{/if}}
 </div>
@@ -422,7 +422,7 @@
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
-   solr::formstart - beginning of the solr::searchform. contains the starting form 
+   solr::formstart - beginning of the solr::searchform. contains the starting form
 }%
 %TMPL:DEF{"solr::formstart"}%<!-- -->
 <form name="searchform" class='solrSearchForm' id='solrSearchBox' data-instant-search='%TMPL:P{"solr::instantsearch"}%'>
@@ -432,7 +432,7 @@
 
 %{<verbatim class="tml">}%
 %{ ###########################################################################
-   solr::inputstep - this is a part of the solr::searchform defining the 
+   solr::inputstep - this is a part of the solr::searchform defining the
    actual input field, as well as some basic select and checkboxes
 }%
 %TMPL:DEF{"solr::inputstep"}%<!-- -->
@@ -485,10 +485,10 @@
   title="%MAKETEXT{"Web"}%"
   include="%TMPL:P{"solr::facet::include::web"}%"
   exclude="%TMPL:P{"solr::facet::exclude::web"}%"
-  multivalue="true" 
-  union="true" 
-  exclusion="true" 
-  sort="title" 
+  multivalue="true"
+  union="true"
+  exclusion="true"
+  sort="title"
   limit="-1"
 }%<!-- -->
 %TMPL:P{"solr::facet"
@@ -497,10 +497,10 @@
 }%
 %TMPL:P{"solr::facetquery"
   id="date"
-  exclusion="true" 
+  exclusion="true"
   title="%MAKETEXT{"Recent changes"}%"
   queries="[
-      { \"key\": \"%MAKETEXT{"1 hour"}%\", \"value\": \"date:[NOW-1HOUR TO NOW]\" }, 
+      { \"key\": \"%MAKETEXT{"1 hour"}%\", \"value\": \"date:[NOW-1HOUR TO NOW]\" },
       { \"key\": \"%MAKETEXT{"4 hours"}%\", \"value\": \"date:[NOW-4HOUR TO NOW]\" },
       { \"key\": \"%MAKETEXT{"today"}%\", \"value\": \"date:[NOW/DAY TO NOW]\" },
       { \"key\": \"%MAKETEXT{"2 days"}%\", \"value\": \"date:[NOW/DAY-1DAY TO NOW]\" },
@@ -542,7 +542,7 @@
 
    Parameters:
       * id - the field name of the facet, e.g. category, author
-      * title - the heading 
+      * title - the heading
       * multivalue - boolean
       * union - boolean
       * exclusion - boolean
@@ -602,9 +602,9 @@
 %{ ###########################################################################
    solr::facetquery - format a facet query
 
-   Parameters: 
+   Parameters:
       * id - the field name
-      * title - the heading 
+      * title - the heading
       * queries - json object of the form [ {"key":"some label", "value": "some query"}, ...]
       * multivalue - boolean
       * union - boolean
@@ -634,7 +634,7 @@
 
    Parameters:
       * id - the field name
-      * title - the heading 
+      * title - the heading
       * start - start of range
       * end - end of range
       * gap - increment from start to end
@@ -742,7 +742,7 @@
    solr::input::checkboxes - some convenience checkbox selections under the input field
 }%
 %TMPL:DEF{"solr::input::checkboxes"}%<div class='solrCheckboxContainer'>
-%IF{"'%TMPL:P{"solr::defaultweb"}%'='all'" 
+%IF{"'%TMPL:P{"solr::defaultweb"}%'='all'"
   then="$percntTMPL:P{\"solr::input::checkboxes::incurrentweb\"}$percnt"
   else="$percntTMPL:P{\"solr::input::checkboxes::inallwebs\"}$percnt"
 }%<!-- -->
