@@ -1,16 +1,16 @@
 package WebService::Solr::Response;
 
-use Any::Moose;
+use Moo;
 
+use Types::Standard qw(Object HashRef Maybe InstanceOf ArrayRef);
 use WebService::Solr::Document;
-## disabled too buggy
-#use Data::Page;
-#use Data::Pageset;
+use Data::Page;
+use Data::Pageset;
 use JSON::XS ();
 
 has 'raw_response' => (
     is      => 'ro',
-    isa     => 'Object',
+    isa     => Object,
     handles => {
         status_code    => 'code',
         status_message => 'message',
@@ -19,17 +19,23 @@ has 'raw_response' => (
     },
 );
 
-has 'content' => ( is => 'rw', isa => 'HashRef', lazy_build => 1 );
+has 'content' => ( is => 'lazy', isa => HashRef );
 
 has 'docs' =>
-    ( is => 'rw', isa => 'ArrayRef', auto_deref => 1, lazy_build => 1 );
+    ( is => 'lazy', isa => ArrayRef );
 
-#has 'pager' => ( is => 'rw', isa => 'Maybe[Data::Page]', lazy_build => 1 );
+around docs => sub {
+    my ($orig, $self, @args) = @_;
+    my $ret = $self->$orig(@args);
+    return wantarray ? @$ret : $ret;
+};
 
-#has '_pageset_slide' =>
-#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
-#has '_pageset_fixed' =>
-#    ( is => 'rw', isa => 'Maybe[Data::Pageset]', lazy_build => 1 );
+has 'pager' => ( is => 'lazy', isa => Maybe[InstanceOf['Data::Page']] );
+
+has '_pageset_slide' =>
+    ( is => 'rw', isa => Maybe[InstanceOf['Data::Pageset']], predicate => 1 );
+has '_pageset_fixed' =>
+    ( is => 'rw', isa => Maybe[InstanceOf['Data::Pageset']], predicate => 1 );
 
 sub BUILDARGS {
     my ( $self, $res ) = @_;
@@ -137,9 +143,7 @@ sub ok {
     return defined $status && $status == 0;
 }
 
-no Any::Moose;
-
-__PACKAGE__->meta->make_immutable;
+no Moo;
 
 1;
 
@@ -188,7 +192,7 @@ required.
 
 =head2 BUILDARGS( @args )
 
-A Moose override to allow our custom constructor.
+A Moo override to allow our custom constructor.
 
 =head2 facet_counts( )
 
@@ -214,7 +218,7 @@ Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2013 National Adult Literacy Database
+Copyright 2008-2016 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

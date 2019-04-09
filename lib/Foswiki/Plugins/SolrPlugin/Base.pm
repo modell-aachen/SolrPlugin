@@ -259,23 +259,18 @@ sub entityDecode {
 sub urlDecode {
   my ($this, $text) = @_;
 
-  my $decoded = $text =~ s/%([\da-fA-F]{2})/chr(hex($1))/ger;
+  my $unescaped = $text =~ s/%([\da-fA-F]{2})/chr(hex($1))/ger;
+  my $decoded;
 
-  if( $decoded ne $text && $Foswiki::UNICODE ) {
-    eval {
-        return Encode::decode_utf8( $decoded, Encode::FB_CROAK );
-    };
-    # try different other encodings
-    foreach my $encoding ( qw(Windows-1252 7bit-jis GB18030 euc-jp shiftjis) ) {
+  if( $unescaped ne $text ) {
+    foreach my $encoding ( qw(utf-8 Windows-1252 7bit-jis GB18030 euc-jp shiftjis) ) {
       eval {
-        return Encode::decode($encoding, $decoded, Encode::FB_CROAK);
+        $decoded = Encode::decode($encoding, $unescaped, Encode::FB_CROAK);
       };
+      last if defined $decoded;
     }
-    # still did not get it, giving up and escape it again, so at
-    # least we won't crash
-    return $text;
   }
-  return $decoded;
+  return (defined $decoded) ? $decoded : $text;
 }
 
 ###############################################################################
@@ -338,38 +333,6 @@ sub mapToIconFileName {
   return $pubUrlPath.'page_white_flash.png' if $type =~ /flv|swf/i;
 
   return $pubUrlPath.'page_white.png';
-}
-
-##############################################################################
-sub getTopicTitle {
-  my ($this, $web, $topic, $meta) = @_;
-
-  my $topicTitle = '';
-
-  unless ($meta) {
-    ($meta) = Foswiki::Func::readTopic($web, $topic);
-  }
-
-  my $field = $meta->get('FIELD', 'TopicTitle');
-  $topicTitle = $field->{value} if $field && $field->{value};
-
-  unless ($topicTitle) {
-    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
-    $topicTitle = $field->{value} if $field && $field->{value};
-  }
-
-  if (!defined($topicTitle) || $topicTitle eq '') {
-    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
-      $topicTitle = $web;
-    } else {
-      $topicTitle = $topic;
-    }
-  }
-
-  # bit of cleanup
-  $topicTitle =~ s/<!--.*?-->//g;
-
-  return $topicTitle;
 }
 
 ##############################################################################

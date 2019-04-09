@@ -12,6 +12,8 @@ sub new {
     die "name required"  unless defined $name;
     die "value required" unless defined $value;
 
+    filterInvalidChars(\$value);
+
     my $self = {
         name  => $name,
         value => $value,
@@ -19,6 +21,10 @@ sub new {
     };
 
     return bless $self, $class;
+}
+
+sub filterInvalidChars {
+    ${$_[ 0 ]} =~ s#[^\x09\x0a\x0d\x20-\x{d7ff}\x{e000}-\x{fffd}\x{10000}-\x{10ffff}]##g;
 }
 
 sub name {
@@ -29,7 +35,10 @@ sub name {
 
 sub value {
     my $self = shift;
-    $self->{ value } = $_[ 0 ] if @_;
+    if(@_) {
+        filterInvalidChars(${$_[ 0 ]});
+        $self->{ value } = $_[ 0 ];
+    }
     return $self->{ value };
 }
 
@@ -94,7 +103,7 @@ Creates a new field object. Currently, the only option available is a
 
 =head2 BUILDARGS( @args )
 
-A Moose override to allow our custom constructor.
+A Moo override to allow our custom constructor.
 
 =head2 to_element( )
 
@@ -112,7 +121,7 @@ Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2013 National Adult Literacy Database
+Copyright 2008-2016 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

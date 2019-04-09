@@ -37,6 +37,8 @@ use constant TRACE => 0;    # toggle me
 use constant VERBOSE => 1;  # toggle me
 use constant PROFILE => 0;  # toggle me
 
+use constant DELETEWEB => ' ';
+
 #use Time::HiRes (); # enable this too when profiling
 
 ##############################################################################
@@ -47,9 +49,12 @@ sub new {
 
   $this->{url} = $Foswiki::cfg{SolrPlugin}{UpdateUrl} || $Foswiki::cfg{SolrPlugin}{Url};
 
-  $this->{_addCount} = 0;
   $this->{_groupCache} = {};
   $this->{_webACLCache} = {};
+
+  $this->{_AddQueue} = [];
+  $this->{_DeleteQueue} = [];
+  $this->{_DeleteWebTopic} = {};
 
   throw Error::Simple("no solr url defined") unless defined $this->{url};
 
@@ -70,6 +75,8 @@ sub new {
 
   $this->{workArea} = Foswiki::Func::getWorkArea('SolrPlugin');
 
+  $this->{TopicTitleCache} = {};
+
   return $this;
 }
 
@@ -77,7 +84,6 @@ sub new {
 sub finish {
   my $this = shift;
 
-  undef $this->{_addCount};
   undef $this->{_knownUsers};
   undef $this->{_groupCache};
   undef $this->{_webACLCache};
@@ -97,7 +103,6 @@ sub index {
   # mode to run in parallel
 
   try {
-
     my $query = Foswiki::Func::getRequestObject();
     my $web = $query->param('web') || 'all';
     my $topic = $query->param('topic');
@@ -114,6 +119,7 @@ sub index {
       $this->updateTopic($web, $topic);
     } else {
 
+      local $this->{bulkoperation} = 1;
       $this->log("doing a web index in $mode mode") if TRACE;
       $this->update($web, $mode, $useScheduler, $gracetime, $skipScheduled);
     }
@@ -162,7 +168,7 @@ sub afterUploadHandler {
 
   my @aclFields = $this->getAclFields($web, $topic, $meta);
 
-  $this->indexAttachment($web, $topic, $attachment, \@aclFields);
+  $this->indexAttachment($web, $topic, $attachment, \@aclFields, $meta);
 }
 
 sub _filterMappedWebs {
@@ -235,7 +241,7 @@ sub update {
     if ($useScheduler) {
       next if Foswiki::Func::isTrue($skipAll);
       next if Foswiki::Func::isTrue($skip);
-      $schedule->{$web} = ($Foswiki::cfg{SolrPlugin}{DefaultSchedule} || 360) unless defined $schedule->{$web};
+      $schedule->{$web} = ($Foswiki::cfg{SolrPlugin}{DefaultScheduleTime} || 360) unless defined $schedule->{$web};
       my $itime = $schedule->{$web} * 60 + $midnight;
       next unless $itime > $now - $gracetime && $itime < $now + $gracetime;
     } elsif ($skipScheduled) {
@@ -257,6 +263,15 @@ sub update {
 
     last if $this->{_trappedSignal};
   }
+  $this->commitPendingWork();
+}
+
+sub commitPendingWork {
+    my ($this) = @_;
+
+    if((scalar @{$this->{_AddQueue}}) || (scalar @{$this->{_DeleteQueue}}) || (scalar keys %{$this->{_DeleteWebTopic}})) {
+        $this->commit;
+    }
 }
 
 sub _updateAllTopicsAndRemoveOldEntriesOf {
@@ -271,10 +286,13 @@ sub _updateAllTopicsAndRemoveOldEntriesOf {
     last if $this->{_trappedSignal};
   }
 
-  if (defined $timestamp) {
+  if (defined $timestamp && !$this->{_trappedSignal}) {
+      $this->commitPendingWork();
+      $this->log("Deleting old data");
       $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\""
           . " timestamp:[* TO $timestamp]");
   }
+  $this->commitPendingWork();
 }
 
 sub _getLatestSolrTimestamp {
@@ -762,7 +780,7 @@ sub indexTopic {
       }
 
       # then index each of them
-      $this->indexAttachment($web, $topic, $attachment, \@aclFields);
+      $this->indexAttachment($web, $topic, $attachment, \@aclFields, $meta);
     }
 
     # take the first image attachment when no thumbnail was specified explicitly
@@ -891,6 +909,7 @@ sub _addAttachmentLink {
 
   $attachment =~ s/\?.*//;
   $attachment =~ s/#.*//;
+  $attachment = $this->urlDecode($attachment);
   return if $attachment =~ /[{}\$]/;
 
   my $link = "$web.$topic/$attachment";
@@ -942,7 +961,7 @@ sub _addLink {
 ################################################################################
 # add the given attachment to the index.
 sub indexAttachment {
-  my ($this, $web, $topic, $attachment, $commonFields) = @_;
+  my ($this, $web, $topic, $attachment, $commonFields, $meta) = @_;
 
   #my $t0 = [Time::HiRes::gettimeofday] if PROFILE;
 
@@ -1027,7 +1046,7 @@ sub indexAttachment {
     push @webCats, join(".", @prefix);
   }
 
-  my $container_title = $this->getTopicTitle($web, $topic);
+  my $container_title = $this->getTopicTitle($web, $topic, $meta);
 
   # TODO: what about createdate and createauthor for attachments
   $doc->add_fields(
@@ -1116,10 +1135,11 @@ sub add {
   }
 
   return unless $this->{solr};
-  my $res = $this->{solr}->add($doc);
 
-  if (++($this->{_addCount}) >= 100) {
-    $this->{_addCount} = 0;
+  my $res;
+  push @{$this->{_AddQueue}}, $doc;
+
+  if (scalar @{$this->{_AddQueue}} >= 100) {
     $this->commit;
   }
 
@@ -1150,28 +1170,73 @@ sub optimize {
 
 ################################################################################
 sub commit {
-  my ($this, $hard) = @_;
+    my ($this, $hard) = @_;
 
-  return unless $this->{solr};
+    return unless $this->{solr};
 
-  $this->log("Committing index") if VERBOSE;
-  $this->{solr}->commit({
-      waitSearcher => "true",
-      softCommit => $hard ? "false" : "true",
-  });
-
-  # invalidate page cache for all search interfaces
-  if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
-    my @webs = Foswiki::Func::getListOfWebs("user, public");
-    foreach my $web (@webs) {
-      next if $web eq $Foswiki::cfg{TrashWebName};
-
-      #$this->log("firing dependencies in $web");
-      $this->{session}->{cache}->fireDependency($web, "WebSearch");
-
-      # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
+    if(VERBOSE) {
+        if(scalar @{$this->{_DeleteQueue}} || scalar @{$this->{_AddQueue}} || (scalar keys %{$this->{_DeleteWebTopic}})) {
+            $this->log('Sending data', 1);
+        }
     }
-  }
+
+    foreach my $deleteWeb (keys %{$this->{_DeleteWebTopic}}) {
+        if($this->{_DeleteWebTopic}->{$deleteWeb}->{DELETEWEB}) {
+            push @{$this->{_DeleteQueue}}, "web:\"$deleteWeb\" AND -task_id_s:* AND -type:\"ua_user\" AND -type:\"ua_group\"";
+        } else {
+            my $topics = join(' OR ', map{"\"$_\""} keys %{$this->{_DeleteWebTopic}->{$deleteWeb}});
+            push @{$this->{_DeleteQueue}}, "web:\"$deleteWeb\" AND topic:($topics) AND -task_id_s:* AND -type:\"ua_user\" AND -type:\"ua_group\"";
+        }
+        delete $this->{_DeleteWebTopic}->{$deleteWeb};
+    }
+
+    if(scalar @{$this->{_DeleteQueue}}) {
+        try {
+            my $combinedQuery = join(' OR ', map{"( $_ )"} @{$this->{_DeleteQueue}});
+            $combinedQuery = "($combinedQuery) AND " . $this->buildHostFilter();
+            $this->{solr}->delete_by_query($combinedQuery);
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+        $this->{_DeleteQueue} = [];
+    }
+
+    if(scalar @{$this->{_AddQueue}}) {
+        try {
+            $this->{solr}->add($this->{_AddQueue});
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+        $this->{_AddQueue} = [];
+    }
+
+    unless($this->{bulkoperation}) {
+        try {
+            $this->log("Committing index") if VERBOSE;
+            $this->{solr}->commit({
+                waitSearcher => "true",
+                softCommit => $hard ? "false" : "true",
+            });
+        } catch Error::Simple with {
+            my $e = shift;
+            $this->log("ERROR: " . $e->{-text});
+        };
+    }
+
+    # invalidate page cache for all search interfaces
+    if ($Foswiki::cfg{Cache}{Enabled} && $this->{session}{cache}) {
+        my @webs = Foswiki::Func::getListOfWebs("user, public");
+        foreach my $web (@webs) {
+            next if $web eq $Foswiki::cfg{TrashWebName};
+
+            #$this->log("firing dependencies in $web");
+            $this->{session}->{cache}->fireDependency($web, "WebSearch");
+
+            # SMELL: should record all topics a SOLRSEARCH is on, outside of a dirtyarea
+        }
+    }
 }
 
 ################################################################################
@@ -1186,7 +1251,7 @@ sub newDocument {
 sub deleteTopic {
   my ($this, $web, $topic) = @_;
 
-  $this->deleteByQuery("web:\"$web\" topic:\"$topic\" -task_id_s:*");
+  $this->{_DeleteWebTopic}->{$web}->{$topic} = 1;
 }
 
 ################################################################################
@@ -1194,7 +1259,7 @@ sub deleteWeb {
   my ($this, $web) = @_;
 
   $web =~ s/\//./g;
-  $this->deleteByQuery("web:\"$web\" -task_id_s:* -type:\"ua_user\" -type:\"ua_group\"");
+  $this->{_DeleteWebTopic}->{$web}->{DELETEWEB} = 1;
 }
 
 ################################################################################
@@ -1205,18 +1270,7 @@ sub deleteByQuery {
 
   #$this->log("Deleting documents by query $query") if VERBOSE;
 
-  my $success;
-  try {
-    $success = $this->{solr}->delete_by_query("($query) ".
-      $this->buildHostFilter
-    );
-  }
-  catch Error::Simple with {
-    my $e = shift;
-    $this->log("ERROR: " . $e->{-text});
-  };
-
-  return $success;
+  push @{$this->{_DeleteQueue}}, $query;
 }
 
 ################################################################################
@@ -1383,13 +1437,15 @@ sub getContributors {
 
   # get most recent
   my (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, $maxRev, $attachment, $maxRev);
-  my $mostRecent = getWikiName($user);
-  return ($mostRecent) if $Foswiki::cfg{SolrPlugin}{SimpleContributors};
-  $contributors{$mostRecent} = 1;
+  my $mostRecent = $user || $Foswiki::Users::BaseUserMapping::UNKNOWN_USER_CUID;
 
   # get creator
   (undef, $user, $rev) = $this->getRevisionInfo($web, $topic, 1, $attachment, $maxRev);
-  my $creator = getWikiName($user);
+  my $creator = $user || $Foswiki::Users::BaseUserMapping::UNKNOWN_USER_CUID;
+
+  return ($mostRecent, $creator) if $Foswiki::cfg{SolrPlugin}{SimpleContributors};
+  $contributors{$mostRecent} = 1;
+
   $contributors{$creator} = 1;
 
   # only take the top 10; extracting revinfo takes too long otherwise :(
@@ -1437,185 +1493,92 @@ sub getRevisionInfo {
 }
 
 ################################################################################
-# returns the list of users granted view access, or "all" if all users have got view access
-sub getGrantedUsers {
+# returns the list of users granted view access (or "all" if all users have got view access) and a list of denied users
+sub getGrantedDeniedUsers {
   my ($this, $web, $topic, $meta, $text) = @_;
 
-  my %grantedUsers;
-  my $forbiddenUsers;
+    my ($allowList, $denyList);
+    my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
 
-  my $allow = $this->getACL($meta, 'ALLOWTOPICVIEW');
-  my $deny = $this->getACL($meta, 'DENYTOPICVIEW');
-
-  if (TRACE) {
-    $this->log("topicAllow=@$allow") if defined $allow;
-    $this->log("topicDeny=@$deny") if defined $deny;
-  }
-
-  my $isDeprecatedEmptyDeny =
-    !defined($Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny}) || $Foswiki::cfg{AccessControlACL}{EnableDeprecatedEmptyDeny};
-
-  # Check DENYTOPIC
-  if (defined $deny) {
-    if (scalar(@$deny)) {
-      $forbiddenUsers = $this->expandUserList(@$deny);
-    } else {
-
-      if ($isDeprecatedEmptyDeny) {
-        $this->log("empty deny -> grant all access") if TRACE;
-
-        # Empty deny
-        return ['all'];
-      } else {
-        $deny = undef;
-      }
-    }
-  }
-  $this->log("(1) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
-
-  # Check ALLOWTOPIC
-  if (defined($allow)) {
-    if (scalar(@$allow)) {
-
-      if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$allow) {
-        $this->log("access * -> grant all access") if TRACE;
-
-        if($forbiddenUsers) {
-            my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
-            my $allUsers = [];
-            my $iterator = Foswiki::Func::eachUser();
-            while($iterator->hasNext()) {
-                my $next = $iterator->next();
-                push(@$allUsers, $next) unless($forbiddenHash{$next});
-            }
-            return $allUsers;
-        } else {
-            # Empty deny
-            return ['all'];
+    $allowList = _getACL( $meta, 'ALLOWTOPICVIEW' );
+    $denyList  = _getACL( $meta, 'DENYTOPICVIEW' );
+    while (not defined $allowList) {
+        unless(exists $this->{aclWebCache}->{$web . ' allow'}) {
+            ($meta) = Foswiki::Func::readTopic($web, undef);
+            $this->{aclWebCache}->{$web . ' allow'} = _getACL( $meta, 'ALLOWWEBVIEW' );
+            $this->{aclWebCache}->{$web . ' deny'} = _getACL( $meta, 'DENYWEBVIEW' );
         }
-      } else {
-
-        $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$allow)};
-
-        if (defined $forbiddenUsers) {
-          delete $grantedUsers{$_} foreach @$forbiddenUsers;
+        $allowList = $this->{aclWebCache}->{$web . ' allow'};
+        my $webDenyList = $this->{aclWebCache}->{$web . ' deny'};
+        if($webDenyList) {
+            $denyList ||= [];
+            push @$denyList, @$webDenyList;
         }
-        my @grantedUsers = keys %grantedUsers;
-
-        $this->log("(1) granting access for @grantedUsers") if TRACE;
-
-        # A non-empty ALLOW is final
-        return \@grantedUsers;
-      }
+        last unless $web =~ s#(.*)[./].*#$1#;
     }
-  }
-
-  # use cache if possible (no topic-level perms set)
-  if (!defined($deny) && exists $this->{_webACLCache}{$web}) {
-    #$this->log("found in acl cache ".join(", ", sort @{$this->{_webACLCache}{$web}})) if TRACE;
-    return $this->{_webACLCache}{$web};
-  }
-
-  my $webMeta = $meta->getContainer;
-  my $webAllow = $this->getACL($webMeta, 'ALLOWWEBVIEW');
-  my $webDeny = $this->getACL($webMeta, 'DENYWEBVIEW');
-
-  if (TRACE) {
-    $this->log("webAllow=@$webAllow") if defined $webAllow;
-    $this->log("webDeny=@$webDeny") if defined $webDeny;
-  }
-
-  # Check DENYWEB, but only if DENYTOPIC is not set
-  if (!defined($deny) && defined($webDeny) && scalar(@$webDeny)) {
-    push @{$forbiddenUsers}, @{$this->expandUserList(@$webDeny)};
-  }
-  $this->log("(2) forbiddenUsers=@$forbiddenUsers") if TRACE && defined $forbiddenUsers;
-
-  if (defined($webAllow) && scalar(@$webAllow)) {
-    if (!$isDeprecatedEmptyDeny && grep {/^\*$/} @$webAllow) {
-      $this->log("access * -> grant all access") if TRACE;
-
-      if($forbiddenUsers) {
-        my %forbiddenHash = map{$_ => 1} @$forbiddenUsers;
-        my $allowedUsers = [];
-        my $iterator = Foswiki::Func::eachUser();
-        while($iterator->hasNext()) {
-          my $next = $iterator->next();
-          push(@$allowedUsers, $next) unless($forbiddenHash{$next});
+    if (not defined $allowList) {
+        unless(exists $this->{aclWebCache}->{'site allow'}) {
+            my ($sw, $st) = Foswiki::Func::normalizeWebTopicName(undef, $Foswiki::cfg{LocalSitePreferences});
+            ($meta) = Foswiki::Func::readTopic($sw, $st);
+            $this->{aclWebCache}->{'site allow'} = _getACL( $meta, 'ALLOWROOTVIEW' );
+            $this->{aclWebCache}->{'site deny'} = _getACL( $meta, 'DENYROOTVIEW' );
         }
-        return $allowedUsers;
-      } else {
-        # Empty deny
-        return ['all'];
-      }
-    } else {
-      $grantedUsers{$_} = 1 foreach grep {!/^UnknownUser/} @{$this->expandUserList(@$webAllow)};
+        $allowList = $this->{aclWebCache}->{'site allow'};
+        my $rootDenyList = $this->{aclWebCache}->{'site deny'};
+        if($rootDenyList) {
+            $denyList ||= [];
+            push @$denyList, @$rootDenyList;
+        }
     }
-  } elsif (!defined($deny) && !defined($webDeny)) {
+    if (not defined $allowList) {
+        $allowList = ['all'];
+    }
 
-    #$this->log("no denies, no allows -> grant all access") if TRACE;
+    # make sure they exist and filter duplicates
+    sub unique {
+        my @data = @{shift || []};
+        my %hash = map { $_ => 1 } @data;
+        my @keys = keys %hash;
+        return \@keys;
+    };
+    $allowList = unique($allowList);
+    $denyList = unique($denyList);
 
-    # No denies, no allows -> open door policy
-    $this->{_webACLCache}{$web} = ['all'];
-    return ['all'];
-
-  } else {
-    %grantedUsers = %{$this->getListOfUsers()};
-  }
-
-  if (defined $forbiddenUsers) {
-    delete $grantedUsers{$_} foreach @$forbiddenUsers;
-  }
-
-  # get list of users granted access that actually still exist
-  foreach my $user (keys %grantedUsers) {
-    $grantedUsers{$user}++ if defined $this->isKnownUser($user);
-  }
-
-  my @grantedUsers = ();
-  foreach my $user (keys %grantedUsers) {
-    push @grantedUsers, $user if $grantedUsers{$user} > 1;
-  }
-
-  #$this->log("grantedUsers=@grantedUsers");
-
-  $this->log("nr granted users=".scalar(@grantedUsers).", nr known users=".$this->nrKnownUsers) if TRACE;
-  @grantedUsers = ('all') if scalar(@grantedUsers) == $this->nrKnownUsers;
-
-  # can't cache when there are topic-level perms
-  $this->{_webACLCache}{$web} = \@grantedUsers unless defined($deny);
-
-  $this->log("(2) granting access for ".scalar(@grantedUsers)." users") if TRACE;
-
-  return \@grantedUsers;
+    return ($allowList, $denyList);
 }
 
-################################################################################
-# SMELL: coppied from core; only works with topic-based ACLs
-sub getACL {
-  my ($this, $meta, $mode) = @_;
+sub _getACL {
+    my ( $meta, $mode ) = @_;
 
-  if (defined $meta->{_topic} && !defined $meta->{_loadedRev}) {
-    # Lazy load the latest version.
-    $meta->loadVersion();
-  }
+    if ( defined $meta->topic && !defined $meta->getLoadedRev ) {
+        # Lazy load the latest version.
+        $meta->loadVersion();
+    }
 
-  my $text = $meta->getPreference($mode);
-  return unless defined $text;
+    my $text = $meta->getPreference($mode);
+    return undef unless defined $text;
 
-  # Remove HTML tags (compatibility, inherited from Users.pm
-  $text =~ s/(<[^>]*>)//g;
+    # Remove HTML tags (compatibility, inherited from Users.pm
+    $text =~ s/(<[^>]*>)//g;
 
-  # Dump the users web specifier if userweb
-  my @list = grep { /\S/ } map {
-    s/^($Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
-    $_
-  } split(/[,\s]+/, $text);
+    # Dump the users web specifier if userweb
+    # Convert to cUIDs
+    my $mapping = $Foswiki::Plugins::SESSION->{users}->{mapping};
+    my @list = grep { /\S/ } map {
+        my $item = $_;
+        $item =~ s/^(?:$Foswiki::cfg{UsersWebName}|%USERSWEB%|%MAINWEB%)\.//;
+        if($item eq '*') {
+            $item = 'all';
+        } elsif($item && $mapping->can('loginOrGroup2cUID')) {
+            $item = $mapping->loginOrGroup2cUID($item) || $item; # Note: $item must not become empty (eg. unknown group), or this might be treated as an unset list
+        }
+        $item
+    } split( /[,\s]+/, $text );
 
-  #print STDERR "getACL($mode): ".join(', ', @list)."\n";
-
-  return \@list;
+    return undef unless scalar @list; # empty counts as 'not set'
+    return \@list;
 }
+
 
 ################################################################################
 sub expandUserList {
@@ -1667,9 +1630,8 @@ sub _expandGroup {
 sub getAclFields {
   my $this = shift;
 
-  my $grantedUsers = $this->getGrantedUsers(@_);
-  return () unless $grantedUsers;
-  return ('access_granted' => $grantedUsers);
+  my ($grantedUsers, $deniedUsers) = $this->getGrantedDeniedUsers(@_);
+  return ('access_granted' => $grantedUsers, 'access_denied' => $deniedUsers);
 }
 
 ################################################################################
@@ -1684,6 +1646,41 @@ sub webACLsCache {
     my $this = shift;
     $this->{_webACLCache} = shift if @_;
     $this->{_webACLCache};
+}
+
+##############################################################################
+sub getTopicTitle {
+  my ($this, $web, $topic, $meta) = @_;
+
+  return $this->{TopicTitleCache}{$web}{$topic} if exists $this->{TopicTitleCache}{$web}{$topic};
+
+  my $topicTitle = '';
+
+  unless ($meta) {
+    ($meta) = Foswiki::Func::readTopic($web, $topic);
+  }
+
+  my $field = $meta->get('FIELD', 'TopicTitle');
+  $topicTitle = $field->{value} if $field && $field->{value};
+
+  unless ($topicTitle) {
+    $field = $meta->get('PREFERENCE', 'TOPICTITLE');
+    $topicTitle = $field->{value} if $field && $field->{value};
+  }
+
+  if (!defined($topicTitle) || $topicTitle eq '') {
+    if ($topic eq $Foswiki::cfg{HomeTopicName}) {
+      $topicTitle = $web;
+    } else {
+      $topicTitle = $topic;
+    }
+  }
+
+  # bit of cleanup
+  $topicTitle =~ s/<!--.*?-->//g;
+
+  $this->{TopicTitleCache}{$web}{$topic} = $topicTitle;
+  return $topicTitle;
 }
 
 1;

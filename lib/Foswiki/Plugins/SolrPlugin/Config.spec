@@ -15,8 +15,8 @@ $Foswiki::cfg{SolrPlugin}{WikiHost} = 'foswiki';
 # Mapping of web names to primary host for each web.
 # This allows you to index symlinked webs in only one host, and reuse that
 # part of the index for all of the other hosts, saving indexing time.
-# Subweb names should contain dots rather than slashes, as in most parts of
-# SolrPlugin.
+# Subwebs musst be given twice. Once with slashes and once with dots. E.g.
+# 'System.Manuals', 'System/Manuals'.
 # At present, if one of the webs configured here uses access restrictions, the
 # set of permitted users must be identical in all of the wikis. Specifically,
 # restricting access to logged in users only works if the set of users is the

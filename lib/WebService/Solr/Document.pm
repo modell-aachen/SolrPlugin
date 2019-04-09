@@ -33,6 +33,40 @@ sub add_fields {
     $self->fields( [ $self->fields, _parse_fields( @fields ) ] );
 }
 
+# Changes the FIRST occurrence of $name in the document.
+# Currently not so useful for multivalued fields, here we would need something
+# like $doc->chage_value($name, $value, $filter)
+sub change_or_add_value {
+    my ($self, $name, $value) = @_;
+
+    foreach my $field ($self->fields()) {
+        if ( $field->name eq $name ) {
+            return $field->value($value);
+        }
+    }
+
+    return $self->add_fields(
+        $name => $value,
+    );
+}
+
+sub change_or_add_all_values {
+    my ($self, $name, $value) = @_;
+
+    my @reducedFields = grep { $_->{name} ne $name } @{$self->{ fields }};
+    $self->{ fields } = \@reducedFields;
+
+    return $self->add_fields(
+        $name => $value,
+    ) if defined $value;
+}
+
+sub get_value {
+    my ($self, $name) = @_;
+
+    return map{ $_->{value} } grep { $_->name eq $name } $self->fields();
+}
+
 sub _parse_fields {
     my @fields = @_;
     my @new_fields;
@@ -172,7 +206,7 @@ Kirk Beers
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2008-2013 National Adult Literacy Database
+Copyright 2008-2016 National Adult Literacy Database
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
