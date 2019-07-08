@@ -448,9 +448,9 @@ sub maintenanceHandler {
                     # Unknown versions
                     # We do not know this schema (probably customized). 
                     if( $data !~ m#name="catchall_autocomplete"# ) {
-                        $badSchemas{$schema} = "This schema seems to be outdated (no =catchall_autocomplete=) *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                        $badSchemas{$schema} = "This schema seems to be outdated (no =catchall_autocomplete=) *%RED{encode=\"none\"}%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR{encode=\"none\"}%*."
                     } elsif ( $data !~ m#<dynamicField name="\*_msearch"# ) {
-                        $badSchemas{$schema} = "This schema seems to be outdated (no =*_msearch=)  *%RED%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR%*."
+                        $badSchemas{$schema} = "This schema seems to be outdated (no =*_msearch=)  *%RED{encode=\"none\"}%ATTENTION: THIS SCHEMA MIGHT HAVE BEEN CUSTOMIZED%ENDCOLOR{encode=\"none\"}%*."
                     } else {
                         $badSchemas{$schema} = "The schema is unknown, and should be reviewed and updated using the file =solr/configsets/foswiki_configs/conf/schema.xml= from the foswiki directory. Checksum: =$hash=.";
                     }

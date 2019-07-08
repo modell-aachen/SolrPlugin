@@ -1,7 +1,7 @@
 %TMPL:INCLUDE{"viewtopbar"}%
 %TMPL:DEF{"topbar"}%<div id="patternTopBar"><div id="patternTopBarContentsWrapper"><div id="patternTopBarContents">
 <table border="0" cellpadding="0" cellspacing="0" style="width:100%" summary="">
-  <tr><td><span id="foswikiLogo" class="foswikiImage"><a href="%WEBLOGOURL%"><img src="%WEBLOGOIMG%" border="0" alt="%WEBLOGOALT%" style="border:none;" /></a></span></td>
+  <tr><td><span id="foswikiLogo" class="foswikiImage"><a href="%WEBLOGOURL{encode="none"}%"><img src="%WEBLOGOIMG{encode="none"}%" border="0" alt="%WEBLOGOALT{encode="none"}%" style="border:none;" /></a></span></td>
   <td align="right" class="patternMetaMenu">
     <div class="natSearchBox foswikiHideOnPrint solrSearchBox jqUITooltip" data-theme="info" data-arrow="on" data-position="left">
       <form name="searchbox" id="searchbox" class="natSearchForm" action="%SCRIPTURLPATH{"view"}%/%BASEWEB%/WebSearch" >

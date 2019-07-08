@@ -36,8 +36,8 @@ sub name {
 sub value {
     my $self = shift;
     if(@_) {
-        filterInvalidChars(${$_[ 0 ]});
         $self->{ value } = $_[ 0 ];
+        filterInvalidChars(\{$self->{value}});
     }
     return $self->{ value };
 }
